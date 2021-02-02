@@ -1,0 +1,275 @@
+<?xml version="1.0" encoding="utf-8"?>
+<search>
+  <entry>
+    <title>Hello World</title>
+    <url>/2021/02/02/hello-world/</url>
+    <content><![CDATA[<p>Welcome to <a href="https://hexo.io/">Hexo</a>! This is your very first post. Check <a href="https://hexo.io/docs/">documentation</a> for more info. If you get any problems when using Hexo, you can find the answer in <a href="https://hexo.io/docs/troubleshooting.html">troubleshooting</a> or you can ask me on <a href="https://github.com/hexojs/hexo/issues">GitHub</a>.</p>
+<h2 id="Quick-Start"><a href="#Quick-Start" class="headerlink" title="Quick Start"></a>Quick Start</h2><h3 id="Create-a-new-post"><a href="#Create-a-new-post" class="headerlink" title="Create a new post"></a>Create a new post</h3><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">$ hexo new <span class="string">&quot;My New Post&quot;</span></span><br></pre></td></tr></table></figure>
+<p>More info: <a href="https://hexo.io/docs/writing.html">Writing</a></p>
+<h3 id="Run-server"><a href="#Run-server" class="headerlink" title="Run server"></a>Run server</h3><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">$ hexo server</span><br></pre></td></tr></table></figure>
+<p>More info: <a href="https://hexo.io/docs/server.html">Server</a></p>
+<h3 id="Generate-static-files"><a href="#Generate-static-files" class="headerlink" title="Generate static files"></a>Generate static files</h3><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">$ hexo generate</span><br></pre></td></tr></table></figure>
+<p>More info: <a href="https://hexo.io/docs/generating.html">Generating</a></p>
+<h3 id="Deploy-to-remote-sites"><a href="#Deploy-to-remote-sites" class="headerlink" title="Deploy to remote sites"></a>Deploy to remote sites</h3><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">$ hexo deploy</span><br></pre></td></tr></table></figure>
+<p>More info: <a href="https://hexo.io/docs/one-command-deployment.html">Deployment</a></p>
+]]></content>
+  </entry>
+  <entry>
+    <title>WorkManager基本使用及源码分析(一)</title>
+    <url>/2021/02/02/WorkManager%E5%9F%BA%E6%9C%AC%E4%BD%BF%E7%94%A8%E5%8F%8A%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90(%E4%B8%80)/</url>
+    <content><![CDATA[<h2 id="目录"><a href="#目录" class="headerlink" title="目录"></a>目录</h2><ul>
+<li><a href="#zero">ZERO</a></li>
+<li><a href="#part_use">1. 使用篇</a><ul>
+<li><a href="#dependencies">1.1 声明依赖项</a></li>
+<li><a href="#how_to_use">1.2 该如何使用？</a></li>
+<li><a href="#task_type">1.3 WorkRequest类型</a></li>
+<li><a href="#general_operation">1.4 一般操作</a><ul>
+<li><a href="#task_listener">1.4.1 任务监听</a></li>
+<li><a href="#transfer_data">1.4.2 传递数据</a></li>
+<li><a href="#multiple_ask">1.4.3 多任务串联</a></li>
+<li><a href="#UniqueWork">1.4.4 唯一任务</a></li>
+<li><a href="#task_onstraint">1.4.5 任务约束</a></li>
+<li><a href="#task_delay">1.4.6 任务延时</a></li>
+<li><a href="#retry_rollback">1.4.7 重试和退避政策</a></li>
+<li><a href="#work_tag">1.4.8 标记工作</a></li>
+<li><a href="#work_cancel">1.4.9 取消工作</a></li>
+</ul>
+</li>
+<li><a href="#attention">1.5 注意事项</a></li>
+</ul>
+</li>
+</ul>
+<hr>
+<h3 id="ZERO"><a href="#ZERO" class="headerlink" title="ZERO"></a><a href="#zero">ZERO</a></h3><p><strong>Q:</strong> 什么是WorkManager？为什么要使用它？</p>
+<blockquote>
+<p>WorkManager 是一个 API，可供您轻松调度那些即使在退出应用或重启设备后仍应运行的可延期异步任务。WorkManager API 是一个适合用来替换先前的 Android 后台调度 API（包括 FirebaseJobDispatcher、GcmNetworkManager 和 JobScheduler）的组件，我们也建议您这样做。WorkManager 在其现代、一致的 API 中整合了其前身的功能，该 API 支持 API 级别 14，在开发时即考虑到了对电池续航的影响。</p>
+</blockquote>
+<p><strong>Q:</strong> 一定要使用WorkManager吗？</p>
+<blockquote>
+<p>如果您的应用以 Android 10（API 级别 29）或更高版本为目标平台，那么您对 FirebaseJobDispatcher 和 GcmNetworkManager API 的调用在搭载 Android Marshmallow (6.0) 及更高版本的设备上将无法正常工作。</p>
+</blockquote>
+<p>由上一问题可知，WorkManager是对 FirebaseJobDispatcher 和 GcmNetworkManager API 的替换，在一定情境下，显然更推荐您使用WorkManager。</p>
+<hr>
+<p>本章主要内容为WorkManager基本使用及源码分析，涉及WorkManager入门使用、源码分析两个部分，可根据个人需要选择部分内容阅读。</p>
+<p>本章所述WorkManager相关内容均基于<code>WorkManager:2.4.0</code>;</p>
+<p>本章涉及代码内容均使用<strong>Java</strong>语言编写，Java版本1.8；</p>
+<p><a href="https://github.com/TinloneX">本章演示项目地址：https://github.com/TinloneX</a></p>
+<p><a href="https://developer.android.google.cn/topic/libraries/architecture/workmanager">参考官方文档请点击这里</a></p>
+<a id="more"></a>
+
+<h3 id="1-使用篇"><a href="#1-使用篇" class="headerlink" title=" 1. 使用篇"></a><span id="part_use"> 1. 使用篇</h3><blockquote>
+<p>WorkManager is a library used to enqueue deferrable work that is guaranteed to execute sometime after its Constraints are met. WorkManager allows observation of work status and the ability to create complex chains of work. </p>
+</blockquote>
+<p>WorkManager是一个用于将可延迟的工作放入队列的库，这些工作保证在满足其约束后的某个时间内执行。WorkManager允许观察工作状态，并能够创建复杂的工作链。</p>
+<p><strong>注意：WorkManager 需要 compileSdk 版本 28 或更高版本。</strong></p>
+<h4 id="1-1-声明依赖项"><a href="#1-1-声明依赖项" class="headerlink" title=" 1.1 声明依赖项"></a><span id="dependencies"> 1.1 声明依赖项</h4><p>如需添加 WorkManager 的依赖项，您必须将 Google Maven 代码库添加到项目中：</p>
+<figure class="highlight gradle"><table><tr><td class="code"><pre><span class="line"><span class="comment">// 项目根目录下build.gradle</span></span><br><span class="line"><span class="keyword">allprojects</span> &#123;</span><br><span class="line">    <span class="keyword">repositories</span> &#123;</span><br><span class="line">        google()</span><br><span class="line">        jcenter()</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>在应用或模块的 build.gradle 文件中添加所需工件的依赖项：</p>
+<figure class="highlight gradle"><table><tr><td class="code"><pre><span class="line"><span class="comment">// app/build.gradle</span></span><br><span class="line"><span class="keyword">dependencies</span> &#123;</span><br><span class="line">  <span class="keyword">def</span> work_version = <span class="string">&quot;2.4.0&quot;</span></span><br><span class="line"></span><br><span class="line">    <span class="comment">// (Java only) 单纯使用java可引用此依赖</span></span><br><span class="line">    implementation <span class="string">&quot;androidx.work:work-runtime:$work_version&quot;</span></span><br><span class="line"></span><br><span class="line">    <span class="comment">// Kotlin + coroutines 使用kotlin+协程可引用此依赖</span></span><br><span class="line">    implementation <span class="string">&quot;androidx.work:work-runtime-ktx:$work_version&quot;</span></span><br><span class="line"></span><br><span class="line">    <span class="comment">// optional - RxJava2 support 意图支持RxJava2的WorkManager可引用此依赖</span></span><br><span class="line">    implementation <span class="string">&quot;androidx.work:work-rxjava2:$work_version&quot;</span></span><br><span class="line"></span><br><span class="line">    <span class="comment">// optional - GCMNetworkManager support   @①</span></span><br><span class="line">    implementation <span class="string">&quot;androidx.work:work-gcm:$work_version&quot;</span></span><br><span class="line"></span><br><span class="line">    <span class="comment">// optional - Test helpers  测试工件</span></span><br><span class="line">    androidTestImplementation <span class="string">&quot;androidx.work:work-testing:$work_version&quot;</span></span><br><span class="line">  &#125;</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+<p>注意：</p>
+<ul>
+<li>以上依赖均只需引用一个即可，此文档及代码均使用<code>androidx.work:work-runtime:2.4.0</code>。</li>
+<li>特别的，① <blockquote>
+<p>androidx.work:work-gcm:2.2.0 是一个新的 Maven 工件，当 Google Play 服务可用于 API 级别 22 或更低级别时，该工件支持将 GCMNetworkManager 用作调度程序。这是一个可选的依赖项，有助于在较旧的 API 版本上进行更稳定且性能更高的后台处理工作。如果您的应用使用 Google Play 服务，请将此依赖项添加到 gradle 文件，以自动获得 GCMNetworkManager 支持。如果 Play 服务不可用，WorkManager 将继续在旧款设备上回退到 AlarmManager。</p>
+</blockquote>
+</li>
+</ul>
+<p>下面我们将正式进入WorkManager使用篇</p>
+<h4 id="1-2-该如何使用"><a href="#1-2-该如何使用" class="headerlink" title=" 1.2 该如何使用"></a><span id="how_to_use"> 1.2 该如何使用</h4><p>在讲解任务类型及其一般使用前，我们先了解WorkManager工作的流程：</p>
+<ul>
+<li><strong>谁来做</strong> 定义一个负责工作的<strong>Worker</strong><figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">public class SimpleWorker extends Worker &#123;</span><br><span class="line">@NonNull</span><br><span class="line">    @Override</span><br><span class="line">    public Result doWork() &#123;</span><br><span class="line">        &#x2F;&#x2F; return Result.failure(); &#x2F;&#x2F; 执行失败</span><br><span class="line">        &#x2F;&#x2F; return Result.retry();   &#x2F;&#x2F; 重试 </span><br><span class="line">        &#x2F;&#x2F; return Result.success(); &#x2F;&#x2F; 执行成功</span><br><span class="line">        return null;                &#x2F;&#x2F; 执行结束？</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+Worker是WorkManager最终实现任务的“工人”，它不用管会在什么实际执行任务，被安排怎样执行任务，只管埋头处理任务<code>doWork</code>并根据任务执行情况反馈任务结果<code>return Result</code>。</li>
+</ul>
+<p>Worker执行结果Result：表示任务状态，他一般有<code>failure</code>、<code>retry</code>、<code>success</code>三个状态，且<code>failure</code>、<code>success</code>可以携带数据<code>Data</code>，此处仅做了解，<a href="#periodic_task">传递数据</a>中将做具体说明。</p>
+<ul>
+<li><strong>怎么做</strong> 定义制定工作方案的<strong>WorkRequest</strong></li>
+</ul>
+<ol>
+<li><strong>非重复性工作：</strong> 工人应该一次性把工作做掉<figure class="highlight java"><table><tr><td class="code"><pre><span class="line">OneTimeWorkRequest workRequest1 = OneTimeWorkRequest.from(SimpleWorker.class);</span><br></pre></td></tr></table></figure></li>
+<li><strong>周期任务：</strong> 工人应该每隔多久做一次工作</li>
+</ol>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">PeriodicWorkRequest request &#x3D; new PeriodicWorkRequest</span><br><span class="line">               .Builder(SimpleWorker.class, 16, TimeUnit.MINUTES).build();</span><br></pre></td></tr></table></figure>
+<p><strong>注意：</strong> 关于周期任务有一个<strong>霸王条款：</strong></p>
+<blockquote>
+<p>注意：可以定义的最短重复间隔是 15 分钟（与 JobScheduler API 相同）。</p>
+</blockquote>
+<blockquote>
+<p>如果您的工作的性质致使其对运行时间敏感，您可以将 PeriodicWorkRequest 配置为在每个时间间隔的灵活时间段内运行。</p>
+</blockquote>
+<p><a href="https://developer.android.google.cn/topic/libraries/architecture/workmanager/how-to/define-work#flexible_run_intervals">点此获取“灵活的运行间隔”说明</a></p>
+<ul>
+<li><strong>谁来管</strong> 工作方案谁来审批谁来管理<strong>WorkManager</strong></li>
+</ul>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">WorkManager.getInstance(myContext).enqueue(myWorkRequest);</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+<p>自此，通过Worker + WorkRequest + WorkManager就可以完成一次最简工作的调用流程，其中<strong>Worker执行工作，WorkRequest封装工作，WorkManager管理工作</strong>。</p>
+<h4 id="1-3-WorkRequest类型"><a href="#1-3-WorkRequest类型" class="headerlink" title=" 1.3 WorkRequest类型"></a><span id="task_type"> 1.3 WorkRequest类型</h4><p>WorkRequest 目前有两个子类，分别为单次执行任务 <code>OneTimeWorkRequest</code>和周期执行任务 <code>PeriodicWorkRequest</code>. 他们的主要区别是任务执行方案不同导致的状态变化不同。</p>
+<p><a href="https://github.com/TinloneX/WorkManagerDemo/blob/main/images/OneTimeWork_state.png">简单单次执行任务 OneTimeWorkRequest 工作状态图</a>：</p>
+<p><img src="https://github.com/TinloneX/WorkManagerDemo/blob/main/images/OneTimeWork_state.png" alt="OneTimeWork_STATE"></p>
+<blockquote>
+<p>对于 one-time 工作请求，工作的初始状态为 ENQUEUED。</p>
+</blockquote>
+<blockquote>
+<p>在 ENQUEUED 状态下，您的工作会在满足其 Constraints 和初始延迟计时要求后立即运行。接下来，该工作会转为 RUNNING 状态，然后可能会根据工作的结果转为 SUCCEEDED、FAILED 状态；或者，如果结果是 retry，它可能会回到 ENQUEUED 状态。在此过程中，随时都可以取消工作，取消后工作将进入 CANCELLED 状态。</p>
+</blockquote>
+<p><a href="https://github.com/TinloneX/WorkManagerDemo/blob/main/images/PeriodicWork_state.png">周期执行任务 PeriodicWorkRequest 工作状态图</a>：</p>
+<p><img src="https://github.com/TinloneX/WorkManagerDemo/blob/main/images/PeriodicWork_state.png" alt="PeriodicWork_STATE"></p>
+<p>周期性工作的初始状态为 ENQUEUED，正常执行情况下，周期性工作的状态在ENQUEUED ↔RUNNING之间交替，知道任务被取消时，状态为CANCELLED。</p>
+<blockquote>
+<p>成功和失败状态仅适用于一次性工作和链式工作。定期工作只有一个终止状态 CANCELLED。这是因为定期工作永远不会结束。每次运行后，无论结果如何，系统都会重新对其进行调度。</p>
+</blockquote>
+<p>若工作状态图无法展示，参见<a href="https://developer.android.google.cn/topic/libraries/architecture/workmanager/how-to/states-and-observation">Android-Developers/WorkManager</a>。</p>
+<h4 id="1-4-一般操作"><a href="#1-4-一般操作" class="headerlink" title=" 1.4 一般操作"></a><span id="general_operation"> 1.4 一般操作</h4><p>上<a href="#how_to_use">1.2</a>中，描述了最简工作的编写，那么除了这些基本的<strong>谁来做</strong>、<strong>怎么做</strong>、<strong>谁来管</strong>外，WorkManager还有哪些可以操作的点呢？</p>
+<p><strong><span id="task_listener">1.4.1 任务监听</strong> （怎么关注任务进度）</p>
+<p>上面<a href="#task_type">1.3</a>中介绍了的状态，我们该如何监听这些状态呢？</p>
+<p>方式1 ：</p>
+<p><em>注：本文及案例未详尽的实践此方式, 此小节内容均来自<a href="https://developer.android.google.cn/topic/libraries/architecture/workmanager/how-to/managing-work#observing">官方文档</a></em></p>
+<blockquote>
+<p>在将工作加入队列后，您可以随时按其 name、id 或与其关联的 tag 在 WorkManager 中进行查询，以检查其状态</p>
+</blockquote>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">&#x2F;&#x2F; by id</span><br><span class="line">workManager.getWorkInfoById(syncWorker.id); &#x2F;&#x2F; ListenableFuture&lt;WorkInfo&gt;</span><br><span class="line">&#x2F;&#x2F; by name</span><br><span class="line">workManager.getWorkInfosForUniqueWork(&quot;sync&quot;); &#x2F;&#x2F; ListenableFuture&lt;List&lt;WorkInfo&gt;&gt;</span><br><span class="line">&#x2F;&#x2F; by tag</span><br><span class="line">workManager.getWorkInfosByTag(&quot;syncTag&quot;); &#x2F;&#x2F; ListenableFuture&lt;List&lt;WorkInfo&gt;&gt;</span><br><span class="line"></span><br><span class="line">&#x2F;&#x2F; 此处尝试使用此方式监听，可监听到部分状态</span><br><span class="line">WorkManager.getInstance(this).getWorkInfoById(workRequest.getId()).addListener(() -&gt; Utils.log(future), Runnable::run);</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+<blockquote>
+<p>该查询会返回 WorkInfo 对象的 ListenableFuture，该值包含工作的 id、其标记、其当前的 State 以及通过 Result.success(outputData) 设置的任何输出数据。</p>
+</blockquote>
+<p>方式2：</p>
+<blockquote>
+<p>利用每个方法的 LiveData 变种，您可以通过注册监听器来观察 WorkInfo 的变化。</p>
+</blockquote>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">WorkManager.getInstance(context)</span><br><span class="line">            .getWorkInfoByIdLiveData(workRequest.getId())</span><br><span class="line">            .observe(lifecycleOwner, new Observer&lt;WorkInfo&gt;() &#123;</span><br><span class="line">                @Override</span><br><span class="line">                public void onChanged(WorkInfo workInfo) &#123;</span><br><span class="line">                    &#x2F;&#x2F; workInfo.getState() 可获取任务状态</span><br><span class="line">                    Utils.log(workInfo.getState());</span><br><span class="line">                    &#x2F;&#x2F; workInfo.getOutputData() 可获取任务传递的数据（详见1.4.2）</span><br><span class="line">                    if (workInfo.getState().isFinished()) &#123;</span><br><span class="line">                        Utils.log(workInfo.getOutputData());</span><br><span class="line">                    &#125;</span><br><span class="line">                &#125;</span><br><span class="line">            &#125;);</span><br></pre></td></tr></table></figure>
+<p>复杂的工作查询：</p>
+<p> <em><a href="https://developer.android.google.cn/topic/libraries/architecture/workmanager/how-to/managing-work#complex-queries">官方文档</a></em></p>
+<blockquote>
+<p>WorkManager 2.4.0 及更高版本支持使用 WorkQuery 对象对已加入队列的作业进行复杂查询。WorkQuery 支持按工作的标记、状态和唯一工作名称的组合进行查询。</p>
+</blockquote>
+<blockquote>
+<p>以下示例说明了如何查找带有“syncTag”标记、处于 FAILED 或 CANCELLED 状态，且唯一工作名称为“preProcess”或“sync”的所有工作。</p>
+</blockquote>
+<figure class="highlight java"><table><tr><td class="code"><pre><span class="line">WorkQuery workQuery = WorkQuery.Builder</span><br><span class="line">       .fromTags(Arrays.asList(<span class="string">&quot;syncTag&quot;</span>))</span><br><span class="line">       .addStates(Arrays.asList(WorkInfo.State.FAILED, WorkInfo.State.CANCELLED))</span><br><span class="line">       .addUniqueWorkNames(Arrays.asList(<span class="string">&quot;preProcess&quot;</span>, <span class="string">&quot;sync&quot;</span>)</span><br><span class="line">     )</span><br><span class="line">    .build();</span><br><span class="line"></span><br><span class="line">ListenableFuture&lt;List&lt;WorkInfo&gt;&gt; workInfos = workManager.getWorkInfos(workQuery);</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+<p>注：经实践，此方法获取的是<code>workManager.getWorkInfos(workQuery)</code>调用时任务的状态，若想使用此方法持续观察任务状态，建议使用以下方式：</p>
+<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="comment">// 此处应将Utils.executor()视作 ThreadPoolExecutor</span></span><br><span class="line">Utils.executor().execute(<span class="keyword">new</span> Runnable() &#123;</span><br><span class="line">            <span class="meta">@Override</span></span><br><span class="line">            <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">run</span><span class="params">()</span> </span>&#123;</span><br><span class="line">                <span class="keyword">while</span> (<span class="keyword">true</span>) &#123;</span><br><span class="line">                    ListenableFuture&lt;List&lt;WorkInfo&gt;&gt; workInfos = WorkManager.getInstance(MainActivity.<span class="keyword">this</span>)</span><br><span class="line">                            .getWorkInfos(workQuery);</span><br><span class="line">                    <span class="keyword">try</span> &#123;</span><br><span class="line">                        List&lt;WorkInfo&gt; infos = workInfos.get();</span><br><span class="line">                        Utils.log(infos);</span><br><span class="line">                        <span class="keyword">for</span> (WorkInfo info : infos) &#123;</span><br><span class="line">                            <span class="keyword">if</span> (info.getState() == WorkInfo.State.SUCCEEDED ||</span><br><span class="line">                                    info.getState() == WorkInfo.State.CANCELLED) &#123;</span><br><span class="line">                                <span class="keyword">return</span>;</span><br><span class="line">                            &#125;</span><br><span class="line">                        &#125;</span><br><span class="line">                        Thread.sleep(<span class="number">1000L</span>);</span><br><span class="line">                    &#125; <span class="keyword">catch</span> (Exception e) &#123;</span><br><span class="line">                        Utils.log(e);</span><br><span class="line">                    &#125;</span><br><span class="line">                &#125;</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;);</span><br></pre></td></tr></table></figure>
+<p>附：如需了解<strong>如何观察工作器的中间进度</strong>，可<a href="https://developer.android.google.cn/topic/libraries/architecture/workmanager/how-to/intermediate-progress#observing_progress">点击此处查看</a></p>
+<p>特别的，我们可以借助AndroidStudio看板观察WorkManager状态。</p>
+<ul>
+<li>AndroidStudio白狐之前的版本可使用DataBase Inspector 观察 androidx.work.workdb数据库中WorkSpec表获取WorkRequest信息；</li>
+<li>AndroidStudio白狐版则可直接使用WorkManager Inspector查看WorkRequest信息。</li>
+</ul>
+<p><strong><span id="transfer_data">1.4.2 传递数据</strong></p>
+<p>在一些业务场景下，我们需要向任务中传递数据，可以使用<code>androidx.work.Data</code>向WorkRequest中添加数据。</p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">&#x2F;&#x2F; 创建需传递的数据</span><br><span class="line">Data data &#x3D; new Data.Builder().putString(&quot;message&quot;, &quot;MainActivity&quot;).build();</span><br><span class="line">&#x2F;&#x2F; 单次执行任务</span><br><span class="line">OneTimeWorkRequest request1 &#x3D; new OneTimeWorkRequest.Builder(Task4DataWorker.class)</span><br><span class="line">        &#x2F;&#x2F; 向WorkRequest中添加数据</span><br><span class="line">        .setInputData(data).build();</span><br><span class="line">&#x2F;&#x2F; 将任务加入队列</span><br><span class="line">WorkManager.getInstance(this).enqueue(request1);</span><br></pre></td></tr></table></figure>
+<p>需要注意的是，由Data源码可知，此处传递数据仅支持基础数据类型及其封装、String以及上述类型的数组：</p>
+<blockquote>
+<p>Puts an input key-value pair into the Builder. Valid types are: Boolean, Integer,  Long, Float, Double, String, and array versions of each of those types. Invalid types throw an {@link IllegalArgumentException}.</p>
+</blockquote>
+<p><em>当然的，有没有想使用反射向Data中的mValues注入其他类型呢？<code>Map<String, Object> mValues = new HashMap<>();</code>, 期待你的尝试！</em></p>
+<p>有传递数据自然有获取数据，我们可以Worker中通过<code>getInputData()</code>获取<br>传入的Data对象，通过Data获取传入的值，也可以通过Data和Result将值传递给观察者。</p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">public class Task4DataWorker extends Worker &#123;</span><br><span class="line"></span><br><span class="line">    public Task4DataWorker(@NonNull Context context, @NonNull WorkerParameters workerParams) &#123;</span><br><span class="line">        super(context, workerParams);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    @SuppressLint(&quot;RestrictedApi&quot;)</span><br><span class="line">    @NonNull</span><br><span class="line">    @Override</span><br><span class="line">    public Result doWork() &#123;</span><br><span class="line">        String message &#x3D; getInputData().getString(&quot;message&quot;);</span><br><span class="line">        Data myMsg &#x3D; new Data.Builder().putString(&quot;message&quot;, &quot;message from Worker&quot;).build();</span><br><span class="line">        return new Result.Success(myMsg);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>而从Worker中传出的Data则可在WorkRequest的工作状态WorkInfo中取得：</p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">WorkManager.getInstance(context)</span><br><span class="line">               .getWorkInfoByIdLiveData(workRequest.getId())</span><br><span class="line">               .observe(context, workInfo -&gt; &#123;</span><br><span class="line">                   if (workInfo!&#x3D;null)&#123;</span><br><span class="line">                       if (workInfo.getState().isFinished()) &#123;</span><br><span class="line">                           String message &#x3D; workInfo.getOutputData().getString(&quot;message&quot;);</span><br><span class="line">                       &#125;</span><br><span class="line">                   &#125;</span><br><span class="line">               &#125;);</span><br></pre></td></tr></table></figure>
+<p><strong><span id="multiple_ask">1.4.3 多任务串联</strong></p>
+<p>除一般的单一任务的场景外，我们面对的业务往往也要处理多个任务的场景，此时我们可以串联多个任务，也可以将多个任务编组成任务链去使用：</p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">WorkManager.getInstance(this).beginWith(workRequest2)</span><br><span class="line">                .then(workRequest3)</span><br><span class="line">                .then(workRequest4)</span><br><span class="line">                .enqueue();</span><br><span class="line">&#x2F;&#x2F; or</span><br><span class="line">WorkContinuation continuation &#x3D; WorkManager.getInstance(this)</span><br><span class="line">                .beginWith(workRequest2)</span><br><span class="line">                .then(workRequest3)</span><br><span class="line">                .then(workRequest4);</span><br><span class="line"></span><br><span class="line">continuation.then(workRequest).enqueue();</span><br></pre></td></tr></table></figure>
+<p>特别的，如需了解<strong>任务链的高级用法及合并器</strong>相关内容，<a href="https://developer.android.google.cn/topic/libraries/architecture/workmanager/how-to/chain-work#input-mergers">请点击此处查看官方文档</a>，其中关于<a href="https://developer.android.google.cn/topic/libraries/architecture/workmanager/how-to/chain-work#work-statuses">链接和工作状态</a>的说明图文并茂，更易于理解。</p>
+<p><strong><span id="UniqueWork">1.4.4 唯一任务</strong></p>
+<blockquote>
+<p>唯一工作是一个很实用的概念，可确保同一时刻只有一个具有特定名称的工作实例。与 ID 不同的是，唯一名称是人类可读的，由开发者指定，而不是由 WorkManager 自动生成。与标记不同，唯一名称仅与一个工作实例相关联。</p>
+</blockquote>
+<blockquote>
+<p>唯一工作既可用于一次性工作，也可用于定期工作。您可以通过调用以下方法之一创建唯一工作序列，具体取决于您是调度重复工作还是一次性工作。WorkManager.enqueueUniqueWork()（用于一次性工作）<br>    WorkManager.enqueueUniquePeriodicWork()（用于定期工作）</p>
+</blockquote>
+<p>这两种方法都接受 3 个参数：</p>
+<pre><code>uniqueWorkName - 用于唯一标识工作请求的 String。
+existingWorkPolicy - 此 enum 可告知 WorkManager：如果已有使用该名称且尚未完成的唯一工作链，应执行什么操作。如需了解详情，请参阅冲突解决政策。
+work - 要调度的 WorkRequest。
+</code></pre>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">OneTimeWorkRequest workRequest &#x3D; new OneTimeWorkRequest.Builder(SimpleWorker2.class).build();</span><br><span class="line">OneTimeWorkRequest workRequest2 &#x3D; new OneTimeWorkRequest.Builder(SimpleWorker2.class).build();</span><br><span class="line"></span><br><span class="line">WorkManager.getInstance(this).beginUniqueWork(&quot;SimpleWorker&quot;,</span><br><span class="line">        ExistingWorkPolicy.REPLACE, workRequest)</span><br><span class="line">&#x2F;&#x2F;      ExistingWorkPolicy.APPEND, workRequest)</span><br><span class="line">&#x2F;&#x2F;      ExistingWorkPolicy.KEEP, workRequest)</span><br><span class="line">        .then(workRequest2)</span><br><span class="line">&#x2F;&#x2F;      .then(workRequest)</span><br><span class="line">        .enqueue();</span><br></pre></td></tr></table></figure>
+<p>此处定义的唯一，仅在任务正在执行且出现相同<code>uniqueWorkName</code>名称时，existingWorkPolicy才生效，无法影响已结束的同名任务（此同名仅与uniqueWorkName有关）。<br>以定义两个相同<code>uniqueWorkName</code>的WorkRequest为例，来观察existingWorkPolicy值的作用及影响：</p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">&#x2F;&#x2F; 若发现名为“SimpleWorker”的任务，则使用此链替换目标后续操作</span><br><span class="line">&#x2F;&#x2F; 任务链 A</span><br><span class="line">WorkManager.getInstance(this).beginUniqueWork(&quot;SimpleWorker&quot;,</span><br><span class="line">        ExistingWorkPolicy.REPLACE, workRequest)</span><br><span class="line">        .then(request3)</span><br><span class="line">        .enqueue();</span><br><span class="line">&#x2F;&#x2F; 若发现名为“SimpleWorker”的任务，则保留目标的原操作，此链不执行</span><br><span class="line">&#x2F;&#x2F; 任务链 B</span><br><span class="line">WorkManager.getInstance(this).beginUniqueWork(&quot;SimpleWorker&quot;,</span><br><span class="line">        ExistingWorkPolicy.KEEP, workRequest5)</span><br><span class="line">        .then(request2)</span><br><span class="line">        .enqueue();</span><br></pre></td></tr></table></figure>
+<p>上述两个任务链，若先执行A再执行B，此时效果为：</p>
+<pre><code>workUnique2 start   // 任务链A触发
+workUnique2 end     // 任务链A触发完毕
+doWork start: SimpleWorker  // 任务链A耗时任务workRequest开始执行
+workUnique start    // 任务链B触发
+workUnique end      // 任务链B触发完毕
+doWork end: SimpleWorker // 任务链A耗时任务workRequest执行完毕
+doWork: SimpleWorker3   // 任务链A执行后续任务request3
+任务链B并未执行
+</code></pre>
+<p>上述两个任务链，若先执行B再执行A，此时效果为：</p>
+<pre><code>workUnique start    // 任务链B触发
+workUnique end      // 任务链B触发完毕
+doWork start: SimpleWorker5 // 任务链B耗时任务workRequest5开始执行
+workUnique2 start   // 任务链A触发
+workUnique2 end     // 任务链A触发完毕
+doWork start: SimpleWorker  // 任务链A耗时任务workRequest开始执行
+doWork end: SimpleWorker5   // 任务链B耗时任务workRequest5执行完毕
+doWork end: SimpleWorker    // 任务链A耗时任务workRequest执行完毕
+doWork: SimpleWorker3       // 任务链A执行后续任务request3
+任务链B耗时任务被执行但后续操作被同名任务链A覆盖
+</code></pre>
+<p>同理，我们将任务链A的冲突方案分别定义为<code>ExistingWorkPolicy.APPEND</code>、<code>ExistingWorkPolicy.APPEND_OR_REPLACE</code>，观察执行情况，得出如下结论：</p>
+<ul>
+<li>ExistingWorkPolicy.REPLACE 会替换正在执行的同名任务重新执行，并使用自己的任务链覆盖原任务链；</li>
+<li>ExistingWorkPolicy.KEEP 会保持原任务链执行，自己不执行；</li>
+<li>ExistingWorkPolicy.APPEND 会等待原任务链同名任务及后续任务执行完毕，才执行自己的任务链；</li>
+<li>ExistingWorkPolicy.APPEND_OR_REPLACE 若原任务链及新任务链未被取消或中断，则<br>与APPEND性质一致, 其他情况：<blockquote>
+<p>If there is existing pending (uncompleted) work with the same unique name, append the newly-specified work as the child of all the leaves of that work sequence. Otherwise, insert the newly-specified work as the start of a new sequence. Note: If there are failed or cancelled prerequisites, these prerequisites are dropped and the newly-specified work is the start of a new sequence.如果存在具有相同唯一名称的未决(未完成)工作，则将新指定的工作附加为该工作序列的所有叶节点的子节点。否则，插入新指定的工作作为新序列的开始。注意:如果有失败或取消的先决条件，这些先决条件将被删除，而新指定的工作将是一个新序列的开始。</p>
+</blockquote>
+</li>
+</ul>
+<p><strong><span id="task_onstraint">1.4.5 任务约束</strong></p>
+<p><a href="https://developer.android.google.cn/topic/libraries/architecture/workmanager/how-to/define-work#work-constraints">参见文档</a></p>
+<blockquote>
+<p>Constraints可确保将工作延迟到满足最佳条件时运行。以下约束适用于 WorkManager。</p>
+</blockquote>
+<pre><code>NetworkType     约束运行工作所需的网络类型。例如 Wi-Fi (UNMETERED)。
+BatteryNotLow     如果设置为 true，那么当设备处于“电量不足模式”时，工作不会运行。
+RequiresCharging     如果设置为 true，那么工作只能在设备充电时运行。
+DeviceIdle     如果设置为 true，则要求用户的设备必须处于空闲状态，才能运行工作。如果您要运行批量操作，否则可能会降低用户设备上正在积极运行的其他应用的性能，建议您使用此约束。
+StorageNotLow     如果设置为 true，那么当用户设备上的存储空间不足时，工作不会运行
+</code></pre>
+<p>注意：<br>实际测试中，使用Android 6.0~11.0等一系列版本的模拟器测试发现</p>
+<ul>
+<li>9.0以下版本手机，不论应用是否在前台，进程是否存活，只要满足约束条件任务就会尽快执行；</li>
+<li>9.0及以上版本手机，应用进程DEAD状态，在符合约束条件时任务也不一定会尽快执行，甚至即使进入App也不一定能立马得到执行，除非有新的WorkRequest入队。</li>
+</ul>
+<p><strong><span id="task_delay">1.4.6 任务延时</strong></p>
+<p><a href="https://developer.android.google.cn/topic/libraries/architecture/workmanager/how-to/define-work#delayed_work">参见文档</a></p>
+<blockquote>
+<p>如果工作没有约束，或者当工作加入队列时所有约束都得到了满足，那么系统可能会选择立即运行该工作。如果您不希望工作立即运行，可以将工作指定为在经过一段最短初始延迟时间后再启动。</p>
+</blockquote>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">WorkRequest myWorkRequest &#x3D;</span><br><span class="line">      new OneTimeWorkRequest.Builder(MyWork.class)</span><br><span class="line">               .setInitialDelay(10, TimeUnit.MINUTES)</span><br><span class="line">               .build();</span><br></pre></td></tr></table></figure>
+<blockquote>
+<p>注意：执行工作器的确切时间还取决于 WorkRequest 中使用的约束和系统优化方式。WorkManager 经过设计，能够在满足这些约束的情况下提供可能的最佳行为。<br>定期工作只有首次运行时会延迟</p>
+</blockquote>
+<p><strong><span id="retry_rollback">1.4.7 重试和退避政策</strong></p>
+<p><a href="https://developer.android.google.cn/topic/libraries/architecture/workmanager/how-to/define-work#retry_and_backoff_policy">参见文档</a></p>
+<p>若Worker返回结果Result.retry()时，触发重试退避政策，即下次调度Worker应在多长时间以后，支持设置退避时间基数和基数递增方式，递增方式目前支持线性<code>LINEAR</code>和指数<code>EXPONENTIAL</code></p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">OneTimeWorkRequest workRequest &#x3D; new OneTimeWorkRequest.Builder(RetryWorker.class)</span><br><span class="line">                .setBackoffCriteria(BackoffPolicy.LINEAR,</span><br><span class="line">                        OneTimeWorkRequest.MIN_BACKOFF_MILLIS,</span><br><span class="line">                        TimeUnit.MILLISECONDS)</span><br><span class="line">                .build();</span><br></pre></td></tr></table></figure>
+<blockquote>
+<p>注意：退避延迟时间不精确，在两次重试之间可能会有几秒钟的差异，但绝不会低于配置中指定的初始退避延迟时间。</p>
+</blockquote>
+<p>退避时间在满足执行条件情况下也并不会完全精确，若不满足执行条件则会等待其条件满足：</p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">&#x2F;&#x2F; 无约束</span><br><span class="line">间隔时间(ms): 10109 </span><br><span class="line">间隔时间(ms): 20094</span><br><span class="line">间隔时间(ms): 30093</span><br><span class="line">...</span><br><span class="line">&#x2F;&#x2F; 约束：计费(量)网络环境下</span><br><span class="line">间隔时间(ms): 10121</span><br><span class="line">间隔时间(ms): 20143</span><br><span class="line">间隔时间(ms): 30103</span><br><span class="line">&#x2F;&#x2F; 关闭wifi喝个茶再连接wifi</span><br><span class="line">间隔时间(ms): 146521</span><br><span class="line">间隔时间(ms): 50132</span><br></pre></td></tr></table></figure>
+<p><strong><span id="work_tag">1.4.8 标记工作</strong></p>
+<p><a href="https://developer.android.google.cn/topic/libraries/architecture/workmanager/how-to/define-work#tag_work">参见文档</a></p>
+<p>你可以为WorkRequest添加tag，从而使得你可以通过<code>WorkManager.getWorkInfosByTag(String)</code>获取WorkRequest的工作状态WorkInfo，你也可以直接通过<code>WorkManager.cancelAllWorkByTag(String)</code>取消对应标记的所有WorkRequest.</p>
+<p>由WorkRequest中关于tag的定义<code>Set<String> mTags</code>可知，你可以为WorkRequest定义多个标记，当然的，你也可以为多个WorkRequest定义同一个标记用以统一管理。</p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">WorkRequest request &#x3D;</span><br><span class="line">       new OneTimeWorkRequest.Builder(SimpleWorker.class)</span><br><span class="line">       .addTag(&quot;TAG&quot;)</span><br><span class="line">       .build();</span><br><span class="line">&#x2F;&#x2F; 根据tag取消任务</span><br><span class="line">WorkManager.getInstance(this).cancelAllWorkByTag(&quot;TAG&quot;);</span><br><span class="line">&#x2F;&#x2F; 根据tag查找任务状态</span><br><span class="line">WorkManager.getInstance(this).getWorkInfosByTag(&quot;TAG&quot;);</span><br></pre></td></tr></table></figure>
+<p><strong><span id="work_cancel">1.4.9 取消工作</strong></p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">&#x2F;&#x2F; by id</span><br><span class="line">workManager.cancelWorkById(syncWorker.id);</span><br><span class="line">&#x2F;&#x2F; by name</span><br><span class="line">workManager.cancelUniqueWork(&quot;sync&quot;);</span><br><span class="line">&#x2F;&#x2F; by tag</span><br><span class="line">workManager.cancelAllWorkByTag(&quot;syncTag&quot;);</span><br></pre></td></tr></table></figure>
+<p><a href="https://developer.android.google.cn/topic/libraries/architecture/workmanager/how-to/managing-work#stop-worker">点此了解“停止正在运行的工作器”的相关内容</a></p>
+<h4 id="1-5-注意事项"><a href="#1-5-注意事项" class="headerlink" title=" 1.5 注意事项"></a><span id="attention"> 1.5 注意事项</h4><p>这里我们总结一下使用WorkManager的一些小Tips。</p>
+<ul>
+<li>PeriodicWorkRequest周期任务可以定义的最短重复间隔是 15 分钟（与 JobScheduler API 相同）</li>
+<li>延迟工作：执行工作器的确切时间还取决于 WorkRequest 中使用的约束和系统优化方式。WorkManager 经过设计，能够在满足这些约束的情况下提供可能的最佳行为。</li>
+<li>退避延迟时间不精确，在两次重试之间可能会有几秒钟的差异，但绝不会低于配置中指定的初始退避延迟时间。</li>
+<li>cancelAllWorkByTag(String) 会取消具有给定标记的所有工作。</li>
+<li>WorkRequest保证一定执行，但不保证一定在什么时间执行。</li>
+</ul>
+<hr>
+<p>引用文献：</p>
+<ol>
+<li><a href="https://developer.android.google.cn/topic/libraries/architecture/workmanager">WorkManager官方文档</a></li>
+</ol>
+<h4 id="源码篇正在奋力码字中。。。"><a href="#源码篇正在奋力码字中。。。" class="headerlink" title="源码篇正在奋力码字中。。。"></a>源码篇正在奋力码字中。。。</h4>]]></content>
+  </entry>
+</search>
