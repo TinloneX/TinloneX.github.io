@@ -261,7 +261,7 @@ StorageNotLow     如果设置为 true，那么当用户设备上的存储空间
         <category>Android</category>
       </categories>
       <tags>
-        <tag>FrameWork</tag>
+        <tag>Jitpack</tag>
       </tags>
   </entry>
 </search>
