@@ -1,0 +1,537 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 5.3.0">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/logo.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+  <link rel="stylesheet" href="/lib/pace/pace-theme-material.min.css">
+  <script src="/lib/pace/pace.min.js"></script>
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"tinlone.com","root":"/","scheme":"Gemini","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":true,"show_result":true,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":true},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},"path":"search.xml"};
+  </script>
+
+  <meta name="description" content="目录 源码篇 2.1.1 SystemAlarmService 如何处置命令 (processCommand) 如何分发命令 (CommandHandler) 是怎么调用到Worker.doWork()的？   如何完成回调 (DequeueAndCheckForCompletion)        源码篇上一篇中我们了解了WorkManager使用的的主要组件，猜测了各个组件的作用，并简单介绍了">
+<meta property="og:type" content="article">
+<meta property="og:title" content="WorkManager基本使用及源码分析(三) - SystemAlarmService">
+<meta property="og:url" content="http://tinlone.com/2021/02/06/WorkManager%E5%9F%BA%E6%9C%AC%E4%BD%BF%E7%94%A8%E5%8F%8A%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90(%E4%B8%89)%20-%20SystemAlarmService/index.html">
+<meta property="og:site_name" content="Tinlone">
+<meta property="og:description" content="目录 源码篇 2.1.1 SystemAlarmService 如何处置命令 (processCommand) 如何分发命令 (CommandHandler) 是怎么调用到Worker.doWork()的？   如何完成回调 (DequeueAndCheckForCompletion)        源码篇上一篇中我们了解了WorkManager使用的的主要组件，猜测了各个组件的作用，并简单介绍了">
+<meta property="og:locale" content="zh_CN">
+<meta property="article:published_time" content="2021-02-06T09:07:13.268Z">
+<meta property="article:modified_time" content="2021-02-06T09:06:39.382Z">
+<meta property="article:author" content="Tinlone">
+<meta property="article:tag" content="WorkManager">
+<meta name="twitter:card" content="summary">
+
+<link rel="canonical" href="http://tinlone.com/2021/02/06/WorkManager%E5%9F%BA%E6%9C%AC%E4%BD%BF%E7%94%A8%E5%8F%8A%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90(%E4%B8%89)%20-%20SystemAlarmService/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'zh-CN'
+  };
+</script>
+
+  <title>WorkManager基本使用及源码分析(三) - SystemAlarmService | Tinlone</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">Tinlone</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+      <p class="site-subtitle" itemprop="description">堕落的🐟</p>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签</a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>分类</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档</a>
+
+  </li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>搜索
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup">
+        <div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocapitalize="off"
+           placeholder="搜索..." spellcheck="false"
+           type="search" class="search-input">
+  </div>
+  <span class="popup-btn-close">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div id="search-result">
+  <div id="no-result">
+    <i class="fa fa-spinner fa-pulse fa-5x fa-fw"></i>
+  </div>
+</div>
+
+    </div>
+  </div>
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="http://tinlone.com/2021/02/06/WorkManager%E5%9F%BA%E6%9C%AC%E4%BD%BF%E7%94%A8%E5%8F%8A%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90(%E4%B8%89)%20-%20SystemAlarmService/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/logo.png">
+      <meta itemprop="name" content="Tinlone">
+      <meta itemprop="description" content="Tinlone的个人博客">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Tinlone">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          WorkManager基本使用及源码分析(三) - SystemAlarmService
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+              
+
+              <time title="创建时间：2021-02-06 17:07:13 / 修改时间：17:06:39" itemprop="dateCreated datePublished" datetime="2021-02-06T17:07:13+08:00">2021-02-06</time>
+            </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/Jetpack/" itemprop="url" rel="index"><span itemprop="name">Jetpack</span></a>
+                </span>
+            </span>
+
+          <br>
+            <span class="post-meta-item" title="本文字数">
+              <span class="post-meta-item-icon">
+                <i class="far fa-file-word"></i>
+              </span>
+                <span class="post-meta-item-text">本文字数：</span>
+              <span>7.8k</span>
+            </span>
+            <span class="post-meta-item" title="阅读时长">
+              <span class="post-meta-item-icon">
+                <i class="far fa-clock"></i>
+              </span>
+                <span class="post-meta-item-text">阅读时长 &asymp;</span>
+              <span>7 分钟</span>
+            </span>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <h2 id="目录"><a href="#目录" class="headerlink" title="目录"></a>目录</h2><ul>
+<li><a href="#part_source">源码篇</a><ul>
+<li><a href="#SystemAlarmService">2.1.1 SystemAlarmService</a><ul>
+<li><a href="#processCommand">如何处置命令 (processCommand)</a></li>
+<li><a href="#CommandHandler">如何分发命令 (CommandHandler)</a><ul>
+<li><a href="#startWork">是怎么调用到Worker.doWork()的？</a></li>
+</ul>
+</li>
+<li><a href="#DequeueAndCheckForCompletion">如何完成回调 (DequeueAndCheckForCompletion)</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+<hr>
+<h3 id="源码篇"><a href="#源码篇" class="headerlink" title=" 源码篇"></a><span id="part_source"> 源码篇</h3><p>上一篇中我们了解了WorkManager使用的的主要组件，猜测了各个组件的作用，并简单介绍了WorkManager是如何初始化的。本篇将延续前文，介绍WorkManager中Service组件之一的SystemAlarmService。</p>
+<p><strong><span id="SystemAlarmService"> SystemAlarmService</strong></p>
+<blockquote>
+<p>Service invoked by {@link android.app.AlarmManager} to run work tasks.</p>
+</blockquote>
+<p>服务将被AlarmManager调用来执行工作任务.</p>
+<a id="more"></a>
+
+<p>注: 此节中凡 描述中的 <strong>“命令”</strong> 及 <strong>“intent”</strong> 均指代包括 <strong>[规划任务、重新规划任务、约束条件改变、执行完毕、延时执行、停止执行…]</strong> 的事件，可视作状态模式。</p>
+<p><strong><span id="processCommand"> 如何处置命令 (processCommand)</strong></p>
+<p>SystemAlarmService 主要逻辑：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">SystemAlarmService</span> <span class="keyword">extends</span> <span class="title">LifecycleService</span></span></span><br><span class="line"><span class="class">        <span class="keyword">implements</span> <span class="title">SystemAlarmDispatcher</span>.<span class="title">CommandsCompletedListener</span> </span>&#123;</span><br><span class="line">        <span class="comment">// do something</span></span><br><span class="line">        <span class="comment">// onCreate时执行initializeDispatcher()初始化并绑定闹钟事件调度器</span></span><br><span class="line">           <span class="meta">@Override</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">int</span> <span class="title">onStartCommand</span><span class="params">(Intent intent, <span class="keyword">int</span> flags, <span class="keyword">int</span> startId)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">super</span>.onStartCommand(intent, flags, startId);</span><br><span class="line">        <span class="comment">// do something</span></span><br><span class="line">        <span class="comment">// 添加调度事件,若当前无任务则立即调度</span></span><br><span class="line">        <span class="keyword">if</span> (intent != <span class="keyword">null</span>) &#123;</span><br><span class="line">            mDispatcher.add(intent, startId);</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        <span class="comment">// 如果服务崩溃，我们希望所有未确认的意图都得到重新交付。</span></span><br><span class="line">        <span class="keyword">return</span> Service.START_REDELIVER_INTENT;</span><br><span class="line">    &#125;    </span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>我们看到, 此服务在创建时初始化并绑定闹钟事件调度器,当服务被start时,若有intent事件,则将intent传递给调度器. 调度器收到intent后执行以下操作:</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@MainThread</span></span><br><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">boolean</span> <span class="title">add</span><span class="params">(<span class="meta">@NonNull</span> <span class="keyword">final</span> Intent intent, <span class="keyword">final</span> <span class="keyword">int</span> startId)</span> </span>&#123;</span><br><span class="line">    assertMainThread();</span><br><span class="line">    <span class="comment">// do something</span></span><br><span class="line">    <span class="comment">// 保证命令列表安全,只进或只出</span></span><br><span class="line">    <span class="keyword">synchronized</span> (mIntents) &#123;</span><br><span class="line">        <span class="keyword">boolean</span> hasCommands = !mIntents.isEmpty();</span><br><span class="line">        mIntents.add(intent);</span><br><span class="line">        <span class="keyword">if</span> (!hasCommands) &#123;</span><br><span class="line">            <span class="comment">// 如果是第一个命令则执行</span></span><br><span class="line">            <span class="comment">// 一般情况下,若上一个命令执行完毕会被移除</span></span><br><span class="line">            processCommand();</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">return</span> <span class="keyword">true</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>当闹钟调度器收到新命令,会将新命令放入命令集合，若新命令为集合中第一个命令则直接进入执行命令逻辑中，否则不处理，前一命令执行完毕后再次调用执行命令：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@MainThread</span></span><br><span class="line"><span class="function"><span class="keyword">private</span> <span class="keyword">void</span> <span class="title">processCommand</span><span class="params">()</span> </span>&#123;</span><br><span class="line">    <span class="comment">// do something</span></span><br><span class="line">    mWorkManager.getWorkTaskExecutor().executeOnBackgroundThread(<span class="keyword">new</span> Runnable() &#123;</span><br><span class="line">        <span class="comment">// do something</span></span><br><span class="line">     <span class="keyword">try</span> &#123;   </span><br><span class="line">        <span class="comment">// 若当前命令不为空，则将命令交给状态机执行</span></span><br><span class="line">        mCommandHandler.onHandleIntent(mCurrentIntent, startId, SystemAlarmDispatcher.<span class="keyword">this</span>);</span><br><span class="line">     &#125; <span class="keyword">catch</span> (Throwable throwable) &#123;&#125;</span><br><span class="line">     <span class="keyword">finally</span> &#123;</span><br><span class="line">        <span class="comment">// 当前命令执行完毕，回调SystemAlarmDispatcher处理命令集以及后续操作</span></span><br><span class="line">        postOnMainThread( <span class="keyword">new</span> DequeueAndCheckForCompletion(SystemAlarmDispatcher.<span class="keyword">this</span>));</span><br><span class="line">     &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>当<code>processCommand</code>被调用，将开启新的线程处理命令，主要干了两件事：</p>
+<ul>
+<li>将命令交给CommandHandler分发[规划任务、重新规划任务、约束条件改变、执行完毕…]事件</li>
+<li>将事件处理完毕回调到闹钟事件调度器，由调度器处理后续事宜。</li>
+</ul>
+<p>我们来依次跟进这两件事：</p>
+<p><strong><span id="CommandHandler"> CommandHandler如何分发命令</strong></p>
+<p>我们前面看到<code>processCommand</code>中调用<code>CommandHandler</code>分发命令，其代码：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@WorkerThread</span></span><br><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">onHandleIntent</span><span class="params">(<span class="meta">@NonNull</span> Intent intent,<span class="keyword">int</span> startId, <span class="meta">@NonNull</span> SystemAlarmDispatcher dispatcher)</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">    String action = intent.getAction();</span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span> (ACTION_CONSTRAINTS_CHANGED.equals(action)) &#123;</span><br><span class="line">        <span class="comment">// 约束条件改变</span></span><br><span class="line">        handleConstraintsChanged(intent, startId, dispatcher);</span><br><span class="line">    &#125; <span class="keyword">else</span> <span class="keyword">if</span> (ACTION_RESCHEDULE.equals(action)) &#123;</span><br><span class="line">        <span class="comment">// 异常中断，需重新规划</span></span><br><span class="line">        handleReschedule(intent, startId, dispatcher);</span><br><span class="line">    &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">        Bundle extras = intent.getExtras();</span><br><span class="line">        <span class="keyword">if</span> (!hasKeys(extras, KEY_WORKSPEC_ID)) &#123;</span><br><span class="line">            <span class="comment">// log error</span></span><br><span class="line">        &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">            <span class="keyword">if</span> (ACTION_SCHEDULE_WORK.equals(action)) &#123;</span><br><span class="line">                <span class="comment">// 规划任务</span></span><br><span class="line">                handleScheduleWorkIntent(intent, startId, dispatcher);</span><br><span class="line">            &#125; <span class="keyword">else</span> <span class="keyword">if</span> (ACTION_DELAY_MET.equals(action)) &#123;</span><br><span class="line">                <span class="comment">// 时延到点</span></span><br><span class="line">                handleDelayMet(intent, startId, dispatcher);</span><br><span class="line">            &#125; <span class="keyword">else</span> <span class="keyword">if</span> (ACTION_STOP_WORK.equals(action)) &#123;</span><br><span class="line">                <span class="comment">// 取消任务</span></span><br><span class="line">                handleStopWork(intent, dispatcher);</span><br><span class="line">            &#125; <span class="keyword">else</span> <span class="keyword">if</span> (ACTION_EXECUTION_COMPLETED.equals(action)) &#123;</span><br><span class="line">                <span class="comment">// 完成任务</span></span><br><span class="line">                handleExecutionCompleted(intent, startId);</span><br><span class="line">            &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">               <span class="comment">// log error</span></span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>我们看到这里主要依据命令(intent)的action执行命令分发操作，此处我们主要关注<code>handleDelayMet</code> 时延结束后，处理任务的主线：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">private</span> <span class="keyword">void</span> <span class="title">handleDelayMet</span><span class="params">(</span></span></span><br><span class="line"><span class="function"><span class="params">        <span class="meta">@NonNull</span> Intent intent,</span></span></span><br><span class="line"><span class="function"><span class="params">        <span class="keyword">int</span> startId,</span></span></span><br><span class="line"><span class="function"><span class="params">        <span class="meta">@NonNull</span> SystemAlarmDispatcher dispatcher)</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">    Bundle extras = intent.getExtras();</span><br><span class="line">    <span class="comment">// 保证任务处理线程安全</span></span><br><span class="line">    <span class="keyword">synchronized</span> (mLock) &#123;</span><br><span class="line">        String workSpecId = extras.getString(KEY_WORKSPEC_ID);</span><br><span class="line"></span><br><span class="line">        <span class="comment">// Check to see if we are already handling an ACTION_DELAY_MET for the WorkSpec.</span></span><br><span class="line">        <span class="comment">// If we are, then there is nothing for us to do.</span></span><br><span class="line">        <span class="comment">// 检查该任务是否已经在即将执行队伍(map)中，如果是则不再重复操作</span></span><br><span class="line">        <span class="keyword">if</span> (!mPendingDelayMet.containsKey(workSpecId)) &#123;</span><br><span class="line">            DelayMetCommandHandler delayMetCommandHandler = <span class="keyword">new</span> DelayMetCommandHandler(mContext, startId, workSpecId, dispatcher);</span><br><span class="line">            <span class="comment">// 将任务放入即将执行队伍(map)中</span></span><br><span class="line">            mPendingDelayMet.put(workSpecId, delayMetCommandHandler);</span><br><span class="line">            <span class="comment">// 处理任务</span></span><br><span class="line">            delayMetCommandHandler.handleProcessWork();</span><br><span class="line">        &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">            <span class="comment">// log error</span></span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>我们可以看到，<code>CommandHandler</code>中维护了一个 mPendingDelayMet的Map来保证单次任务不被多次处理，若命令未被处理过，则将其加入到队伍中，然后调用<code>delayMetCommandHandler.handleProcessWork()</code>去处理任务：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@WorkerThread</span></span><br><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">handleProcessWork</span><span class="params">()</span> </span>&#123;</span><br><span class="line">    <span class="comment">// 创建WakeLocks</span></span><br><span class="line">    mWakeLock = WakeLocks.newWakeLock(...);</span><br><span class="line">    <span class="comment">// 获取WorkSpec</span></span><br><span class="line">    WorkSpec workSpec = mDispatcher.getWorkManager().getWorkDatabase().workSpecDao().getWorkSpec(mWorkSpecId);</span><br><span class="line">    <span class="comment">// 处理通常不会发生的情况 - 未获取到WorkSpec。</span></span><br><span class="line">    <span class="comment">// 取消工作应该删除alarm，但是如果alarm已经触发，那么就触发一个stop work请求来删除挂起的delay met命令处理程序。</span></span><br><span class="line">    <span class="keyword">if</span> (workSpec == <span class="keyword">null</span>) &#123;</span><br><span class="line">        stopWork();</span><br><span class="line">        <span class="keyword">return</span>;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="comment">// 跟踪工作任务是否有约束</span></span><br><span class="line">    mHasConstraints = workSpec.hasConstraints();</span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span> (!mHasConstraints) &#123;</span><br><span class="line">        <span class="comment">// 若无约束</span></span><br><span class="line">        onAllConstraintsMet(Collections.singletonList(mWorkSpecId));</span><br><span class="line">    &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">        <span class="comment">// 允许跟踪器报告约束更改</span></span><br><span class="line">        <span class="comment">// 此处可见，我们可以将时延视作一种特殊的约束</span></span><br><span class="line">        mWorkConstraintsTracker.replace(Collections.singletonList(workSpec));</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>这里判断了任务状态及约束状态，依据约束状态执行任务或更新任务状态，<br>执行任务时：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br></pre></td><td class="code"><pre><span class="line">@Override</span><br><span class="line">public void onAllConstraintsMet(@NonNull List&lt;String&gt; workSpecIds) &#123;</span><br><span class="line">    &#x2F;&#x2F; 保证任务正确    </span><br><span class="line">    if (!workSpecIds.contains(mWorkSpecId)) &#123;</span><br><span class="line">        return;</span><br><span class="line">    &#125;</span><br><span class="line">    &#x2F;&#x2F; 保证执行安全</span><br><span class="line">    synchronized (mLock) &#123;</span><br><span class="line">        if (mCurrentState &#x3D;&#x3D; STATE_INITIAL) &#123;</span><br><span class="line">            &#x2F;&#x2F; 更改状态</span><br><span class="line">            mCurrentState &#x3D; STATE_START_REQUESTED;</span><br><span class="line">            &#x2F;&#x2F; startWork &#x3D;&gt; doWork</span><br><span class="line">            &#x2F;&#x2F;这里没有使用WorkManagerImpl#startWork()，因为我们需要知道处理器是否在这里将工作排队</span><br><span class="line">            boolean isEnqueued &#x3D; mDispatcher.getProcessor().startWork(mWorkSpecId);</span><br><span class="line">            &#x2F;&#x2F; 若任务状态是轮询</span><br><span class="line">            if (isEnqueued) &#123;</span><br><span class="line">               &#x2F;&#x2F; 设置计时器以强制已进入队列的任务配额</span><br><span class="line">                mDispatcher.getWorkTimer()</span><br><span class="line">                        .startTimer(mWorkSpecId, WORK_PROCESSING_TIME_IN_MS, this);</span><br><span class="line">            &#125; else &#123;</span><br><span class="line">                &#x2F;&#x2F; 执行完毕或取消，则清除状态</span><br><span class="line">                cleanUp();</span><br><span class="line">            &#125;</span><br><span class="line">        &#125; else &#123;</span><br><span class="line">            Logger.get().debug(TAG, String.format(&quot;Already started work for %s&quot;, mWorkSpecId));</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>这里最终改变任务状态并调用<code>Processor.startWork()</code>执行任务，我们将关注<code>Processor.startWork()</code>，这个方法最终执行到我们定义的Worker中<code>doWork()</code>方法，并且前面说到的WorkManager中负责任务执行的Service们最终都会调用到<code>Processor.startWork()</code>。</p>
+<p>由于内容流程较长且属于公共流程，关于<code>Processor.startWork()</code>将单独整理未一小节，<a href="./WorkManager%E5%9F%BA%E6%9C%AC%E4%BD%BF%E7%94%A8%E5%8F%8A%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90(%E4%BA%94)+-+Processor.md">点击此处查看</a>。</p>
+<p><strong><span id="DequeueAndCheckForCompletion"> DequeueAndCheckForCompletion如何完成回调</strong></p>
+<p><code>DequeueAndCheckForCompletion</code> 是一个Runnable对象，<code>postOnMainThread</code>时调用run：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@Override</span></span><br><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">run</span><span class="params">()</span> </span>&#123;</span><br><span class="line">    mDispatcher.dequeueAndCheckForCompletion();</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>最终回调到<code>dequeueAndCheckForCompletion</code>:</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br></pre></td><td class="code"><pre><span class="line">void dequeueAndCheckForCompletion() &#123;</span><br><span class="line">   &#x2F;&#x2F; 保证mIntents命令集只进或只出</span><br><span class="line">    synchronized (mIntents) &#123;</span><br><span class="line">        if (mCurrentIntent !&#x3D; null) &#123;</span><br><span class="line">            &#x2F;&#x2F; 从命令集中移除已完成（第一个）命令</span><br><span class="line">            if (!mIntents.remove(0).equals(mCurrentIntent)) &#123;</span><br><span class="line">                throw new IllegalStateException(&quot;something&quot;);</span><br><span class="line">            &#125;</span><br><span class="line">            mCurrentIntent &#x3D; null;</span><br><span class="line">        &#125;</span><br><span class="line">        SerialExecutor serialExecutor &#x3D; mTaskExecutor.getBackgroundExecutor();</span><br><span class="line">        &#x2F;&#x2F; 若无预计执行和待执行命令，则通知SystemAlarmService执行完毕</span><br><span class="line">        if (!mCommandHandler.hasPendingCommands()</span><br><span class="line">                &amp;&amp; mIntents.isEmpty()</span><br><span class="line">                &amp;&amp; !serialExecutor.hasPendingTasks()) &#123;</span><br><span class="line">            if (mCompletedListener !&#x3D; null) &#123;</span><br><span class="line">                mCompletedListener.onAllCommandsCompleted();</span><br><span class="line">            &#125;</span><br><span class="line">        &#125; else if (!mIntents.isEmpty()) &#123;</span><br><span class="line">           &#x2F;&#x2F; 若命令集中还有未执行的命令，则继续执行</span><br><span class="line">            processCommand();</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>此时，若当前命令存在，则从命令集中移除当前命令。若无预计执行和待执行命令，则调用<code>mCompletedListener.onAllCommandsCompleted()</code>通知SystemAlarmService执行完毕；若命令集合中还有未执行命令，则调用<code>processCommand()</code>继续执行。</p>
+<p>而<code>SystemAlarmService.onAllCommandsCompleted()</code>最终会执行<code>stopSelf()</code>停止服务</p>
+<p>假装下面是时序图：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line">SystemAlarmService.java</span><br><span class="line">|- initializeDispatcher(); <span class="comment">// 初始化并绑定闹钟调度器</span></span><br><span class="line">|- SystemAlarmService.onStartCommand()  <span class="comment">// 通过startService添加命令</span></span><br><span class="line">    |- SystemAlarmDispatcher.add()				<span class="comment">// 委托调度器添加命令</span></span><br><span class="line">        |- mIntents.add(intent);    <span class="comment">// 添加命令进入命令集</span></span><br><span class="line">        |- SystemAlarmDispatcher.processCommand()			<span class="comment">// 若是第一个则,执行命令, 若不是第一个,将在后续流程中继续执行</span></span><br><span class="line">            |- <span class="keyword">try</span> CommandHandler.onHandleIntent()</span><br><span class="line">                |- ACTION_CONSTRAINTS_CHANGED</span><br><span class="line">                |- ...</span><br><span class="line">                |- ACTION_DELAY_MET</span><br><span class="line">                    |- delayMetCommandHandler.handleProcessWork()</span><br><span class="line">                        |- onAllConstraintsMet()</span><br><span class="line">                            |- mDispatcher.getProcessor().startWork()</span><br><span class="line">            |- <span class="function"><span class="keyword">finally</span> <span class="title">postOnMainThread</span><span class="params">( new DequeueAndCheckForCompletion(SystemAlarmDispatcher.<span class="keyword">this</span>)</span>)<span class="comment">// 分发完成命令事件</span></span></span><br><span class="line"><span class="function">				|- SystemAlarmDispatcher.<span class="title">dequeueAndCheckForCompletion</span><span class="params">()</span>  <span class="comment">// 回调</span></span></span><br><span class="line"><span class="function">					|- mIntents.<span class="title">remove</span><span class="params">(<span class="number">0</span>)</span></span>;					   <span class="comment">// 从命令集移出(当前)第一个命令</span></span><br><span class="line">					|- CommandsCompletedListener.onAllCommandsCompleted() </span><br><span class="line">					    OR SystemAlarmDispatcher.processCommand()  <span class="comment">// 命令集执行完毕 或 执行下一个命令</span></span><br></pre></td></tr></table></figure>
+
+
+
+
+    </div>
+
+    
+    
+    
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/WorkManager/" rel="tag"># WorkManager</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2021/02/06/WorkManager%E5%9F%BA%E6%9C%AC%E4%BD%BF%E7%94%A8%E5%8F%8A%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90(%E5%85%AD)%20-%20SystemForegroundService/" rel="prev" title="WorkManager基本使用及源码分析(六) - SystemForegroundService">
+      <i class="fa fa-chevron-left"></i> WorkManager基本使用及源码分析(六) - SystemForegroundService
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/2021/02/06/WorkManager%E5%9F%BA%E6%9C%AC%E4%BD%BF%E7%94%A8%E5%8F%8A%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90(%E5%9B%9B)%20-%20SystemJobService/" rel="next" title="WorkManager基本使用及源码分析(四) - SystemJobService">
+      WorkManager基本使用及源码分析(四) - SystemJobService <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E7%9B%AE%E5%BD%95"><span class="nav-number">1.</span> <span class="nav-text">目录</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%BA%90%E7%A0%81%E7%AF%87"><span class="nav-number">1.1.</span> <span class="nav-text"> 源码篇</span></a></li></ol></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="Tinlone"
+      src="/images/logo.png">
+  <p class="site-author-name" itemprop="name">Tinlone</p>
+  <div class="site-description" itemprop="description">Tinlone的个人博客</div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">6</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">1</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">1</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+
+
+
+      </div>
+
+    </div>
+	
+	<iframe frameborder="no" border="0" marginwidth="0" marginheight="0" width=330 height=86 src="//music.163.com/outchain/player?type=2&id=16435049&auto=1&height=66"></iframe>
+	
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2021</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Tinlone</span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item-icon">
+      <i class="fa fa-chart-area"></i>
+    </span>
+    <span title="站点总字数">40k</span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item-icon">
+      <i class="fa fa-coffee"></i>
+    </span>
+    <span title="站点阅读时长">36 分钟</span>
+</div>
+<!--
+  <div class="powered-by">由 <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://theme-next.org/" class="theme-link" rel="noopener" target="_blank">NexT.Gemini</a> 强力驱动
+  </div>
+-->
+
+        
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/pisces.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+  <script defer src="/lib/three/three.min.js"></script>
+    <script defer src="/lib/three/three-waves.min.js"></script>
+
+
+  
+
+
+
+
+  
+<script src="/js/local-search.js"></script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+<script src="/live2dw/lib/L2Dwidget.min.js?094cbace49a39548bed64abff5988b05"></script><script>L2Dwidget.init({"pluginRootPath":"live2dw/","pluginJsPath":"lib/","pluginModelPath":"assets/","tagMode":false,"log":false,"model":{"jsonPath":"/live2dw/assets/hijiki.model.json"},"display":{"position":"right","width":150,"height":300},"mobile":{"show":true}});</script></body>
+</html>
