@@ -813,6 +813,112 @@
   
   
 
+      
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="http://tinlone.com/2021/02/15/WorkManager%E5%9F%BA%E6%9C%AC%E4%BD%BF%E7%94%A8%E5%8F%8A%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90(%E4%B8%83)%20-%20BroadcastReceiver/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/logo.png">
+      <meta itemprop="name" content="Tinlone">
+      <meta itemprop="description" content="Tinlone的个人博客">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Tinlone">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          
+            <a href="/2021/02/15/WorkManager%E5%9F%BA%E6%9C%AC%E4%BD%BF%E7%94%A8%E5%8F%8A%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90(%E4%B8%83)%20-%20BroadcastReceiver/" class="post-title-link" itemprop="url">WorkManager基本使用及源码分析(七) - BroadcastReceiver</a>
+        </h2>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+              
+
+              <time title="创建时间：2021-02-15 13:00:40 / 修改时间：13:00:24" itemprop="dateCreated datePublished" datetime="2021-02-15T13:00:40+08:00">2021-02-15</time>
+            </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/Jetpack/" itemprop="url" rel="index"><span itemprop="name">Jetpack</span></a>
+                </span>
+            </span>
+
+          <br>
+            <span class="post-meta-item" title="本文字数">
+              <span class="post-meta-item-icon">
+                <i class="far fa-file-word"></i>
+              </span>
+                <span class="post-meta-item-text">本文字数：</span>
+              <span>14k</span>
+            </span>
+            <span class="post-meta-item" title="阅读时长">
+              <span class="post-meta-item-icon">
+                <i class="far fa-clock"></i>
+              </span>
+                <span class="post-meta-item-text">阅读时长 &asymp;</span>
+              <span>12 分钟</span>
+            </span>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+          <ul>
+<li><a href="#source_broadcast">源码篇 - 广播接收者</a></li>
+<li><a href="#ForceStopRunnable">ForceStopRunnable</a><ul>
+<li><a href="#fsr_BroadcastReceiver">BroadcastReceiver</a></li>
+</ul>
+</li>
+<li><a href="#ConstraintProxy">ConstraintProxy</a><ul>
+<li><a href="#BatteryNotLowProxy">BatteryNotLowProxy</a></li>
+<li><a href="#BatteryChargingProxy">BatteryChargingProxy</a></li>
+<li><a href="#StorageNotLowProxy">StorageNotLowProxy</a></li>
+<li><a href="#NetworkStateProxy">NetworkStateProxy</a></li>
+</ul>
+</li>
+<li><a href="#ConstraintProxyUpdateReceiver">ConstraintProxyUpdateReceiver</a></li>
+<li><a href="#RescheduleReceiver">RescheduleReceiver</a></li>
+<li><a href="#DiagnosticsReceiver">DiagnosticsReceiver</a></li>
+</ul>
+<h3 id="源码篇-广播接收者"><a href="#源码篇-广播接收者" class="headerlink" title=" 源码篇 - 广播接收者"></a><span id="source_broadcast"> 源码篇 - 广播接收者</h3><p>此篇将重点介绍WorkManager使用的重要组件:广播接收者,主要涉及意外停止监听广播<code>ForceStopRunnable.BroadcastReceiver</code>、约束状态监听广播<code>ConstraintProxy.*</code>、启动重新规划服务的广播<code>RescheduleReceiver</code>、代理约束更新广播<code>ConstraintProxyUpdateReceiver</code>、测试诊断广播<code>DiagnosticsReceiver</code>。此类组件为WorkManager稳定运行、重新规划、约束更新提供了支持。</p>
+          <!--noindex-->
+            <div class="post-button">
+              <a class="btn" href="/2021/02/15/WorkManager%E5%9F%BA%E6%9C%AC%E4%BD%BF%E7%94%A8%E5%8F%8A%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90(%E4%B8%83)%20-%20BroadcastReceiver/#more" rel="contents">
+                阅读全文 &raquo;
+              </a>
+            </div>
+          <!--/noindex-->
+        
+      
+    </div>
+
+    
+    
+    
+      <footer class="post-footer">
+        <div class="post-eof"></div>
+      </footer>
+  </article>
+  
+  
+  
+
 
   
 
@@ -881,7 +987,7 @@
       <div class="site-state-item site-state-posts">
           <a href="/archives/">
         
-          <span class="site-state-item-count">6</span>
+          <span class="site-state-item-count">7</span>
           <span class="site-state-item-name">日志</span>
         </a>
       </div>
@@ -933,12 +1039,12 @@
     <span class="post-meta-item-icon">
       <i class="fa fa-chart-area"></i>
     </span>
-    <span title="站点总字数">40k</span>
+    <span title="站点总字数">53k</span>
     <span class="post-meta-divider">|</span>
     <span class="post-meta-item-icon">
       <i class="fa fa-coffee"></i>
     </span>
-    <span title="站点阅读时长">36 分钟</span>
+    <span title="站点阅读时长">48 分钟</span>
 </div>
 <!--
   <div class="powered-by">由 <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://theme-next.org/" class="theme-link" rel="noopener" target="_blank">NexT.Gemini</a> 强力驱动

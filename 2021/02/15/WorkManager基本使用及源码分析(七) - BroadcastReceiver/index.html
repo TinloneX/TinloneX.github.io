@@ -1,0 +1,543 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 5.3.0">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/logo.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+  <link rel="stylesheet" href="/lib/pace/pace-theme-material.min.css">
+  <script src="/lib/pace/pace.min.js"></script>
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"tinlone.com","root":"/","scheme":"Gemini","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":true,"show_result":true,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":true},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},"path":"search.xml"};
+  </script>
+
+  <meta name="description" content="源码篇 - 广播接收者 ForceStopRunnable BroadcastReceiver   ConstraintProxy BatteryNotLowProxy BatteryChargingProxy StorageNotLowProxy NetworkStateProxy   ConstraintProxyUpdateReceiver RescheduleReceiver Diagn">
+<meta property="og:type" content="article">
+<meta property="og:title" content="WorkManager基本使用及源码分析(七) - BroadcastReceiver">
+<meta property="og:url" content="http://tinlone.com/2021/02/15/WorkManager%E5%9F%BA%E6%9C%AC%E4%BD%BF%E7%94%A8%E5%8F%8A%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90(%E4%B8%83)%20-%20BroadcastReceiver/index.html">
+<meta property="og:site_name" content="Tinlone">
+<meta property="og:description" content="源码篇 - 广播接收者 ForceStopRunnable BroadcastReceiver   ConstraintProxy BatteryNotLowProxy BatteryChargingProxy StorageNotLowProxy NetworkStateProxy   ConstraintProxyUpdateReceiver RescheduleReceiver Diagn">
+<meta property="og:locale" content="zh_CN">
+<meta property="article:published_time" content="2021-02-15T05:00:40.381Z">
+<meta property="article:modified_time" content="2021-02-15T05:00:24.263Z">
+<meta property="article:author" content="Tinlone">
+<meta property="article:tag" content="WorkManager">
+<meta name="twitter:card" content="summary">
+
+<link rel="canonical" href="http://tinlone.com/2021/02/15/WorkManager%E5%9F%BA%E6%9C%AC%E4%BD%BF%E7%94%A8%E5%8F%8A%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90(%E4%B8%83)%20-%20BroadcastReceiver/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'zh-CN'
+  };
+</script>
+
+  <title>WorkManager基本使用及源码分析(七) - BroadcastReceiver | Tinlone</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">Tinlone</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+      <p class="site-subtitle" itemprop="description">堕落的🐟</p>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签</a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>分类</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档</a>
+
+  </li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>搜索
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup">
+        <div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocapitalize="off"
+           placeholder="搜索..." spellcheck="false"
+           type="search" class="search-input">
+  </div>
+  <span class="popup-btn-close">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div id="search-result">
+  <div id="no-result">
+    <i class="fa fa-spinner fa-pulse fa-5x fa-fw"></i>
+  </div>
+</div>
+
+    </div>
+  </div>
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="http://tinlone.com/2021/02/15/WorkManager%E5%9F%BA%E6%9C%AC%E4%BD%BF%E7%94%A8%E5%8F%8A%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90(%E4%B8%83)%20-%20BroadcastReceiver/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/logo.png">
+      <meta itemprop="name" content="Tinlone">
+      <meta itemprop="description" content="Tinlone的个人博客">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Tinlone">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          WorkManager基本使用及源码分析(七) - BroadcastReceiver
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+              
+
+              <time title="创建时间：2021-02-15 13:00:40 / 修改时间：13:00:24" itemprop="dateCreated datePublished" datetime="2021-02-15T13:00:40+08:00">2021-02-15</time>
+            </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/Jetpack/" itemprop="url" rel="index"><span itemprop="name">Jetpack</span></a>
+                </span>
+            </span>
+
+          <br>
+            <span class="post-meta-item" title="本文字数">
+              <span class="post-meta-item-icon">
+                <i class="far fa-file-word"></i>
+              </span>
+                <span class="post-meta-item-text">本文字数：</span>
+              <span>14k</span>
+            </span>
+            <span class="post-meta-item" title="阅读时长">
+              <span class="post-meta-item-icon">
+                <i class="far fa-clock"></i>
+              </span>
+                <span class="post-meta-item-text">阅读时长 &asymp;</span>
+              <span>12 分钟</span>
+            </span>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <ul>
+<li><a href="#source_broadcast">源码篇 - 广播接收者</a></li>
+<li><a href="#ForceStopRunnable">ForceStopRunnable</a><ul>
+<li><a href="#fsr_BroadcastReceiver">BroadcastReceiver</a></li>
+</ul>
+</li>
+<li><a href="#ConstraintProxy">ConstraintProxy</a><ul>
+<li><a href="#BatteryNotLowProxy">BatteryNotLowProxy</a></li>
+<li><a href="#BatteryChargingProxy">BatteryChargingProxy</a></li>
+<li><a href="#StorageNotLowProxy">StorageNotLowProxy</a></li>
+<li><a href="#NetworkStateProxy">NetworkStateProxy</a></li>
+</ul>
+</li>
+<li><a href="#ConstraintProxyUpdateReceiver">ConstraintProxyUpdateReceiver</a></li>
+<li><a href="#RescheduleReceiver">RescheduleReceiver</a></li>
+<li><a href="#DiagnosticsReceiver">DiagnosticsReceiver</a></li>
+</ul>
+<h3 id="源码篇-广播接收者"><a href="#源码篇-广播接收者" class="headerlink" title=" 源码篇 - 广播接收者"></a><span id="source_broadcast"> 源码篇 - 广播接收者</h3><p>此篇将重点介绍WorkManager使用的重要组件:广播接收者,主要涉及意外停止监听广播<code>ForceStopRunnable.BroadcastReceiver</code>、约束状态监听广播<code>ConstraintProxy.*</code>、启动重新规划服务的广播<code>RescheduleReceiver</code>、代理约束更新广播<code>ConstraintProxyUpdateReceiver</code>、测试诊断广播<code>DiagnosticsReceiver</code>。此类组件为WorkManager稳定运行、重新规划、约束更新提供了支持。</p>
+<a id="more"></a>
+
+<h4 id="ForceStopRunnable"><a href="#ForceStopRunnable" class="headerlink" title=" ForceStopRunnable"></a><span id="ForceStopRunnable"> ForceStopRunnable</h4><blockquote>
+<p>WorkManager is restarted after an app was force stopped. Alarms and Jobs get cancelled when an application is force-stopped. To reschedule, we create a pending alarm that will not survive force stops.</p>
+</blockquote>
+<p>强制停止应用程序后，<code>WorkManager</code>将重新启动。当应用被强制停止时，<code>Alarms</code>和<code>Jobs</code>将被取消。为了重新安排，我们要创建一个无法通过强制停止的<code>Alarm</code>。</p>
+<p>在介绍<code>ForceStopRunnable.BroadcastReceiver</code>前,我们先简单看一下它的外部类<code>ForceStopRunnable</code>。</p>
+<p><code>ForceStopRunnable</code>是一个Runnable对象，核心方法是<code>run</code>, 其在<code>WorkManager</code>初始化时调用<code>WorkManagerImpl.internalInit()</code>, 构造并调用了<code>ForceStopRunnable.run()</code>：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@Override</span></span><br><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">run</span><span class="params">()</span> </span>&#123;</span><br><span class="line">    <span class="comment">// 如果需要，将数据库迁移到不备份的目录。</span></span><br><span class="line">    WorkDatabasePathHelper.migrateDatabase(mContext);</span><br><span class="line">    <span class="comment">// 清除属于WorkManager的无效作业，以及由于应用程序崩溃(运行状态)而可能被中断的作业。</span></span><br><span class="line">    <span class="keyword">try</span> &#123;</span><br><span class="line">        <span class="keyword">boolean</span> needsScheduling = cleanUp();</span><br><span class="line">        <span class="keyword">if</span> (shouldRescheduleWorkers()) &#123;</span><br><span class="line">            mWorkManager.rescheduleEligibleWork();</span><br><span class="line">            <span class="comment">// 将WorkManager标记为已迁移。</span></span><br><span class="line">            mWorkManager.getPreferenceUtils().setNeedsReschedule(<span class="keyword">false</span>);</span><br><span class="line">        &#125; <span class="keyword">else</span> <span class="keyword">if</span> (isForceStopped()) &#123;</span><br><span class="line">            <span class="comment">// 异常退出，重新规划任务</span></span><br><span class="line">            mWorkManager.rescheduleEligibleWork();</span><br><span class="line">        &#125; <span class="keyword">else</span> <span class="keyword">if</span> (needsScheduling) &#123;</span><br><span class="line">           <span class="comment">// 发现未完成任务，规划它们</span></span><br><span class="line">            Schedulers.schedule(</span><br><span class="line">                    mWorkManager.getConfiguration(),</span><br><span class="line">                    mWorkManager.getWorkDatabase(),</span><br><span class="line">                    mWorkManager.getSchedulers());</span><br><span class="line">        &#125;</span><br><span class="line">        mWorkManager.onForceStopRunnableCompleted();</span><br><span class="line">    &#125; <span class="keyword">catch</span> (SQLiteCantOpenDatabaseException</span><br><span class="line">            | SQLiteDatabaseCorruptException</span><br><span class="line">            | SQLiteAccessPermException exception) &#123;</span><br><span class="line">        <span class="comment">// ForceStopRunnable通常是访问数据库(或应用程序的内部数据目录)的第一件事。</span></span><br><span class="line">        <span class="comment">// 这意味着奇怪的PackageManager错误被归咎于ForceStopRunnable，这是不幸的。</span></span><br><span class="line">        <span class="comment">// 这为开发人员提供了更好的错误消息。</span></span><br><span class="line">        String message =</span><br><span class="line">                <span class="string">&quot;The file system on the device is in a bad state. WorkManager cannot access &quot;</span></span><br><span class="line">                        + <span class="string">&quot;the app&#x27;s internal data store.&quot;</span>;</span><br><span class="line">        Logger.get().error(TAG, message, exception);</span><br><span class="line">        <span class="keyword">throw</span> <span class="keyword">new</span> IllegalStateException(message, exception);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+<p>我们发现<code>ForceStopRunable</code>主要职责是处理异常中断后对WorkManager中任务进行清理和重新规划,<code>run()</code>主要干了3件事:</p>
+<ul>
+<li>如果需要，将数据库迁移到不备份的目录</li>
+<li>取消无效的JobScheduler作业/重新调度以前正在运行的作业</li>
+<li>针对异常中断时WorkManager的状态进行不同的调度操作</li>
+</ul>
+<p>那么他是如何判断是否是强制中断的呢，我们可以看下强制中断判断代码<code>isForceStopped()</code>:</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@VisibleForTesting</span></span><br><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">boolean</span> <span class="title">isForceStopped</span><span class="params">()</span> </span>&#123;</span><br><span class="line">    <span class="comment">// 当应用程序在Eclair MR1强制停止启动时，Alarm被取消。</span></span><br><span class="line">    <span class="comment">// 在N-MR1中引入了强制停止作业的取消(SDK 25)。</span></span><br><span class="line">    <span class="comment">// 尽管API 23、24可能是安全的，但oem可能会选择采用不同的方法。</span></span><br><span class="line">    PendingIntent pendingIntent = getPendingIntent(mContext, FLAG_NO_CREATE);</span><br><span class="line">    <span class="keyword">if</span> (pendingIntent == <span class="keyword">null</span>) &#123;</span><br><span class="line">        setAlarm(mContext);</span><br><span class="line">        <span class="keyword">return</span> <span class="keyword">true</span>;</span><br><span class="line">    &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">        <span class="keyword">return</span> <span class="keyword">false</span>;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>通过判断闹钟广播是否存在来确定应用是否被强行停止，若不存在即闹钟Alarm被取消即是强制中断，此时将重新设置一个闹钟Alarm;</p>
+<p>让我们来看看上文中的<code>ForceStopRunnable.BroadcastReceiver</code>闹钟广播。</p>
+<h5 id="BroadcastReceiver"><a href="#BroadcastReceiver" class="headerlink" title=" BroadcastReceiver"></a><span id="BroadcastReceiver"> BroadcastReceiver</h5><blockquote>
+<p>A {@link android.content.BroadcastReceiver} which takes care of recreating the long lived alarm which helps track force stops for an application.  This is the target of the alarm set by ForceStopRunnable in {@link #setAlarm(Context)}. 一个{@link android.content.BroadcastReceiver}负责重新创建长寿命的Alarm，这有助于跟踪应用程序的强制停止。这是在{@link #setAlarm(Context)}中由forceoprunnable设置的Alarm目标。</p>
+</blockquote>
+<p>从描述可知，此广播的主要目的是负责创建长期存活的闹钟，用以追踪应用程序的强制停止。</p>
+<p>其代码相对简单，若收到action为<code>ACTION_FORCE_STOP_RESCHEDULE</code>的广播，则设置一个长达十年的可唤醒设备的闹钟，然后再来一次（发送action为<code>ACTION_FORCE_STOP_RESCHEDULE</code>的广播）。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// ForceStopRunnable</span></span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">private</span> <span class="keyword">static</span> PendingIntent <span class="title">getPendingIntent</span><span class="params">(Context context, <span class="keyword">int</span> flags)</span> </span>&#123;</span><br><span class="line">    Intent intent = getIntent(context);</span><br><span class="line">    <span class="comment">// 发送广播的PendingIntent</span></span><br><span class="line">    <span class="keyword">return</span> PendingIntent.getBroadcast(context, ALARM_ID, intent, flags);</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="meta">@VisibleForTesting</span></span><br><span class="line"><span class="function"><span class="keyword">static</span> Intent <span class="title">getIntent</span><span class="params">(Context context)</span> </span>&#123;</span><br><span class="line">    Intent intent = <span class="keyword">new</span> Intent();</span><br><span class="line">    intent.setComponent(<span class="keyword">new</span> ComponentName(context, ForceStopRunnable.BroadcastReceiver.class));</span><br><span class="line">    <span class="comment">// 广播intent</span></span><br><span class="line">    intent.setAction(ACTION_FORCE_STOP_RESCHEDULE);</span><br><span class="line">    <span class="keyword">return</span> intent;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">static</span> <span class="keyword">void</span> <span class="title">setAlarm</span><span class="params">(Context context)</span> </span>&#123;</span><br><span class="line">    AlarmManager alarmManager = (AlarmManager) context.getSystemService(Context.ALARM_SERVICE);</span><br><span class="line">    <span class="comment">//使用FLAG_UPDATE_CURRENT，因为我们只需要这个Alarm的一次实例</span></span><br><span class="line">    PendingIntent pendingIntent = getPendingIntent(context, FLAG_UPDATE_CURRENT);</span><br><span class="line">    <span class="comment">// 设置执行时间为十年</span></span><br><span class="line">    <span class="keyword">long</span> triggerAt = System.currentTimeMillis() + TEN_YEARS;</span><br><span class="line">    <span class="keyword">if</span> (alarmManager != <span class="keyword">null</span>) &#123;</span><br><span class="line">        <span class="keyword">if</span> (Build.VERSION.SDK_INT &gt;= <span class="number">19</span>) &#123;</span><br><span class="line">            <span class="comment">// RTC_WAKEUP：绝对时间可唤醒类型，十年后，干啥</span></span><br><span class="line">            alarmManager.setExact(RTC_WAKEUP, triggerAt, pendingIntent);</span><br><span class="line">        &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">            alarmManager.set(RTC_WAKEUP, triggerAt, pendingIntent);</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="meta">@RestrictTo(RestrictTo.Scope.LIBRARY_GROUP)</span></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">static</span> <span class="class"><span class="keyword">class</span> <span class="title">BroadcastReceiver</span> <span class="keyword">extends</span> <span class="title">android</span>.<span class="title">content</span>.<span class="title">BroadcastReceiver</span> </span>&#123;</span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">onReceive</span><span class="params">(Context context, Intent intent)</span> </span>&#123;</span><br><span class="line">        <span class="comment">// Our alarm somehow got triggered, so make sure we reschedule it.  This should really never happen because we set it so far in the future.</span></span><br><span class="line">        <span class="comment">// 我们的闹钟不知怎么被触发了，所以一定要重新安排时间。这是不应该发生的，因为我们将它设置在遥远的未来（嘿，十年后再见）。</span></span><br><span class="line">        <span class="keyword">if</span> (intent != <span class="keyword">null</span>) &#123;</span><br><span class="line">            String action = intent.getAction();</span><br><span class="line">            <span class="keyword">if</span> (ACTION_FORCE_STOP_RESCHEDULE.equals(action)) &#123;</span><br><span class="line">                Logger.get().verbose(</span><br><span class="line">                        TAG,</span><br><span class="line">                        <span class="string">&quot;Rescheduling alarm that keeps track of force-stops.&quot;</span>);</span><br><span class="line">                ForceStopRunnable.setAlarm(context);</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>有前文可知，应用启动时会初始化WorkManager，WorkManager初始化则会执行<code>ForceStopRunnable.run()</code>, 此时一般会调用setAlarm(), 创建Alarm，极端情况下会存在应用存活十年的情况，此<code>BroadcastReceiver</code>即是用于处理这种情况的，当十年后又收到了这个广播，那么我们在创建一个十年期的闹钟Alarm，哦，天呐。</p>
+<h4 id="ConstraintProxy"><a href="#ConstraintProxy" class="headerlink" title=" ConstraintProxy"></a><span id="ConstraintProxy"> ConstraintProxy</h4><h5 id="BatteryNotLowProxy"><a href="#BatteryNotLowProxy" class="headerlink" title=" BatteryNotLowProxy"></a><span id="BatteryNotLowProxy"> BatteryNotLowProxy</h5><h5 id="BatteryChargingProxy"><a href="#BatteryChargingProxy" class="headerlink" title=" BatteryChargingProxy"></a><span id="BatteryChargingProxy"> BatteryChargingProxy</h5><h5 id="StorageNotLowProxy"><a href="#StorageNotLowProxy" class="headerlink" title=" StorageNotLowProxy"></a><span id="StorageNotLowProxy"> StorageNotLowProxy</h5><h5 id="NetworkStateProxy"><a href="#NetworkStateProxy" class="headerlink" title=" NetworkStateProxy"></a><span id="NetworkStateProxy"> NetworkStateProxy</h5><p>上述<code>BatteryNotLowProxy</code>、<code>BatteryChargingProxy</code>、<code>StorageNotLowProxy</code>、<code>NetworkStateProxy</code>均是<code>ConstraintProxy</code>的子类,实现均一致,仅有注册action不同,用以针对不同action的系统广播更新约束状态, 此处一并分析之。</p>
+<p>以<code>NetworkStateProxy</code>为例，当网络状态变化，应用收到<code>"android.net.conn.CONNECTIVITY_CHANGE"</code>广播，触发<code>NetworkStateProxy.onReceive()</code>:</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@Override</span></span><br><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">onReceive</span><span class="params">(Context context, Intent intent)</span> </span>&#123;</span><br><span class="line">    Logger.get().debug(TAG, String.format(<span class="string">&quot;onReceive : %s&quot;</span>, intent));</span><br><span class="line">    Intent constraintChangedIntent = CommandHandler.createConstraintsChangedIntent(context);</span><br><span class="line">    context.startService(constraintChangedIntent);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>调用<code>CommandHandler.createConstraintsChangedIntent(context)</code>调起<code>SystemAlarmService</code>, 其intent的action为<code>"ACTION_CONSTRAINTS_CHANGED"</code>：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">static</span> Intent <span class="title">createConstraintsChangedIntent</span><span class="params">(<span class="meta">@NonNull</span> Context context)</span> </span>&#123;</span><br><span class="line">    Intent intent = <span class="keyword">new</span> Intent(context, SystemAlarmService.class);</span><br><span class="line">    intent.setAction(ACTION_CONSTRAINTS_CHANGED);</span><br><span class="line">    <span class="keyword">return</span> intent;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>由<a href="#https://tinlone.com/2021/02/06/WorkManager%E5%9F%BA%E6%9C%AC%E4%BD%BF%E7%94%A8%E5%8F%8A%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90(%E4%B8%89)%20-%20SystemAlarmService/">WorkManager基本使用及源码分析(三) - SystemAlarmService</a>讲述流程可知，最终会调用到<code>CommandHandler.onHandleIntent()</code>：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line">void onHandleIntent(@NonNull Intent intent, int startId, @NonNull SystemAlarmDispatcher dispatcher) &#123;</span><br><span class="line">        String action &#x3D; intent.getAction();</span><br><span class="line"></span><br><span class="line">        if (ACTION_CONSTRAINTS_CHANGED.equals(action)) &#123;</span><br><span class="line">            handleConstraintsChanged(intent, startId, dispatcher);</span><br><span class="line">        &#125; </span><br><span class="line">        &#x2F;&#x2F; 其他</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">private void handleConstraintsChanged(</span><br><span class="line">        @NonNull Intent intent, int startId,</span><br><span class="line">        @NonNull SystemAlarmDispatcher dispatcher) &#123;</span><br><span class="line">    ConstraintsCommandHandler changedCommandHandler &#x3D;</span><br><span class="line">            new ConstraintsCommandHandler(mContext, startId, dispatcher);</span><br><span class="line">    changedCommandHandler.handleConstraintsChanged();</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>此时intent的action为<code>"ACTION_CONSTRAINTS_CHANGED"</code>，最终会调用到<code>ConstraintsCommandHandler.handleConstraintsChanged()</code>：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br></pre></td><td class="code"><pre><span class="line">void handleConstraintsChanged() &#123;</span><br><span class="line">    List&lt;WorkSpec&gt; candidates &#x3D; mDispatcher.getWorkManager().getWorkDatabase()</span><br><span class="line">            .workSpecDao()</span><br><span class="line">            .getScheduledWork();</span><br><span class="line"></span><br><span class="line">    &#x2F;&#x2F;更新约束代理以潜在地禁用先前完成的WorkSpecs的代理。</span><br><span class="line">    ConstraintProxy.updateAll(mContext, candidates);</span><br><span class="line"></span><br><span class="line">    &#x2F;&#x2F; 这需要在每个约束控制器中填充匹配的WorkSpec id。标记正在更新这些工作的状态</span><br><span class="line">    mWorkConstraintsTracker.replace(candidates);</span><br><span class="line"></span><br><span class="line">    List&lt;WorkSpec&gt; eligibleWorkSpecs &#x3D; new ArrayList&lt;&gt;(candidates.size());</span><br><span class="line">    &#x2F;&#x2F; 筛选候选人应该已经规划好了。</span><br><span class="line">    long now &#x3D; System.currentTimeMillis();</span><br><span class="line">    for (WorkSpec workSpec : candidates) &#123;</span><br><span class="line">        String workSpecId &#x3D; workSpec.id;</span><br><span class="line">        long triggerAt &#x3D; workSpec.calculateNextRunTime();</span><br><span class="line">        &#x2F;&#x2F; 时间条件符合且无约束或约束已符合，则加入符合条件集合</span><br><span class="line">        if (now &gt;&#x3D; triggerAt &amp;&amp; (!workSpec.hasConstraints()</span><br><span class="line">                || mWorkConstraintsTracker.areAllConstraintsMet(workSpecId))) &#123;</span><br><span class="line">            eligibleWorkSpecs.add(workSpec);</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    for (WorkSpec workSpec : eligibleWorkSpecs) &#123;</span><br><span class="line">        String workSpecId &#x3D; workSpec.id;</span><br><span class="line">        Intent intent &#x3D; CommandHandler.createDelayMetIntent(mContext, workSpecId);</span><br><span class="line">        &#x2F;&#x2F; 告诉SystemAlarmDispatcher这个工作已经符合条件了，请给安排上</span><br><span class="line">        mDispatcher.postOnMainThread(</span><br><span class="line">                new SystemAlarmDispatcher.AddRunnable(mDispatcher, intent, mStartId));</span><br><span class="line">    &#125;</span><br><span class="line">    &#x2F;&#x2F; 重置正在更新这些工作状态的标记</span><br><span class="line">    mWorkConstraintsTracker.reset();</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>此方法先获取了规划中的工作生成集合，调用了<code>ConstraintProxy.updateAll()</code>方法更新约束代理以潜在地禁用先前完成的WorkSpecs的代理，遍历判断每个WorkSpec是否符合条件，遍历符合约束条件的列表，告诉<code>SystemAlarmDispatcher</code>添加任务，若<code>SystemAlarmDispatcher</code>中无任务则分发执行任务（还记得processCommand()是一个环状的轮询吗？）。</p>
+<p><code>SystemAlarmDispatcher.AddRunnable()</code>后续调用<code>SystemAlarmDispatcher.add()</code>在<a href="#https://tinlone.com/2021/02/06/WorkManager%E5%9F%BA%E6%9C%AC%E4%BD%BF%E7%94%A8%E5%8F%8A%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90(%E4%B8%89)%20-%20SystemAlarmService/">WorkManager基本使用及源码分析(三) - SystemAlarmService</a>中有详细说明，此处仅摘要流程。<br><code>SystemAlarmDispatcher.AddRunnable()</code> -&gt; <code>SystemAlarmDispatcher.add()</code>：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// SystemAlarmDispatcher</span></span><br><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">boolean</span> <span class="title">add</span><span class="params">(<span class="meta">@NonNull</span> <span class="keyword">final</span> Intent intent, <span class="keyword">final</span> <span class="keyword">int</span> startId)</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">    String action = intent.getAction();</span><br><span class="line">    <span class="keyword">if</span> (TextUtils.isEmpty(action)) &#123;</span><br><span class="line">        <span class="keyword">return</span> <span class="keyword">false</span>;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span> (CommandHandler.ACTION_CONSTRAINTS_CHANGED.equals(action)</span><br><span class="line">            &amp;&amp; hasIntentWithAction(CommandHandler.ACTION_CONSTRAINTS_CHANGED)) &#123;</span><br><span class="line">        <span class="keyword">return</span> <span class="keyword">false</span>;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    intent.putExtra(KEY_START_ID, startId);</span><br><span class="line">    <span class="keyword">synchronized</span> (mIntents) &#123;</span><br><span class="line">        <span class="keyword">boolean</span> hasCommands = !mIntents.isEmpty();</span><br><span class="line">        mIntents.add(intent);</span><br><span class="line">        <span class="keyword">if</span> (!hasCommands) &#123;</span><br><span class="line">            processCommand();</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">return</span> <span class="keyword">true</span>;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">static</span> <span class="class"><span class="keyword">class</span> <span class="title">AddRunnable</span> <span class="keyword">implements</span> <span class="title">Runnable</span> </span>&#123;</span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">run</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        mDispatcher.add(mIntent, mStartId);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h4 id="ConstraintProxyUpdateReceiver"><a href="#ConstraintProxyUpdateReceiver" class="headerlink" title=" ConstraintProxyUpdateReceiver"></a><span id="ConstraintProxyUpdateReceiver"> ConstraintProxyUpdateReceiver</h4><p>上面讲到<code>ConstraintsCommandHandler.handleConstraintsChanged()</code>第一步会调用<code>ConstraintProxy.updateAll(mContext, candidates)</code>最终会发送广播给<code>ConstraintProxyUpdateReceiver</code>更新约束代理以潜在地禁用先前完成的WorkSpecs的代理,我们简单过一下。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br></pre></td><td class="code"><pre><span class="line">static void updateAll(Context context, List&lt;WorkSpec&gt; workSpecs) &#123;</span><br><span class="line">    boolean batteryNotLowProxyEnabled &#x3D; false;</span><br><span class="line">    boolean batteryChargingProxyEnabled &#x3D; false;</span><br><span class="line">    boolean storageNotLowProxyEnabled &#x3D; false;</span><br><span class="line">    boolean networkStateProxyEnabled &#x3D; false;</span><br><span class="line">&#x2F;&#x2F; 查找每个WorkSpec（是否有）约束条件状态</span><br><span class="line">    for (WorkSpec workSpec : workSpecs) &#123;</span><br><span class="line">        Constraints constraints &#x3D; workSpec.constraints;</span><br><span class="line">        batteryNotLowProxyEnabled |&#x3D; constraints.requiresBatteryNotLow();</span><br><span class="line">        batteryChargingProxyEnabled |&#x3D; constraints.requiresCharging();</span><br><span class="line">        storageNotLowProxyEnabled |&#x3D; constraints.requiresStorageNotLow();</span><br><span class="line">        networkStateProxyEnabled |&#x3D; constraints.getRequiredNetworkType() !&#x3D; NOT_REQUIRED;</span><br><span class="line">&#x2F;&#x2F; 知道需要全部广播接收者，就不用判断了</span><br><span class="line">        if (batteryNotLowProxyEnabled &amp;&amp; batteryChargingProxyEnabled</span><br><span class="line">                &amp;&amp; storageNotLowProxyEnabled &amp;&amp; networkStateProxyEnabled) &#123;</span><br><span class="line">            break;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    Intent updateProxyIntent &#x3D;</span><br><span class="line">            ConstraintProxyUpdateReceiver.newConstraintProxyUpdateIntent(</span><br><span class="line">                    context,</span><br><span class="line">                    batteryNotLowProxyEnabled,</span><br><span class="line">                    batteryChargingProxyEnabled,</span><br><span class="line">                    storageNotLowProxyEnabled,</span><br><span class="line">                    networkStateProxyEnabled);</span><br><span class="line"></span><br><span class="line">    &#x2F;&#x2F; ConstraintProxies are being updated via a separate broadcast receiver.</span><br><span class="line">    &#x2F;&#x2F; For more information on why we do this look at b&#x2F;73549299</span><br><span class="line">    context.sendBroadcast(updateProxyIntent);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>这里先是判断需要哪些广播接收者，会发送广播给ConstraintProxyUpdateReceiver，最终会调用：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br></pre></td><td class="code"><pre><span class="line">@Override</span><br><span class="line">public void onReceive(@NonNull final Context context, @Nullable final Intent intent) &#123;</span><br><span class="line">    String action &#x3D; intent !&#x3D; null ? intent.getAction() : null;</span><br><span class="line">    if (!ACTION.equals(action)) &#123;</span><br><span class="line"></span><br><span class="line">    &#125; else &#123;</span><br><span class="line">        final PendingResult pendingResult &#x3D; goAsync();</span><br><span class="line">        WorkManagerImpl workManager &#x3D; WorkManagerImpl.getInstance(context);</span><br><span class="line">        TaskExecutor taskExecutor &#x3D; workManager.getWorkTaskExecutor();</span><br><span class="line">        taskExecutor.executeOnBackgroundThread(new Runnable() &#123;</span><br><span class="line">            @Override</span><br><span class="line">            public void run() &#123;</span><br><span class="line">                try &#123;</span><br><span class="line">                    &#x2F;&#x2F; 在后台线程上执行此操作，因为使用PackageManager来启用或禁用代理涉及到对文件系统的写操作。</span><br><span class="line">                    boolean batteryNotLowProxyEnabled &#x3D; intent.getBooleanExtra(</span><br><span class="line">                            KEY_BATTERY_NOT_LOW_PROXY_ENABLED, false);</span><br><span class="line">                    boolean batteryChargingProxyEnabled &#x3D; intent.getBooleanExtra(</span><br><span class="line">                            KEY_BATTERY_CHARGING_PROXY_ENABLED, false);</span><br><span class="line">                    boolean storageNotLowProxyEnabled &#x3D; intent.getBooleanExtra(</span><br><span class="line">                            KEY_STORAGE_NOT_LOW_PROXY_ENABLED, false);</span><br><span class="line">                    boolean networkStateProxyEnabled &#x3D; intent.getBooleanExtra(</span><br><span class="line">                            KEY_NETWORK_STATE_PROXY_ENABLED, false);</span><br><span class="line"></span><br><span class="line">                    Logger.get().debug(</span><br><span class="line">                            TAG,</span><br><span class="line">                            String.format(&quot;Updating proxies: BatteryNotLowProxy enabled (%s), &quot;</span><br><span class="line">                                            + &quot;BatteryChargingProxy enabled (%s), &quot;</span><br><span class="line">                                            + &quot;StorageNotLowProxy (%s), &quot;</span><br><span class="line">                                            + &quot;NetworkStateProxy enabled (%s)&quot;,</span><br><span class="line">                                    batteryNotLowProxyEnabled,</span><br><span class="line">                                    batteryChargingProxyEnabled,</span><br><span class="line">                                    storageNotLowProxyEnabled,</span><br><span class="line">                                    networkStateProxyEnabled));</span><br><span class="line"></span><br><span class="line">                    PackageManagerHelper.setComponentEnabled(context, BatteryNotLowProxy.class,</span><br><span class="line">                            batteryNotLowProxyEnabled);</span><br><span class="line">                    PackageManagerHelper.setComponentEnabled(context,</span><br><span class="line">                            BatteryChargingProxy.class,</span><br><span class="line">                            batteryChargingProxyEnabled);</span><br><span class="line">                    PackageManagerHelper.setComponentEnabled(context, StorageNotLowProxy.class,</span><br><span class="line">                            storageNotLowProxyEnabled);</span><br><span class="line">                    PackageManagerHelper.setComponentEnabled(context, NetworkStateProxy.class,</span><br><span class="line">                            networkStateProxyEnabled);</span><br><span class="line">                &#125; finally &#123;</span><br><span class="line">                    pendingResult.finish();</span><br><span class="line">                &#125;</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>主要执行了获取前文提供的需要哪些约束广播接收器，调用<code>PackageManagerHelper.setComponentEnabled(context, StorageNotLowProxy.class, storageNotLowProxyEnabled)</code>更改广播接收者注册信息：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br></pre></td><td class="code"><pre><span class="line">&#x2F;**</span><br><span class="line"> * 使用&#123;@link PackageManager&#125; 去开&#x2F;关manifest声明的组件</span><br><span class="line"> *</span><br><span class="line"> * @param context &#123;@link Context&#125;</span><br><span class="line"> * @param klazz The class of component</span><br><span class="line"> * @param enabled &#123;@code true&#125; 开关组件</span><br><span class="line"> *&#x2F;</span><br><span class="line">public static void setComponentEnabled(</span><br><span class="line">        @NonNull Context context,</span><br><span class="line">        @NonNull Class&lt;?&gt; klazz,</span><br><span class="line">        boolean enabled) &#123;</span><br><span class="line">    try &#123;</span><br><span class="line">        PackageManager packageManager &#x3D; context.getPackageManager();</span><br><span class="line">        ComponentName componentName &#x3D; new ComponentName(context, klazz.getName());</span><br><span class="line">        packageManager.setComponentEnabledSetting(componentName,</span><br><span class="line">                enabled</span><br><span class="line">                        ? PackageManager.COMPONENT_ENABLED_STATE_ENABLED</span><br><span class="line">                        : PackageManager.COMPONENT_ENABLED_STATE_DISABLED,</span><br><span class="line">                PackageManager.DONT_KILL_APP);</span><br><span class="line"></span><br><span class="line">    &#125; catch (Exception exception) &#123;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h4 id="RescheduleReceiver"><a href="#RescheduleReceiver" class="headerlink" title=" RescheduleReceiver"></a><span id="RescheduleReceiver"> RescheduleReceiver</h4><blockquote>
+<p>Reschedules alarms on BOOT_COMPLETED and other similar scenarios.</p>
+</blockquote>
+<p>在BOOT_COMPLETED和其他类似场景下重新调度Alarm。</p>
+<h4 id="DiagnosticsReceiver"><a href="#DiagnosticsReceiver" class="headerlink" title=" DiagnosticsReceiver"></a><span id="DiagnosticsReceiver"> DiagnosticsReceiver</h4><blockquote>
+<p>The {@link android.content.BroadcastReceiver} which dumps out useful diagnostics information. 输出有用的诊断信息</p>
+</blockquote>
+
+    </div>
+
+    
+    
+    
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/WorkManager/" rel="tag"># WorkManager</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2021/02/06/WorkManager%E5%9F%BA%E6%9C%AC%E4%BD%BF%E7%94%A8%E5%8F%8A%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90(%E4%BA%8C)%20-%20WorkManagerInitializer/" rel="prev" title="WorkManager基本使用及源码分析(二) - WorkManagerInitializer">
+      <i class="fa fa-chevron-left"></i> WorkManager基本使用及源码分析(二) - WorkManagerInitializer
+    </a></div>
+      <div class="post-nav-item"></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%BA%90%E7%A0%81%E7%AF%87-%E5%B9%BF%E6%92%AD%E6%8E%A5%E6%94%B6%E8%80%85"><span class="nav-number">1.</span> <span class="nav-text"> 源码篇 - 广播接收者</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#ForceStopRunnable"><span class="nav-number">1.1.</span> <span class="nav-text"> ForceStopRunnable</span></a><ol class="nav-child"><li class="nav-item nav-level-5"><a class="nav-link" href="#BroadcastReceiver"><span class="nav-number">1.1.1.</span> <span class="nav-text"> BroadcastReceiver</span></a></li></ol></li><li class="nav-item nav-level-4"><a class="nav-link" href="#ConstraintProxy"><span class="nav-number">1.2.</span> <span class="nav-text"> ConstraintProxy</span></a><ol class="nav-child"><li class="nav-item nav-level-5"><a class="nav-link" href="#BatteryNotLowProxy"><span class="nav-number">1.2.1.</span> <span class="nav-text"> BatteryNotLowProxy</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#BatteryChargingProxy"><span class="nav-number">1.2.2.</span> <span class="nav-text"> BatteryChargingProxy</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#StorageNotLowProxy"><span class="nav-number">1.2.3.</span> <span class="nav-text"> StorageNotLowProxy</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#NetworkStateProxy"><span class="nav-number">1.2.4.</span> <span class="nav-text"> NetworkStateProxy</span></a></li></ol></li><li class="nav-item nav-level-4"><a class="nav-link" href="#ConstraintProxyUpdateReceiver"><span class="nav-number">1.3.</span> <span class="nav-text"> ConstraintProxyUpdateReceiver</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#RescheduleReceiver"><span class="nav-number">1.4.</span> <span class="nav-text"> RescheduleReceiver</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#DiagnosticsReceiver"><span class="nav-number">1.5.</span> <span class="nav-text"> DiagnosticsReceiver</span></a></li></ol></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="Tinlone"
+      src="/images/logo.png">
+  <p class="site-author-name" itemprop="name">Tinlone</p>
+  <div class="site-description" itemprop="description">Tinlone的个人博客</div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">7</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">1</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">1</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+
+
+
+      </div>
+
+    </div>
+	
+	<iframe frameborder="no" border="0" marginwidth="0" marginheight="0" width=330 height=86 src="//music.163.com/outchain/player?type=2&id=16435049&auto=1&height=66"></iframe>
+	
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2021</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Tinlone</span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item-icon">
+      <i class="fa fa-chart-area"></i>
+    </span>
+    <span title="站点总字数">53k</span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item-icon">
+      <i class="fa fa-coffee"></i>
+    </span>
+    <span title="站点阅读时长">48 分钟</span>
+</div>
+<!--
+  <div class="powered-by">由 <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://theme-next.org/" class="theme-link" rel="noopener" target="_blank">NexT.Gemini</a> 强力驱动
+  </div>
+-->
+
+        
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/pisces.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+  <script defer src="/lib/three/three.min.js"></script>
+    <script defer src="/lib/three/three-waves.min.js"></script>
+
+
+  
+
+
+
+
+  
+<script src="/js/local-search.js"></script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+<script src="/live2dw/lib/L2Dwidget.min.js?094cbace49a39548bed64abff5988b05"></script><script>L2Dwidget.init({"pluginRootPath":"live2dw/","pluginJsPath":"lib/","pluginModelPath":"assets/","tagMode":false,"log":false,"model":{"jsonPath":"/live2dw/assets/hijiki.model.json"},"display":{"position":"right","width":150,"height":300},"mobile":{"show":true}});</script></body>
+</html>
