@@ -1,0 +1,629 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 5.3.0">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/logo.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+  <link rel="stylesheet" href="/lib/pace/pace-theme-material.min.css">
+  <script src="/lib/pace/pace.min.js"></script>
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"tinlone.com","root":"/","scheme":"Gemini","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":true,"show_result":true,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":true},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},"path":"search.xml"};
+  </script>
+
+  <meta name="description" content="前言 应用程序启动库StartUp提供了一种在应用程序启动时初始化组件的简单、高效的方法。库开发者和应用开发者都可以使用app Startup来简化启动序列，并显式设置初始化顺序。   不同于为每个需要初始化的组件定义单独的内容提供程序，App Startup允许你定义共享单个内容提供程序的组件初始化程序。这可以显著提高应用程序的启动时间。  此组件主要解决的痛点问题是：简化各个外部引用SDK初始">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Jetpack之应用启动组件-StartUp">
+<meta property="og:url" content="http://tinlone.com/2021/02/24/Jetpack%E4%B9%8B%E5%BA%94%E7%94%A8%E5%90%AF%E5%8A%A8%E7%BB%84%E4%BB%B6-StartUp/index.html">
+<meta property="og:site_name" content="Tinlone">
+<meta property="og:description" content="前言 应用程序启动库StartUp提供了一种在应用程序启动时初始化组件的简单、高效的方法。库开发者和应用开发者都可以使用app Startup来简化启动序列，并显式设置初始化顺序。   不同于为每个需要初始化的组件定义单独的内容提供程序，App Startup允许你定义共享单个内容提供程序的组件初始化程序。这可以显著提高应用程序的启动时间。  此组件主要解决的痛点问题是：简化各个外部引用SDK初始">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://s3.ax1x.com/2021/02/23/yL3Fz9.png">
+<meta property="og:image" content="https://s3.ax1x.com/2021/02/23/yL8umq.md.png">
+<meta property="article:published_time" content="2021-02-24T11:04:25.774Z">
+<meta property="article:modified_time" content="2021-02-23T15:15:02.240Z">
+<meta property="article:author" content="Tinlone">
+<meta property="article:tag" content="StartUp">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://s3.ax1x.com/2021/02/23/yL3Fz9.png">
+
+<link rel="canonical" href="http://tinlone.com/2021/02/24/Jetpack%E4%B9%8B%E5%BA%94%E7%94%A8%E5%90%AF%E5%8A%A8%E7%BB%84%E4%BB%B6-StartUp/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'zh-CN'
+  };
+</script>
+
+  <title>Jetpack之应用启动组件-StartUp | Tinlone</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">Tinlone</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+      <p class="site-subtitle" itemprop="description">堕落的🐟</p>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签</a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>分类</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档</a>
+
+  </li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>搜索
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup">
+        <div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocapitalize="off"
+           placeholder="搜索..." spellcheck="false"
+           type="search" class="search-input">
+  </div>
+  <span class="popup-btn-close">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div id="search-result">
+  <div id="no-result">
+    <i class="fa fa-spinner fa-pulse fa-5x fa-fw"></i>
+  </div>
+</div>
+
+    </div>
+  </div>
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="http://tinlone.com/2021/02/24/Jetpack%E4%B9%8B%E5%BA%94%E7%94%A8%E5%90%AF%E5%8A%A8%E7%BB%84%E4%BB%B6-StartUp/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/logo.png">
+      <meta itemprop="name" content="Tinlone">
+      <meta itemprop="description" content="Tinlone的个人博客">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Tinlone">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          Jetpack之应用启动组件-StartUp
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2021-02-24 19:04:25" itemprop="dateCreated datePublished" datetime="2021-02-24T19:04:25+08:00">2021-02-24</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2021-02-23 23:15:02" itemprop="dateModified" datetime="2021-02-23T23:15:02+08:00">2021-02-23</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/Jetpack/" itemprop="url" rel="index"><span itemprop="name">Jetpack</span></a>
+                </span>
+            </span>
+
+          <br>
+            <span class="post-meta-item" title="本文字数">
+              <span class="post-meta-item-icon">
+                <i class="far fa-file-word"></i>
+              </span>
+                <span class="post-meta-item-text">本文字数：</span>
+              <span>12k</span>
+            </span>
+            <span class="post-meta-item" title="阅读时长">
+              <span class="post-meta-item-icon">
+                <i class="far fa-clock"></i>
+              </span>
+                <span class="post-meta-item-text">阅读时长 &asymp;</span>
+              <span>11 分钟</span>
+            </span>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <h3 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h3><blockquote>
+<p>应用程序启动库<code>StartUp</code>提供了一种在应用程序启动时初始化组件的简单、高效的方法。库开发者和应用开发者都可以使用app Startup来简化启动序列，并显式设置初始化顺序。</p>
+</blockquote>
+<blockquote>
+<p>不同于为每个需要初始化的组件定义单独的内容提供程序，App Startup允许你定义共享单个内容提供程序的组件初始化程序。这可以显著提高应用程序的启动时间。</p>
+</blockquote>
+<p>此组件主要解决的痛点问题是：简化各个外部引用SDK初始化操作，并优化SDK初始化时机，在确保启动速度的情况下以更优更稳定的方式按需初始化SDK（当然，也可以利用它的按需按序执行的功能来初始化某些类）。</p>
+<p><a target="_blank" rel="noopener" href="https://github.com/TinloneX/ArchitecturalComponentExample">【本系列文章演示案例均存储在github存储库ArchitecturalComponentExample中】</a></p>
+<a id="more"></a>
+
+<h3 id="如何使用"><a href="#如何使用" class="headerlink" title="如何使用"></a>如何使用</h3><h4 id="引入依赖"><a href="#引入依赖" class="headerlink" title="引入依赖"></a>引入依赖</h4><p>在<code>app/build.gradle</code>文件的<code>dependencies</code>中加入以下内容：</p>
+<figure class="highlight groovy"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">implementation <span class="string">&quot;androidx.startup:startup-runtime:1.0.0&quot;</span></span><br></pre></td></tr></table></figure>
+<p>若获取依赖包报错，请检查项目目录下<code>build.gradle</code>中是否包含以下代码：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">allprojects &#123;</span><br><span class="line">    repositories &#123;</span><br><span class="line">        google()</span><br><span class="line">        jcenter()</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h4 id="示例项目结构说明"><a href="#示例项目结构说明" class="headerlink" title="示例项目结构说明"></a>示例项目结构说明</h4><p><a target="_blank" rel="noopener" href="https://github.com/TinloneX/ArchitecturalComponentExample/tree/main/StartUpExample/StartUpExampleJava">本项目Java版本地址</a></p>
+<p><a target="_blank" rel="noopener" href="https://github.com/TinloneX/ArchitecturalComponentExample/tree/main/StartUpExample/StartUpExampleKotlin">本项目Kotlin版本地址</a></p>
+<p><a target="_blank" rel="noopener" href="https://developer.android.google.cn/topic/libraries/app-startup">最简实践请参考官方开发文档</a></p>
+<p>本项目示例主要结构如下：</p>
+<p><a target="_blank" rel="noopener" href="https://imgchr.com/i/yL3Fz9"><img src="https://s3.ax1x.com/2021/02/23/yL3Fz9.png" alt="yL3Fz9.png"></a></p>
+<p>图中②部分代表用来初始化各个组件SDK的初始化器。</p>
+<p>图中①部分代表模拟的需初始化的三方SDK，<strong>SDK之间存在”有向无环”的相互依赖关系</strong>，依赖关系如下：</p>
+<p><a target="_blank" rel="noopener" href="https://imgchr.com/i/yL8umq"><img src="https://s3.ax1x.com/2021/02/23/yL8umq.md.png" alt="yL8umq.md.png"></a></p>
+<p>上述图中表述的依赖关系为：</p>
+<ul>
+<li>Cache 依赖于 DatabaseProxy 及 Logger</li>
+<li>DatabaseProxy 依赖于 DatabaseHelper 及 Logger</li>
+<li>DatabaseHelper 及 TXMap 均依赖于 Logger</li>
+</ul>
+<h4 id="创建初始化器"><a href="#创建初始化器" class="headerlink" title="创建初始化器"></a>创建初始化器</h4><blockquote>
+<p>通过创建一个实现了初始化器接口的类来定义每个组件初始化器。这个接口定义了两个重要的方法:</p>
+<ul>
+<li>create()方法包含初始化组件所需的所有操作，并返回T的实例。</li>
+<li>dependencies()方法，它返回初始化器所依赖的其他初始化器对象的列表。你可以使用这个方法来控制应用程序在启动时运行初始化器的顺序。</li>
+</ul>
+</blockquote>
+<p>依照上述规则，我们来编写Logger的初始化类LoggerInitializer</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">LoggerInitializer</span> <span class="keyword">implements</span> <span class="title">Initializer</span>&lt;<span class="title">Logger</span>&gt; </span>&#123;</span><br><span class="line">    </span><br><span class="line">    <span class="meta">@NonNull</span></span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> Logger <span class="title">create</span><span class="params">(<span class="meta">@NonNull</span> Context context)</span> </span>&#123;</span><br><span class="line">        Log.i(<span class="string">&quot;loglog&quot;</span>, <span class="string">&quot;create: LoggerInitializer&quot;</span>);</span><br><span class="line">        Logger.initialize();</span><br><span class="line">        <span class="keyword">return</span> Logger.getInstance();</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@NonNull</span></span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="keyword">public</span> List&lt;Class&lt;? extends Initializer&lt;?&gt;&gt;&gt; dependencies() &#123;</span><br><span class="line">        <span class="comment">// 预示没有其他依赖需要初始化</span></span><br><span class="line">        <span class="keyword">return</span> Collections.emptyList();</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<ul>
+<li>首先初始化器需要实现<code>Initializer<?></code>接口，并传入需初始化的对象的泛型，<em>思考如果不传或传入Void会怎样？</em></li>
+<li>实现create方法，此方法中完成组件初始化，如有需要可返回实例</li>
+<li>实现dependencies方法，此方法中声明当前初始化组件依赖于其他组件，并返回被依赖组件的初始化器，此处Logger未依赖其他组件，故返回空数组，<em>思考如果返回null会怎样？</em></li>
+</ul>
+<p>类似的，我们根据组件依赖关系依次定义出各个组件的初始化器，对比上述无依赖的Logger，我们再来看看多个依赖的DatabaseProxy的初始化器是如何定义的：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">DatabaseProxyInitializer</span> <span class="keyword">implements</span> <span class="title">Initializer</span>&lt;<span class="title">DatabaseProxy</span>&gt; </span>&#123;</span><br><span class="line">    <span class="meta">@NonNull</span></span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> DatabaseProxy <span class="title">create</span><span class="params">(<span class="meta">@NonNull</span> Context context)</span> </span>&#123;</span><br><span class="line">        Log.i(<span class="string">&quot;loglog&quot;</span>, <span class="string">&quot;create: DatabaseProxyInitializer&quot;</span>);</span><br><span class="line">        DatabaseProxy.initialize(DatabaseHelper.getInstance());</span><br><span class="line">        <span class="keyword">return</span> DatabaseProxy.getInstance();</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@NonNull</span></span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="keyword">public</span> List&lt;Class&lt;? extends Initializer&lt;?&gt;&gt;&gt; dependencies() &#123;</span><br><span class="line">        <span class="keyword">return</span> Arrays.asList(LoggerInitializer.class, DatabaseHelperInitializer.class);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>我们看到在<code>dependencies</code>中声明了DatabaseProxy依赖于Logger和DatabaseHelper。</p>
+<p>接下来，我们尝试一下上述的两个思考题。</p>
+<ol>
+<li>当Initializer&lt;?&gt;泛型传入Void会怎样？</li>
+</ol>
+<p>此场景类似于：当我们仅单纯的想执行某组件的初始化而没有返回实例的情况</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">SomethingInitializer</span> <span class="keyword">implements</span> <span class="title">Initializer</span>&lt;<span class="title">Void</span>&gt; </span>&#123;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@NonNull</span></span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> Void <span class="title">create</span><span class="params">(<span class="meta">@NonNull</span> Context context)</span> </span>&#123;</span><br><span class="line">        Log.i(<span class="string">&quot;loglog&quot;</span>, <span class="string">&quot;create: SomethingInitializer&quot;</span>);</span><br><span class="line">        <span class="keyword">return</span> <span class="keyword">null</span>;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@NonNull</span></span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="keyword">public</span> List&lt;Class&lt;? extends Initializer&lt;?&gt;&gt;&gt; dependencies() &#123;</span><br><span class="line">        <span class="keyword">return</span> Collections.emptyList();</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>此时，我们让TXMap的初始化器去依赖这SomethingInitializer：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">MapInitializer</span> <span class="keyword">implements</span> <span class="title">Initializer</span>&lt;<span class="title">TXMap</span>&gt; </span>&#123;</span><br><span class="line">    <span class="meta">@NonNull</span></span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> TXMap <span class="title">create</span><span class="params">(<span class="meta">@NonNull</span> Context context)</span> </span>&#123;</span><br><span class="line">        Log.i(<span class="string">&quot;loglog&quot;</span>, <span class="string">&quot;create: MapInitializer&quot;</span>);</span><br><span class="line">        <span class="keyword">return</span> <span class="keyword">new</span> TXMap();</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@NonNull</span></span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="keyword">public</span> List&lt;Class&lt;? extends Initializer&lt;?&gt;&gt;&gt; dependencies() &#123;</span><br><span class="line">        <span class="comment">// map依赖了log，现在我们让它依赖Something</span></span><br><span class="line">        <span class="keyword">return</span> Arrays.asList(LoggerInitializer.class, SomethingInitializer.class);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>让我们看看其执行结果 <em>（当然，仅编写初始化器的代码仍不能正常工作，还未在AndroidManifest中声明初始化组件，此处我们暂只关注结果，下一节将介绍声明初始化组件）</em>：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">I&#x2F;tag: create: LoggerInitializer</span><br><span class="line">I&#x2F;tag: Logger initialized</span><br><span class="line">I&#x2F;tag: create: SomethingInitializer</span><br><span class="line">I&#x2F;tag: create: MapInitializer</span><br><span class="line">I&#x2F;tag: Map initialized</span><br></pre></td></tr></table></figure>
+<p>我们可以看到，其依旧正常按需执行了初始化操作，先调用了被TXMap依赖的Logger及Something的初始化器，最终完成Map的初始化。说明，Initializer&lt;?&gt;中有无传入泛型及传入Void泛型，其均可正常执行，正常适用于仅执行初始化操作，无返回实例的情景。</p>
+<ol start="2">
+<li>如果dependencies返回值为null会发生什么？</li>
+</ol>
+<p>我们将LoggerInitializer的依赖由<code>return Collections.emptyList()</code>修改为<code>return null</code>然后执行 <em>（仅编写初始化器的代码仍不能正常工作，还未在AndroidManifest中声明初始化组件，此处我们只关注结果，下一节将介绍声明初始化组件）</em>：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">&#x2F;&#x2F; 报错日志</span><br><span class="line">java.lang.RuntimeException: Unable to get provider androidx.startup.InitializationProvider:</span><br><span class="line">androidx.startup.StartupException:</span><br><span class="line">androidx.startup.StartupException:</span><br><span class="line">java.lang.NullPointerException: Attempt to invoke interface method &#39;boolean java.util.List.isEmpty()&#39; on a null object reference</span><br></pre></td></tr></table></figure>
+<p>我们发现程序报错了，故dependencies返回值不能为null，至于原因将在原理篇中具体说明，记住此处【伏笔1】。</p>
+<h4 id="注册初始化器提供者"><a href="#注册初始化器提供者" class="headerlink" title="注册初始化器提供者"></a>注册初始化器提供者</h4><p>上文提到，仅编写初始化器并不能完成组件初始化，显然的，我们没有配置其执行的时机。</p>
+<blockquote>
+<p>应用程序启动包括一个叫做InitializationProvider的特殊内容提供程序，它用来发现和调用你的组件初始化器。应用启动时通过首先检查InitializationProvider清单项下的项来发现组件初始化器。然后，App Startup为它已经发现的任何初始化器调用dependencies()方法。<br>这意味着，为了让组件初始化器在应用启动时被发现，必须满足以下条件之一:</p>
+<ul>
+<li>组件初始化器在InitializationProvider清单项下有一个对应的项。</li>
+<li>组件初始化器在dependencies()方法中列出，它来自一个已经可以发现的初始化器。</li>
+</ul>
+</blockquote>
+<p>此案例中，为了确保应用程序启动时可以发现这些初始化器，请将以下内容添加到清单文件中:</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line">&lt;provider</span><br><span class="line">    android:name&#x3D;&quot;androidx.startup.InitializationProvider&quot;</span><br><span class="line">    android:authorities&#x3D;&quot;$&#123;applicationId&#125;.androidx-startup&quot;</span><br><span class="line">    android:exported&#x3D;&quot;false&quot;</span><br><span class="line">    tools:node&#x3D;&quot;merge&quot;&gt;</span><br><span class="line">    &lt;!-- This entry makes ExampleLoggerInitializer discoverable. --&gt;</span><br><span class="line">    &lt;meta-data</span><br><span class="line">        android:name&#x3D;&quot;com.tinlone.startupexamplejava.initializers.CacheInitializer&quot;</span><br><span class="line">        android:value&#x3D;&quot;androidx.startup&quot; &#x2F;&gt;</span><br><span class="line">    &lt;meta-data</span><br><span class="line">        android:name&#x3D;&quot;com.tinlone.startupexamplejava.initializers.MapInitializer&quot;</span><br><span class="line">        android:value&#x3D;&quot;androidx.startup&quot; &#x2F;&gt;</span><br><span class="line">&lt;&#x2F;provider&gt;</span><br></pre></td></tr></table></figure>
+<p>上述代码将初始化器传递给初始化提供者。</p>
+<p>若初始化链有多个，类似本示例中包含：</p>
+<ul>
+<li>Logger -&gt; TXMap</li>
+<li>Logger -&gt; DatabaseHelper -&gt; DatabaseProxy</li>
+</ul>
+<p>以上两条独立的链，故此处为每条独立的链的链尾初始化器传递给InitializationProvider，为何要这样写呢？我们也将在源码篇中具体探讨，记住此处【伏笔2】.</p>
+<h4 id="手动初始化组件"><a href="#手动初始化组件" class="headerlink" title="手动初始化组件"></a>手动初始化组件</h4><p>当然，如果你不想InitializationProvider自动初始化某些组件，你也可以手动调用初始化流程，此时你应该这样做：</p>
+<ul>
+<li>将不需要初始化的组件标记为<code>remove</code>:</li>
+</ul>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">&lt;meta-data android:name&#x3D;&quot;com.example.ExampleLoggerInitializer&quot;</span><br><span class="line">          tools:node&#x3D;&quot;remove&quot; &#x2F;&gt;</span><br></pre></td></tr></table></figure>
+<ul>
+<li>在需要初始化的时机调用以下代码，以Logger为例：</li>
+</ul>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">AppInitializer.getInstance(context)</span><br><span class="line">    .initializeComponent(LoggerInitializer.class);</span><br></pre></td></tr></table></figure>
+<blockquote>
+<p>您在条目中使用工具:node=”remove”，而不是简单地删除条目，以确保合并工具也从所有其他合并的清单文件中删除条目。</p>
+</blockquote>
+<blockquote>
+<p>注意:禁用组件的自动初始化也会禁用该组件的依赖项的自动初始化。</p>
+</blockquote>
+<p>若你想完全禁止组件自动初始化，你可以将<code>InitializationProvider</code>组件声明为<code>remove</code>：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">&lt;provider</span><br><span class="line">    android:name&#x3D;&quot;androidx.startup.InitializationProvider&quot;</span><br><span class="line">    android:authorities&#x3D;&quot;$&#123;applicationId&#125;.androidx-startup&quot;</span><br><span class="line">    tools:node&#x3D;&quot;remove&quot; &#x2F;&gt;</span><br></pre></td></tr></table></figure>
+<p>并在需要初始化的时机调用以下代码：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">AppInitializer.getInstance(context)</span><br><span class="line">    .initializeComponent(ExampleLoggerInitializer.class);</span><br></pre></td></tr></table></figure>
+<h4 id="执行"><a href="#执行" class="headerlink" title="执行"></a>执行</h4><p>StartUp的使用仅需完成上述两个步骤即可，让我们来看一下器执行结果：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line">I&#x2F;loglog: create: LoggerInitializer</span><br><span class="line">I&#x2F;loglog: Logger initialized</span><br><span class="line">I&#x2F;loglog: create: SomethingInitializer</span><br><span class="line">I&#x2F;loglog: create: MapInitializer</span><br><span class="line">I&#x2F;loglog: Map initialized</span><br><span class="line">I&#x2F;loglog: create: DatabaseHelperInitializer</span><br><span class="line">I&#x2F;loglog: DatabaseHelper initialized</span><br><span class="line">I&#x2F;loglog: create: DatabaseProxyInitializer</span><br><span class="line">I&#x2F;loglog: DatabaseHelper initialized</span><br><span class="line">I&#x2F;loglog: DatabaseProxy initialized</span><br><span class="line">I&#x2F;loglog: create: CacheInitializer</span><br><span class="line">I&#x2F;loglog: Cache initialized</span><br></pre></td></tr></table></figure>
+<p>我们在AndroidManifest中声明的是链尾的初始化器<code>CacheInitializer</code>及<code>MapInitializer</code>, 他却是从依赖链的头开始执行的初始化，他是如何做到完全符合依赖链顺序执行的呢？<br>让我们来简单看一下其原理。</p>
+<h3 id="源码分析"><a href="#源码分析" class="headerlink" title="源码分析"></a>源码分析</h3><p>上面使用篇中我们埋下了一些伏笔和问题：</p>
+<ul>
+<li>为什么dependencies返回值不能为null？</li>
+<li>为什么要将每条独立的链的链尾初始化器传递给InitializationProvider？</li>
+<li>他是如何做到完全符合依赖链顺序执行的？</li>
+</ul>
+<p>为解答这些问题，我们先从初始化的入口类<code>InitializationProvider</code>看起。</p>
+<h4 id="InitializationProvider"><a href="#InitializationProvider" class="headerlink" title="InitializationProvider"></a>InitializationProvider</h4><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@RestrictTo(RestrictTo.Scope.LIBRARY)</span></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">final</span> <span class="class"><span class="keyword">class</span> <span class="title">InitializationProvider</span> <span class="keyword">extends</span> <span class="title">ContentProvider</span> </span>&#123;</span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">boolean</span> <span class="title">onCreate</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        Context context = getContext();</span><br><span class="line">        <span class="keyword">if</span> (context != <span class="keyword">null</span>) &#123;</span><br><span class="line">            AppInitializer.getInstance(context).discoverAndInitialize();</span><br><span class="line">        &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">            <span class="keyword">throw</span> <span class="keyword">new</span> StartupException(<span class="string">&quot;Context cannot be null&quot;</span>);</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">return</span> <span class="keyword">true</span>;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="comment">// something else ...</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p><code>InitializationProvider</code>内容相对简单，其作为内容提供者在初始化时调用了<code> AppInitializer.getInstance(context).discoverAndInitialize()</code>去扫描初始化器配置并执行后续操作。</p>
+<h4 id="AppInitializer"><a href="#AppInitializer" class="headerlink" title="AppInitializer"></a>AppInitializer</h4><p>AppInitializer 维持了一个单例结构，主要包含两个重要方法<code>discoverAndInitialize</code>及<code>doInitialize</code>, 分别负责发现初始化器及执行初始化器，我们一一看来。</p>
+<h5 id="discoverAndInitialize"><a href="#discoverAndInitialize" class="headerlink" title="discoverAndInitialize()"></a>discoverAndInitialize()</h5><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">discoverAndInitialize</span><span class="params">()</span> </span>&#123;</span><br><span class="line">    <span class="keyword">try</span> &#123;</span><br><span class="line">        Trace.beginSection(SECTION_NAME);</span><br><span class="line">        <span class="comment">// 创建组件标识符，获取InitializationProvider信息</span></span><br><span class="line">        ComponentName provider = <span class="keyword">new</span> ComponentName(mContext.getPackageName(),</span><br><span class="line">                InitializationProvider.class.getName());</span><br><span class="line">        <span class="comment">// 根据组件标识符从包管理器中取得组件，并获取组件元数据</span></span><br><span class="line">        ProviderInfo providerInfo = mContext.getPackageManager()</span><br><span class="line">                .getProviderInfo(provider, GET_META_DATA);</span><br><span class="line">        <span class="comment">// 取得元数据</span></span><br><span class="line">        Bundle metadata = providerInfo.metaData;</span><br><span class="line">        String startup = mContext.getString(R.string.androidx_startup);</span><br><span class="line">        <span class="keyword">if</span> (metadata != <span class="keyword">null</span>) &#123;</span><br><span class="line">            Set&lt;Class&lt;?&gt;&gt; initializing = <span class="keyword">new</span> HashSet&lt;&gt;();</span><br><span class="line">            <span class="comment">// 取出元数据中 key的集合， 此处metadata的本质实为ArrayMap，参见&#123;@link Bundle#keySet&#125;</span></span><br><span class="line">            Set&lt;String&gt; keys = metadata.keySet();</span><br><span class="line">            <span class="keyword">for</span> (String key : keys) &#123;</span><br><span class="line">                String value = metadata.getString(key, <span class="keyword">null</span>);</span><br><span class="line">                <span class="comment">// 校验是否为androidx_startup元数据</span></span><br><span class="line">                <span class="keyword">if</span> (startup.equals(value)) &#123;</span><br><span class="line">                    <span class="comment">// 根据元数据key中的全类名生成字节码对象</span></span><br><span class="line">                    Class&lt;?&gt; clazz = Class.forName(key);</span><br><span class="line">                    <span class="comment">// 校验字节码对象是否是 Initializer 的实现类</span></span><br><span class="line">                    <span class="keyword">if</span> (Initializer.class.isAssignableFrom(clazz)) &#123;</span><br><span class="line">                        Class&lt;? extends Initializer&lt;?&gt;&gt; component =</span><br><span class="line">                                (Class&lt;? extends Initializer&lt;?&gt;&gt;) clazz;</span><br><span class="line">                        <span class="comment">// 加入Set备用</span></span><br><span class="line">                        mDiscovered.add(component);</span><br><span class="line">                        <span class="keyword">if</span> (StartupLogger.DEBUG) &#123;</span><br><span class="line">                            StartupLogger.i(String.format(<span class="string">&quot;Discovered %s&quot;</span>, key));</span><br><span class="line">                        &#125;</span><br><span class="line">                        <span class="comment">// 执行初始化</span></span><br><span class="line">                        doInitialize(component, initializing);</span><br><span class="line">                    &#125;</span><br><span class="line">                &#125;</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125; <span class="keyword">catch</span> (PackageManager.NameNotFoundException | ClassNotFoundException exception) &#123;</span><br><span class="line">        <span class="keyword">throw</span> <span class="keyword">new</span> StartupException(exception);</span><br><span class="line">    &#125; <span class="keyword">finally</span> &#123;</span><br><span class="line">        Trace.endSection();</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>由代码可知，其主要做了以下事情：</p>
+<ul>
+<li>创建组件标识符，获取InitializationProvider信息</li>
+<li>根据组件标识符从包管理器中取得组件，并获取组件元数据</li>
+<li>取得元数据， 取出元数据中 key的集合</li>
+<li>遍历元数据集合（ArrayMap）中的数据，校验是否为androidx_startup元数据</li>
+<li>根据元数据key中的全类名生成字节码对象，校验字节码对象是否是 Initializer 的实现类</li>
+<li>将Initializer 的实现类 字节码对象加入变量mDiscovered的Set中备用</li>
+<li>执行初始化</li>
+</ul>
+<h5 id="doInitialize"><a href="#doInitialize" class="headerlink" title="doInitialize()"></a>doInitialize()</h5><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br></pre></td><td class="code"><pre><span class="line">&lt;T&gt; T doInitialize(</span><br><span class="line">        @NonNull Class&lt;? extends Initializer&lt;?&gt;&gt; component,</span><br><span class="line">        @NonNull Set&lt;Class&lt;?&gt;&gt; initializing) &#123;</span><br><span class="line">    synchronized (sLock) &#123;</span><br><span class="line">        boolean isTracingEnabled &#x3D; Trace.isEnabled();</span><br><span class="line">        try &#123;</span><br><span class="line">            if (isTracingEnabled) &#123;</span><br><span class="line">                &#x2F;&#x2F; 这里使用simpleName，因为否则节名会太大。</span><br><span class="line">                Trace.beginSection(component.getSimpleName());</span><br><span class="line">            &#125;</span><br><span class="line">            &#x2F;&#x2F; 保证初始化链无环，initializing为执行记录集合</span><br><span class="line">            &#x2F;&#x2F; 从discoverAndInitialize中传递的initializing值为空，故此判断不会执行</span><br><span class="line">            &#x2F;&#x2F; 从本函数递归执行传递的是已包含执行的初始化器，若此时初始化器有重复，说明相互依赖关系成环了，应抛错</span><br><span class="line">            if (initializing.contains(component)) &#123;</span><br><span class="line">                String message &#x3D; String.format(</span><br><span class="line">                        &quot;Cannot initialize %s. Cycle detected.&quot;, component.getName()</span><br><span class="line">                );</span><br><span class="line">                throw new IllegalStateException(message);</span><br><span class="line">            &#125;</span><br><span class="line">            Object result;</span><br><span class="line">            &#x2F;&#x2F; 若（被多次依赖且）已初始化则跳过</span><br><span class="line">            if (!mInitialized.containsKey(component)) &#123;</span><br><span class="line">                &#x2F;&#x2F; 将需要执行的初始化器字节码对象加入执行记录中</span><br><span class="line">                initializing.add(component);</span><br><span class="line">                try &#123;</span><br><span class="line">                    &#x2F;&#x2F; 获取初始化器实例</span><br><span class="line">                    Object instance &#x3D; component.getDeclaredConstructor().newInstance();</span><br><span class="line">                    Initializer&lt;?&gt; initializer &#x3D; (Initializer&lt;?&gt;) instance;</span><br><span class="line">                    &#x2F;&#x2F; 获取初始化器依赖关系</span><br><span class="line">                    List&lt;Class&lt;? extends Initializer&lt;?&gt;&gt;&gt; dependencies &#x3D;</span><br><span class="line">                            initializer.dependencies();</span><br><span class="line">                    &#x2F;&#x2F; 若此初始化器有相关依赖</span><br><span class="line">                    &#x2F;&#x2F; 是否记得【伏笔1】有提到为何dependencies不能返回null吗？</span><br><span class="line">                    &#x2F;&#x2F; 此处dependencies取得的值并未作空判断，故 null.isEmpty()会报空指针异常</span><br><span class="line">                    if (!dependencies.isEmpty()) &#123;</span><br><span class="line">                        &#x2F;&#x2F; 则遍历依赖，执行其初始化器，并传递初始化执行记录，防止依赖成环</span><br><span class="line">                        for (Class&lt;? extends Initializer&lt;?&gt;&gt; clazz : dependencies) &#123;</span><br><span class="line">                            if (!mInitialized.containsKey(clazz)) &#123;</span><br><span class="line">                                doInitialize(clazz, initializing);</span><br><span class="line">                            &#125;</span><br><span class="line">                        &#125;</span><br><span class="line">                    &#125;</span><br><span class="line">                    if (StartupLogger.DEBUG) &#123;</span><br><span class="line">                        StartupLogger.i(String.format(&quot;Initializing %s&quot;, component.getName()));</span><br><span class="line">                    &#125;</span><br><span class="line">                    result &#x3D; initializer.create(mContext);</span><br><span class="line">                    if (StartupLogger.DEBUG) &#123;</span><br><span class="line">                        StartupLogger.i(String.format(&quot;Initialized %s&quot;, component.getName()));</span><br><span class="line">                    &#125;</span><br><span class="line">                    &#x2F;&#x2F; 执行完毕，移除记录</span><br><span class="line">                    initializing.remove(component);</span><br><span class="line">                    &#x2F;&#x2F; 记录初始化完成</span><br><span class="line">                    mInitialized.put(component, result);</span><br><span class="line">                &#125; catch (Throwable throwable) &#123;</span><br><span class="line">                    throw new StartupException(throwable);</span><br><span class="line">                &#125;</span><br><span class="line">            &#125; else &#123;</span><br><span class="line">                result &#x3D; mInitialized.get(component);</span><br><span class="line">            &#125;</span><br><span class="line">            &#x2F;&#x2F; 返回执行结果</span><br><span class="line">            return (T) result;</span><br><span class="line">        &#125; finally &#123;</span><br><span class="line">            Trace.endSection();</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>由代码可知，其主要做了以下事情：</p>
+<ul>
+<li>首先根据单链执行记录判断此链中是否有依赖关系成环，成环则抛错</li>
+<li>根据初始换执行完成的记录判断（被多次依赖的）依赖是否已被初始化，已初始化则跳过</li>
+<li>将需要执行的初始化器字节码对象加入执行记录中备用，用以判断依赖链中是否成环</li>
+<li>调用 initializer.dependencies() 获取初始化器依赖关系</li>
+<li>若此初始化器有其他依赖则遍历依赖递归调用 doInitialize() 执行至依赖链的链头的初始化</li>
+<li>链执行完毕，则移除此链的执行记录</li>
+<li>链执行完毕，将元数据中声明的初始化器加入至已完成集合中，用以避免重复初始化</li>
+</ul>
+<p>那么至此，我们似乎可以解释此节初始留下的三个伏笔问题了。</p>
+<ol>
+<li>为什么dependencies()返回值不能为null？</li>
+</ol>
+<p>答：因为在执行初始化前，会判断当前初始化器的dependencies是否为空，但此时使用的时 List.isEmpty() 并未对dependencies判空，故而，若dependencies()返回null，会导致null.isEmpty()的调用，导致空指针异常。</p>
+<ol start="2">
+<li>为什么要将每条独立的链的链尾初始化器传递给InitializationProvider？</li>
+</ol>
+<p>答：因为可以根据链尾的初始化器可以通过遍历递归dependencies()获取该链所有以来的初始化器，从而找到链首的初始化器，然后从头至尾折叠递归运算，同时也保证了依赖链顺序执行</p>
+<ol start="3">
+<li>他是如何做到完全符合依赖链顺序执行的？</li>
+</ol>
+<p>答同问题2</p>
+
+    </div>
+
+    
+    
+    
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/StartUp/" rel="tag"># StartUp</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2021/02/15/WorkManager%E5%9F%BA%E6%9C%AC%E4%BD%BF%E7%94%A8%E5%8F%8A%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90(%E4%B8%83)%20-%20BroadcastReceiver/" rel="prev" title="WorkManager基本使用及源码分析(七) - BroadcastReceiver">
+      <i class="fa fa-chevron-left"></i> WorkManager基本使用及源码分析(七) - BroadcastReceiver
+    </a></div>
+      <div class="post-nav-item"></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%89%8D%E8%A8%80"><span class="nav-number">1.</span> <span class="nav-text">前言</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%A6%82%E4%BD%95%E4%BD%BF%E7%94%A8"><span class="nav-number">2.</span> <span class="nav-text">如何使用</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#%E5%BC%95%E5%85%A5%E4%BE%9D%E8%B5%96"><span class="nav-number">2.1.</span> <span class="nav-text">引入依赖</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E7%A4%BA%E4%BE%8B%E9%A1%B9%E7%9B%AE%E7%BB%93%E6%9E%84%E8%AF%B4%E6%98%8E"><span class="nav-number">2.2.</span> <span class="nav-text">示例项目结构说明</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E5%88%9B%E5%BB%BA%E5%88%9D%E5%A7%8B%E5%8C%96%E5%99%A8"><span class="nav-number">2.3.</span> <span class="nav-text">创建初始化器</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E6%B3%A8%E5%86%8C%E5%88%9D%E5%A7%8B%E5%8C%96%E5%99%A8%E6%8F%90%E4%BE%9B%E8%80%85"><span class="nav-number">2.4.</span> <span class="nav-text">注册初始化器提供者</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E6%89%8B%E5%8A%A8%E5%88%9D%E5%A7%8B%E5%8C%96%E7%BB%84%E4%BB%B6"><span class="nav-number">2.5.</span> <span class="nav-text">手动初始化组件</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E6%89%A7%E8%A1%8C"><span class="nav-number">2.6.</span> <span class="nav-text">执行</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90"><span class="nav-number">3.</span> <span class="nav-text">源码分析</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#InitializationProvider"><span class="nav-number">3.1.</span> <span class="nav-text">InitializationProvider</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#AppInitializer"><span class="nav-number">3.2.</span> <span class="nav-text">AppInitializer</span></a><ol class="nav-child"><li class="nav-item nav-level-5"><a class="nav-link" href="#discoverAndInitialize"><span class="nav-number">3.2.1.</span> <span class="nav-text">discoverAndInitialize()</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#doInitialize"><span class="nav-number">3.2.2.</span> <span class="nav-text">doInitialize()</span></a></li></ol></li></ol></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="Tinlone"
+      src="/images/logo.png">
+  <p class="site-author-name" itemprop="name">Tinlone</p>
+  <div class="site-description" itemprop="description">Tinlone的个人博客</div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">8</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">1</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">2</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+
+
+
+      </div>
+
+    </div>
+	
+	<iframe frameborder="no" border="0" marginwidth="0" marginheight="0" width=330 height=86 src="//music.163.com/outchain/player?type=2&id=16435049&auto=1&height=66"></iframe>
+	
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2021</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Tinlone</span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item-icon">
+      <i class="fa fa-chart-area"></i>
+    </span>
+    <span title="站点总字数">65k</span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item-icon">
+      <i class="fa fa-coffee"></i>
+    </span>
+    <span title="站点阅读时长">59 分钟</span>
+</div>
+<!--
+  <div class="powered-by">由 <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://theme-next.org/" class="theme-link" rel="noopener" target="_blank">NexT.Gemini</a> 强力驱动
+  </div>
+-->
+
+        
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/pisces.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+  <script defer src="/lib/three/three.min.js"></script>
+    <script defer src="/lib/three/three-waves.min.js"></script>
+
+
+  
+
+
+
+
+  
+<script src="/js/local-search.js"></script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+<script src="/live2dw/lib/L2Dwidget.min.js?094cbace49a39548bed64abff5988b05"></script><script>L2Dwidget.init({"pluginRootPath":"live2dw/","pluginJsPath":"lib/","pluginModelPath":"assets/","tagMode":false,"log":false,"model":{"jsonPath":"/live2dw/assets/hijiki.model.json"},"display":{"position":"right","width":150,"height":300},"mobile":{"show":true}});</script></body>
+</html>
