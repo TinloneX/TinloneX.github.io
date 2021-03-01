@@ -936,7 +936,7 @@ StorageNotLow     如果设置为 true，那么当用户设备上的存储空间
 <li>CallbackInfo.invokeCallbacks()查找到对应生命周期的 MethodReference 缓存，通过Method.invoke()调用，最终执行LifecycleObserver中关注对应生命周期的方法。</li>
 </ul>
 <p>我们整理一下画一个时序图：</p>
-<p><img src="https://s3.ax1x.com/2021/02/28/6CYlD0.png" alt="Lifecycle时序图.png"></p>
+<p><img src="https://s3.ax1x.com/2021/03/01/6i7Ubj.png" alt="Lifecycle时序图.png"></p>
 <h3 id="附-ProcessLifecycleOwner是如何实现应用前后台监听"><a href="#附-ProcessLifecycleOwner是如何实现应用前后台监听" class="headerlink" title="附 - ProcessLifecycleOwner是如何实现应用前后台监听"></a>附 - ProcessLifecycleOwner是如何实现应用前后台监听</h3><p>在 lifecycle-process.aar中存在AndroidManifest.xml文件，其中注册了一个provider组件：</p>
 <figure class="highlight xml"><table><tr><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">application</span>&gt;</span></span><br><span class="line">    &lt;provider</span><br><span class="line">        android:name=&quot;androidx.lifecycle.ProcessLifecycleOwnerInitializer&quot;</span><br><span class="line">        android:authorities=&quot;$&#123;applicationId&#125;.lifecycle-process&quot;</span><br><span class="line">        android:exported=&quot;false&quot;</span><br><span class="line">        android:multiprocess=&quot;true&quot; /&gt;</span><br><span class="line"><span class="tag">&lt;/<span class="name">application</span>&gt;</span></span><br></pre></td></tr></table></figure>
 
