@@ -1,0 +1,583 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 5.3.0">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+  <link rel="stylesheet" href="/lib/pace/pace-theme-material.min.css">
+  <script src="/lib/pace/pace.min.js"></script>
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"tinlone.com","root":"/","scheme":"Gemini","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":true,"show_result":true,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":true},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},"path":"search.xml"};
+  </script>
+
+  <meta name="description" content="ViewModel这个名称常常使人误解为MVVM中的ViewModel层，那么它是不是同一个东西呢？ ViewModel可以作为MVVM中的ViewModel层，但不是特指MVVM中的ViewModel层。  ViewModel 类旨在以注重生命周期的方式存储和管理界面相关的数据。ViewModel 类让数据可在发生屏幕旋转等配置更改后继续留存。  它是一个独立的组件，你可以把它视作生命周期相关的">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Jetpack之界面数据存储组件-ViewModel">
+<meta property="og:url" content="http://tinlone.com/2021/03/07/Jetpack%E4%B9%8B%E7%95%8C%E9%9D%A2%E6%95%B0%E6%8D%AE%E5%AD%98%E5%82%A8%E7%BB%84%E4%BB%B6-ViewModel/index.html">
+<meta property="og:site_name" content="Tinlone">
+<meta property="og:description" content="ViewModel这个名称常常使人误解为MVVM中的ViewModel层，那么它是不是同一个东西呢？ ViewModel可以作为MVVM中的ViewModel层，但不是特指MVVM中的ViewModel层。  ViewModel 类旨在以注重生命周期的方式存储和管理界面相关的数据。ViewModel 类让数据可在发生屏幕旋转等配置更改后继续留存。  它是一个独立的组件，你可以把它视作生命周期相关的">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://developer.android.google.cn/images/topic/libraries/architecture/viewmodel-lifecycle.png">
+<meta property="article:published_time" content="2021-03-07T09:02:10.963Z">
+<meta property="article:modified_time" content="2021-03-07T08:41:22.092Z">
+<meta property="article:author" content="Tinlone">
+<meta property="article:tag" content="ViewModel">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://developer.android.google.cn/images/topic/libraries/architecture/viewmodel-lifecycle.png">
+
+<link rel="canonical" href="http://tinlone.com/2021/03/07/Jetpack%E4%B9%8B%E7%95%8C%E9%9D%A2%E6%95%B0%E6%8D%AE%E5%AD%98%E5%82%A8%E7%BB%84%E4%BB%B6-ViewModel/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'zh-CN'
+  };
+</script>
+
+  <title>Jetpack之界面数据存储组件-ViewModel | Tinlone</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">Tinlone</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+      <p class="site-subtitle" itemprop="description">堕落的🐟</p>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签</a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>分类</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档</a>
+
+  </li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>搜索
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup">
+        <div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocapitalize="off"
+           placeholder="搜索..." spellcheck="false"
+           type="search" class="search-input">
+  </div>
+  <span class="popup-btn-close">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div id="search-result">
+  <div id="no-result">
+    <i class="fa fa-spinner fa-pulse fa-5x fa-fw"></i>
+  </div>
+</div>
+
+    </div>
+  </div>
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="http://tinlone.com/2021/03/07/Jetpack%E4%B9%8B%E7%95%8C%E9%9D%A2%E6%95%B0%E6%8D%AE%E5%AD%98%E5%82%A8%E7%BB%84%E4%BB%B6-ViewModel/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/favicon-32x32-next.png">
+      <meta itemprop="name" content="Tinlone">
+      <meta itemprop="description" content="Tinlone的个人博客">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Tinlone">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          Jetpack之界面数据存储组件-ViewModel
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+              
+
+              <time title="创建时间：2021-03-07 17:02:10 / 修改时间：16:41:22" itemprop="dateCreated datePublished" datetime="2021-03-07T17:02:10+08:00">2021-03-07</time>
+            </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/Jetpack/" itemprop="url" rel="index"><span itemprop="name">Jetpack</span></a>
+                </span>
+            </span>
+
+          <br>
+            <span class="post-meta-item" title="本文字数">
+              <span class="post-meta-item-icon">
+                <i class="far fa-file-word"></i>
+              </span>
+                <span class="post-meta-item-text">本文字数：</span>
+              <span>4.9k</span>
+            </span>
+            <span class="post-meta-item" title="阅读时长">
+              <span class="post-meta-item-icon">
+                <i class="far fa-clock"></i>
+              </span>
+                <span class="post-meta-item-text">阅读时长 &asymp;</span>
+              <span>4 分钟</span>
+            </span>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <p>ViewModel这个名称常常使人误解为MVVM中的ViewModel层，那么它是不是同一个东西呢？</p>
+<p>ViewModel可以作为MVVM中的ViewModel层，但不是特指MVVM中的ViewModel层。</p>
+<blockquote>
+<p>ViewModel 类旨在以注重生命周期的方式存储和管理界面相关的数据。ViewModel 类让数据可在发生屏幕旋转等配置更改后继续留存。</p>
+</blockquote>
+<p>它是一个独立的组件，你可以把它视作生命周期相关的数据存储工具, 把它用在你觉得合适的任意地方，<strong>它可以是Fragment共享数据的桥梁、可以是屏幕方向切换时的数据来源、当然也可以是 MVVM 中 ViewModel层的 数据提供者，你可以使用LiveData让它变成可观察的数据，也可以使用DataBinding让他成为View的数据源</strong>。</p>
+<p><a target="_blank" rel="noopener" href="https://github.com/TinloneX/ArchitecturalComponentExample">【本系列文章(JAVA/KOTLIN)演示案例均存储在github存储库ArchitecturalComponentExample中】</a></p>
+<p>本篇所述源码及代码基于 <strong>API 30</strong>；</p>
+<a id="more"></a>
+<h3 id="引言"><a href="#引言" class="headerlink" title="引言"></a>引言</h3><p>以往，我们在系统销毁或重新创建界面控制器时，为保证存储在其中的任何瞬态界面相关数据不丢失，往往使用Activity 可以使用 onSaveInstanceState() 方法从 onCreate() 中的捆绑包恢复其数据。此方法在一定场景下有可能不适用，例如：</p>
+<blockquote>
+<p>此方法仅适合可以序列化再反序列化的少量数据，而不适合数量可能较大的数据，如用户列表或位图。</p>
+</blockquote>
+<p>在这一方面上，ViewModel可以存储任意你想要存储的数据，相对于onSaveInstanceState() 显然是具有明显优势的。同时，它是一个生命周期敏感组件，对于像横竖屏切换类似情况，重建界面时，可以不必做类似重建位图、重新反序列化数据、重新请求网络数据的操作。</p>
+<p>从规范上来说，ViewModel推荐我们将数据从界面层中拿出去：</p>
+<blockquote>
+<p>从界面控制器逻辑中分离出视图数据所有权的操作更容易且更高效。</p>
+</blockquote>
+<h3 id="ViewModel使用篇"><a href="#ViewModel使用篇" class="headerlink" title="ViewModel使用篇"></a>ViewModel使用篇</h3><p>此篇所讲述的使用篇均仅介绍ViewModel自身特性，区别于<a target="_blank" rel="noopener" href="https://developer.android.google.cn/topic/libraries/architecture/viewmodel#java">官方文档</a>对于ViewModel使用与LiveData等组件混在一起讲的情景。</p>
+<h4 id="引入依赖"><a href="#引入依赖" class="headerlink" title="引入依赖"></a>引入依赖</h4><figure class="highlight groovy"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">implementation <span class="string">&quot;androidx.lifecycle:lifecycle-viewmodel:2.3.0&quot;</span></span><br></pre></td></tr></table></figure>
+<h4 id="创建案例"><a href="#创建案例" class="headerlink" title="创建案例"></a>创建案例</h4><p>首先，简单的，我们创建一个测试页面，一个计数Button以及一个输入框用以做数据的输入和变化，界面比较简单，此处不做赘述。</p>
+<p>我们使操作上述控件改变响应的值并存储在Activity中：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">MainActivity</span> <span class="keyword">extends</span> <span class="title">AppCompatActivity</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">final</span> String TAG = <span class="string">&quot;ViewModelDemoLog&quot;</span>;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">int</span> count = <span class="number">0</span>;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">public</span> String input = <span class="string">&quot;&quot;</span>;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="function"><span class="keyword">protected</span> <span class="keyword">void</span> <span class="title">onCreate</span><span class="params">(Bundle savedInstanceState)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">super</span>.onCreate(savedInstanceState);</span><br><span class="line">        setContentView(R.layout.activity_main);</span><br><span class="line"></span><br><span class="line">        Button btnCounter = findViewById(R.id.button);</span><br><span class="line">        EditText etInput = findViewById(R.id.editText);</span><br><span class="line"></span><br><span class="line">        btnCounter.setText(String.format(<span class="string">&quot;UP COUNT (%s)&quot;</span>, count));</span><br><span class="line"></span><br><span class="line">        Log.i(TAG, <span class="string">&quot;当前计数值：&quot;</span> + count);</span><br><span class="line"></span><br><span class="line">        btnCounter.setOnClickListener(v -&gt; &#123;</span><br><span class="line">            count++;</span><br><span class="line">            btnCounter.setText(String.format(<span class="string">&quot;UP COUNT (%s)&quot;</span>, count));</span><br><span class="line">            Log.i(TAG, <span class="string">&quot;计数增至：&quot;</span> + count);</span><br><span class="line">        &#125;);</span><br><span class="line"></span><br><span class="line">        etInput.addTextChangedListener(<span class="keyword">new</span> TextWatcher() &#123;</span><br><span class="line">            <span class="meta">@Override</span></span><br><span class="line">            <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">beforeTextChanged</span><span class="params">(CharSequence s, <span class="keyword">int</span> start, <span class="keyword">int</span> count, <span class="keyword">int</span> after)</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">            &#125;</span><br><span class="line"></span><br><span class="line">            <span class="meta">@Override</span></span><br><span class="line">            <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">onTextChanged</span><span class="params">(CharSequence s, <span class="keyword">int</span> start, <span class="keyword">int</span> before, <span class="keyword">int</span> count)</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">            &#125;</span><br><span class="line"></span><br><span class="line">            <span class="meta">@Override</span></span><br><span class="line">            <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">afterTextChanged</span><span class="params">(Editable s)</span> </span>&#123;</span><br><span class="line">                input = s.toString();</span><br><span class="line">                Log.i(TAG, <span class="string">&quot;输入框输入：&quot;</span> + s);</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;);</span><br><span class="line"></span><br><span class="line">        findViewById(R.id.button2).setOnClickListener(v -&gt; startActivity(<span class="keyword">new</span> Intent(MainActivity.<span class="keyword">this</span>, SecActivity.class)));</span><br><span class="line"></span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>这种情况下运行，点击计数Button日志：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">当前计数值：0</span><br><span class="line">计数增至：1</span><br><span class="line">计数增至：2</span><br><span class="line">计数增至：3</span><br></pre></td></tr></table></figure>
+<p>此时，翻转屏幕后日志：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">当前计数值：0</span><br><span class="line">输入框输入：</span><br></pre></td></tr></table></figure>
+<p>我们观察到通过点击button改变的count值在翻转屏幕后被清除了，这里我们简单验证了翻转屏幕时屏幕重建，Activity中保存的瞬时量数据不会被保存（真的不会吗）。这里我们发现多了一行的日志，似乎EditText在屏幕重建后被填充了一次值，不如我们在翻转屏幕前为EditText输入一个值再试一下：<br>翻转屏幕前：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">当前计数值：0</span><br><span class="line">计数增至：1</span><br><span class="line">计数增至：2</span><br><span class="line">输入框输入：a</span><br><span class="line">输入框输入：aa</span><br><span class="line">输入框输入：aaa</span><br></pre></td></tr></table></figure>
+<p>翻转屏幕后：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">当前计数值：0</span><br><span class="line">输入框输入：aaa</span><br></pre></td></tr></table></figure>
+<p>我们发现输入框的数据被保存下来并在重建屏幕时被重新赋值，需要关注此部分原理请见【<a href="#edit_text_save_state">附录</a>】。</p>
+<p>回到正题，那么，上述数据如果保存在ViewModel中会怎样呢？</p>
+<h4 id="使用ViewModel改造案例"><a href="#使用ViewModel改造案例" class="headerlink" title="使用ViewModel改造案例"></a>使用ViewModel改造案例</h4><p>首先，创建我们的ViewModel，并把需要存储的数据放到ViewModel中：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">HomeDataViewModel</span> <span class="keyword">extends</span> <span class="title">ViewModel</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">int</span> count = <span class="number">0</span>;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">public</span> String logText = <span class="string">&quot;==start==&quot;</span>;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">appendLog</span><span class="params">(String log)</span> </span>&#123;</span><br><span class="line">        logText += <span class="string">&quot;\n&quot;</span> + log;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p><em>为避免EditText问题影响效果观测，后续流程将会移除EditText。</em></p>
+<p>代码比较简单，只需要编写一个类继承ViewModel，并将你需要存储的数据放在ViewModel中即可。</p>
+<p>而使用ViewModel代码也相对简单，你只需要通过<code>ViewModelProvider(activity).get(HomeDataViewModel.class)</code>即可获取到ViewModel对象。至于为何需要使用这样一个相对复杂的方式获取ViewModel，我们稍后在原理篇中具体说明。</p>
+<p>当然你可能在想，如果我的ViewModel需要使用有参构造器怎么办？<br>不用担心，它也为我们提供了解决办法：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">MyViewModelFactory</span> <span class="keyword">implements</span> <span class="title">ViewModelProvider</span>.<span class="title">Factory</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">   <span class="keyword">private</span> String defaultConfig = <span class="string">&quot;&quot;</span>;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="title">MyViewModelFactory</span><span class="params">(String defaultConfig)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">this</span>.defaultConfig = defaultConfig;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@NonNull</span></span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="keyword">public</span> &lt;T extends ViewModel&gt; <span class="function">T <span class="title">create</span><span class="params">(<span class="meta">@NonNull</span> Class&lt;T&gt; modelClass)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">return</span> (T) <span class="keyword">new</span> HomeDataViewModel(defaultConfig);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 使用时</span></span><br><span class="line">viewModel = <span class="keyword">new</span> ViewModelProvider(<span class="keyword">this</span>, </span><br><span class="line">                <span class="keyword">new</span> MyViewModelFactory(<span class="string">&quot;i have default config&quot;</span>))</span><br><span class="line">                .get(HomeDataViewModel.class);</span><br></pre></td></tr></table></figure>
+<p>即创建一个 ViewModelProvider.Factory 为ViewModelProvider提供ViewModel的初始化操作，将ViewModel需要的参数传值给 MyViewModelFactory ，由MyViewModelFactory在创建 ViewModel时调用对应的构造器方法即可。</p>
+<p>接下来我们改造Activity代码，使其使用ViewModel作为数据存储：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">SecActivity</span> <span class="keyword">extends</span> <span class="title">AppCompatActivity</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">final</span> String TAG = <span class="string">&quot;ViewModelDemoLog&quot;</span>;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">private</span> HomeDataViewModel viewModel;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="function"><span class="keyword">protected</span> <span class="keyword">void</span> <span class="title">onCreate</span><span class="params">(Bundle savedInstanceState)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">super</span>.onCreate(savedInstanceState);</span><br><span class="line">        setContentView(R.layout.activity_sec);</span><br><span class="line"></span><br><span class="line">        Button btnCounter = findViewById(R.id.button);</span><br><span class="line"></span><br><span class="line">        viewModel = <span class="keyword">new</span> ViewModelProvider(<span class="keyword">this</span>).get(HomeDataViewModel.class);</span><br><span class="line"></span><br><span class="line">        Log.i(TAG, <span class="string">&quot;读取viewModel.hashCode(): &quot;</span> + viewModel.hashCode());</span><br><span class="line"></span><br><span class="line">        btnCounter.setText(String.format(<span class="string">&quot;UP COUNT (%s)&quot;</span>, viewModel.count));</span><br><span class="line"></span><br><span class="line">        Log.i(TAG, <span class="string">&quot;当前计数值：&quot;</span> + viewModel.count);</span><br><span class="line"></span><br><span class="line">        btnCounter.setOnClickListener(v -&gt; &#123;</span><br><span class="line">            viewModel.count++;</span><br><span class="line">            btnCounter.setText(String.format(<span class="string">&quot;UP COUNT (%s)&quot;</span>, viewModel.count));</span><br><span class="line">            Log.i(TAG, <span class="string">&quot;计数增至：&quot;</span> + viewModel.count);</span><br><span class="line">        &#125;);</span><br><span class="line"></span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+<p>这里我们直接将先前使用Activity中变量改为使用ViewModel中的变量即可，就是这么简单，那么我们来看一下其效果：</p>
+<p>翻转屏幕前：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">读取viewModel.hashCode(): 210932679</span><br><span class="line">当前计数值：0</span><br><span class="line">计数增至：1</span><br><span class="line">计数增至：2</span><br><span class="line">计数增至：3</span><br></pre></td></tr></table></figure>
+<p>翻转屏幕后：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">读取viewModel.hashCode(): 210932679</span><br><span class="line">当前计数值：3</span><br></pre></td></tr></table></figure>
+<p>我们再点击两次计数按钮：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">计数增至：4</span><br><span class="line">计数增至：5</span><br></pre></td></tr></table></figure>
+<p>我们发现，我们的count字段值被保存了下来，而且翻转屏幕前后的ViewModel是同一个对象。</p>
+<p>既然翻转前后的ViewModel是同一个对象，那么，可预见地，<strong>我们放在其内部的对象都不会被改变。也就是说，你可以在其中获取网络数据、缓存网络图片等等，而不用担心在屏幕翻转等改变Activity配置时，你的操作被中断以及重新创建时被重复调用。</strong></p>
+<p><a target="_blank" rel="noopener" href="https://developer.android.google.cn/topic/libraries/architecture/viewmodel">关于更多ViewModel使用的案例，请点击此处参见官方文档</a></p>
+<p>ViewModel的使用相对简单，其职责单一，注重生命周期，使用篇就介绍到这儿，我们来看看其源码及工作原理吧。</p>
+<h4 id="ViewModel生命周期"><a href="#ViewModel生命周期" class="headerlink" title="ViewModel生命周期"></a>ViewModel生命周期</h4><p>首先，ViewModel作为一个以注重生命周期的方式存储和管理界面相关的数据的组件，它的生命周期是怎样的呢？</p>
+<p>这里我们引用官网对于<a target="_blank" rel="noopener" href="https://developer.android.google.cn/topic/libraries/architecture/viewmodel#lifecycle">ViewModel 的生命周期</a>介绍的一张图来说明：<br><img src="https://developer.android.google.cn/images/topic/libraries/architecture/viewmodel-lifecycle.png" alt="viewmodel_lifecycle.png"></p>
+<blockquote>
+<p>您通常在系统首次调用 Activity 对象的 onCreate() 方法时请求 ViewModel。系统可能会在 Activity 的整个生命周期内多次调用 onCreate()，如在旋转设备屏幕时。ViewModel 存在的时间范围是从您首次请求 ViewModel 直到 Activity 完成并销毁。</p>
+</blockquote>
+<p>那么，让我们看看其具体是怎么做到的吧！</p>
+<p>首先我们先从ViewModel对象的获取开始看：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@MainThread</span></span><br><span class="line"><span class="keyword">public</span> &lt;T extends ViewModel&gt; <span class="function">T <span class="title">get</span><span class="params">(<span class="meta">@NonNull</span> String key, <span class="meta">@NonNull</span> Class&lt;T&gt; modelClass)</span> </span>&#123;</span><br><span class="line">    <span class="comment">// 尝试ViewModelStore中取</span></span><br><span class="line">    ViewModel viewModel = mViewModelStore.get(key);</span><br><span class="line">    <span class="comment">// 类型校验</span></span><br><span class="line">    <span class="keyword">if</span> (modelClass.isInstance(viewModel)) &#123;</span><br><span class="line">        <span class="keyword">if</span> (mFactory <span class="keyword">instanceof</span> OnRequeryFactory) &#123;</span><br><span class="line">            ((OnRequeryFactory) mFactory).onRequery(viewModel);</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">return</span> (T) viewModel;</span><br><span class="line">    &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">        <span class="comment">//noinspection StatementWithEmptyBody</span></span><br><span class="line">        <span class="keyword">if</span> (viewModel != <span class="keyword">null</span>) &#123;</span><br><span class="line">            <span class="comment">// <span class="doctag">TODO:</span> log a warning.</span></span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="comment">// 未取到则创建</span></span><br><span class="line">    <span class="keyword">if</span> (mFactory <span class="keyword">instanceof</span> KeyedFactory) &#123;</span><br><span class="line">        viewModel = ((KeyedFactory) mFactory).create(key, modelClass);</span><br><span class="line">    &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">        viewModel = mFactory.create(modelClass);</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="comment">// 存入ViewModelStore</span></span><br><span class="line">    mViewModelStore.put(key, viewModel);</span><br><span class="line">    <span class="keyword">return</span> (T) viewModel;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>这里主要利用ViewModelStore做了缓存（存储），缓存中有则取出，无则创建并加入缓存。</p>
+<p>ViewModelStore内部维护了一个<code>HashMap<String, ViewModel></code>存储ViewModel:</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">ViewModelStore</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">final</span> HashMap&lt;String, ViewModel&gt; mMap = <span class="keyword">new</span> HashMap&lt;&gt;();</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">final</span> <span class="keyword">void</span> <span class="title">put</span><span class="params">(String key, ViewModel viewModel)</span> </span>&#123;</span><br><span class="line">        ViewModel oldViewModel = mMap.put(key, viewModel);</span><br><span class="line">        <span class="keyword">if</span> (oldViewModel != <span class="keyword">null</span>) &#123;</span><br><span class="line">            oldViewModel.onCleared();</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">final</span> ViewModel <span class="title">get</span><span class="params">(String key)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">return</span> mMap.get(key);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function">Set&lt;String&gt; <span class="title">keys</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        <span class="keyword">return</span> <span class="keyword">new</span> HashSet&lt;&gt;(mMap.keySet());</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">/**</span></span><br><span class="line"><span class="comment">     *  Clears internal storage and notifies ViewModels that they are no longer used.</span></span><br><span class="line"><span class="comment">     */</span></span><br><span class="line">     <span class="comment">// 记住此处，稍后会讲</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">final</span> <span class="keyword">void</span> <span class="title">clear</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        <span class="keyword">for</span> (ViewModel vm : mMap.values()) &#123;</span><br><span class="line">            vm.clear();</span><br><span class="line">        &#125;</span><br><span class="line">        mMap.clear();</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>代码比较简单,此处不做赘述，值得注意的是，我们在它的注释中发现了这样一句话：</p>
+<blockquote>
+<p>Use {@link ViewModelStoreOwner#getViewModelStore()} to retrieve a {@code ViewModelStore} for activities and fragments.</p>
+</blockquote>
+<p>我们查看一下 ViewModelStoreOwner ：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">interface</span> <span class="title">ViewModelStoreOwner</span> </span>&#123;</span><br><span class="line">    <span class="comment">/**</span></span><br><span class="line"><span class="comment">     * Returns owned &#123;<span class="doctag">@link</span> ViewModelStore&#125;</span></span><br><span class="line"><span class="comment">     *</span></span><br><span class="line"><span class="comment">     * <span class="doctag">@return</span> a &#123;<span class="doctag">@code</span> ViewModelStore&#125;</span></span><br><span class="line"><span class="comment">     */</span></span><br><span class="line">    <span class="meta">@NonNull</span></span><br><span class="line">    <span class="function">ViewModelStore <span class="title">getViewModelStore</span><span class="params">()</span></span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>只有一个 getViewModelStore的定义，查看其实现类，找到<code>androidx.activity.ComponentActivity</code>的实现：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@Override</span></span><br><span class="line"><span class="function"><span class="keyword">public</span> ViewModelStore <span class="title">getViewModelStore</span><span class="params">()</span> </span>&#123;</span><br><span class="line">    <span class="keyword">if</span> (getApplication() == <span class="keyword">null</span>) &#123;</span><br><span class="line">        <span class="keyword">throw</span> <span class="keyword">new</span> IllegalStateException(<span class="string">&quot;Your activity is not yet attached to the &quot;</span></span><br><span class="line">                + <span class="string">&quot;Application instance. You can&#x27;t request ViewModel before onCreate call.&quot;</span>);</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">if</span> (mViewModelStore == <span class="keyword">null</span>) &#123;</span><br><span class="line">        NonConfigurationInstances nc =</span><br><span class="line">                (NonConfigurationInstances) getLastNonConfigurationInstance();</span><br><span class="line">        <span class="keyword">if</span> (nc != <span class="keyword">null</span>) &#123;</span><br><span class="line">            <span class="comment">// Restore the ViewModelStore from NonConfigurationInstances</span></span><br><span class="line">            mViewModelStore = nc.viewModelStore;</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">if</span> (mViewModelStore == <span class="keyword">null</span>) &#123;</span><br><span class="line">            mViewModelStore = <span class="keyword">new</span> ViewModelStore();</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">return</span> mViewModelStore;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>我们发现，ViewModelStore来自于 NonConfigurationInstances ，而 NonConfigurationInstances 则取自 getLastNonConfigurationInstance()，我们先看一下 NonConfigurationInstances ：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br></pre></td><td class="code"><pre><span class="line">public class ComponentActivity&#123;</span><br><span class="line">    </span><br><span class="line">    static final class NonConfigurationInstances &#123;</span><br><span class="line">        Object custom;</span><br><span class="line">        ViewModelStore viewModelStore;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">public class Activity&#123;</span><br><span class="line">    </span><br><span class="line">    static final class NonConfigurationInstances &#123;</span><br><span class="line">        Object activity;</span><br><span class="line">        HashMap&lt;String, Object&gt; children;</span><br><span class="line">        FragmentManagerNonConfig fragments;</span><br><span class="line">        ArrayMap&lt;String, LoaderManager&gt; loaders;</span><br><span class="line">        VoiceInteractor voiceInteractor;</span><br><span class="line">    &#125;</span><br><span class="line">    </span><br><span class="line">    public Object getLastNonConfigurationInstance() &#123;</span><br><span class="line">        return mLastNonConfigurationInstances !&#x3D; null</span><br><span class="line">                ? mLastNonConfigurationInstances.activity : null;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>由上述两段代码可知，ViewModelStore最终会存储在 Activity.NonConfigurationInstances中的 activity字段中，我们继续追溯<code>Activity.NonConfigurationInstances mLastNonConfigurationInstances;</code>是从哪里获取和取值的：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line">@link&#123;Activity#attach&#125;</span><br><span class="line"><span class="function"><span class="keyword">final</span> <span class="keyword">void</span> <span class="title">attach</span><span class="params">(Context context, ActivityThread aThread,</span></span></span><br><span class="line"><span class="function"><span class="params">        Instrumentation instr, IBinder token, <span class="keyword">int</span> ident,</span></span></span><br><span class="line"><span class="function"><span class="params">        Application application, Intent intent, ActivityInfo info,</span></span></span><br><span class="line"><span class="function"><span class="params">        CharSequence title, Activity parent, String id,</span></span></span><br><span class="line"><span class="function"><span class="params">        NonConfigurationInstances lastNonConfigurationInstances,</span></span></span><br><span class="line"><span class="function"><span class="params">        Configuration config, String referrer, IVoiceInteractor voiceInteractor,</span></span></span><br><span class="line"><span class="function"><span class="params">        Window window, ActivityConfigCallback activityConfigCallback, IBinder assistToken)</span> </span>&#123;</span><br><span class="line">    attachBaseContext(context);</span><br><span class="line">    <span class="comment">//...</span></span><br><span class="line">    mLastNonConfigurationInstances = lastNonConfigurationInstances;</span><br><span class="line">    <span class="comment">// ...</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>有了解过Activity启动流程的应该都知道 activity.attach() 会在 ActivityThread.performLaunchActivity()中被调用：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">private</span> Activity <span class="title">performLaunchActivity</span><span class="params">(ActivityClientRecord r, Intent customIntent)</span> </span>&#123;</span><br><span class="line">    <span class="comment">// ... 忽略其他代码</span></span><br><span class="line">    activity.attach(appContext, <span class="keyword">this</span>, getInstrumentation(), r.token,</span><br><span class="line">                        r.ident, app, r.intent, r.activityInfo, title, r.parent,</span><br><span class="line">                        <span class="comment">// r.lastNonConfigurationInstances 从ActivityClientRecord中取得</span></span><br><span class="line">                        r.embeddedID, r.lastNonConfigurationInstances, config,</span><br><span class="line">                        r.referrer, r.voiceInteractor, window, r.configCallback,</span><br><span class="line">                        r.assistToken);</span><br><span class="line">    <span class="comment">// ... 忽略其他代码</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>不难发现，lastNonConfigurationInstances来自于ActivityClientRecord对象，我们仅关注配置变化时的Activity重建流程，继续追溯，我们一次可以向前找到一下调用：</p>
+<ul>
+<li>ActivityThread.handleLaunchActivity(ActivityClientRecord r ,…)</li>
+<li>ActivityThread.handleRelaunchActivityInner(ActivityClientRecord r ,…)</li>
+<li>ActivityThread.handleRelaunchActivity(ActivityClientRecord r ,…)</li>
+<li>ClientTransactionHandler.handleRelaunchActivity(ActivityThread.ActivityClientRecord r,…)</li>
+<li>ActivityRelaunchItem.excute(ClientTransactionHandler client,…)</li>
+<li>ActivityConfigurationChangeItem.excute(ClientTransactionHandler client,…)</li>
+</ul>
+<p>我们观察Activity重建的重建流程，只是对当前Activity对应的ActivityClientRecord进行了转换, 新创建的Activity的ActivityClientRecord依旧持有原Activity的lastNonConfigurationInstances对象。</p>
+<p>那么这就<strong>最终保证了NonConfigurationInstances中的ViewModelStore在配置更改Activity重建过程中不会被改变，那么存储在其中的ViewModel自然也就没有变化。</strong></p>
+<p>前面我们了解了ViewModel的存储原理，其主要依赖于ActivityClientRecord的特性来存储NonConfigurationInstances对象，保证ViewModel存在，而界面销毁时ActivityClientRecord也会被销毁，那么保存在其中的NonConfigurationInstances及其包含的ViewModel自然也就会被销毁。</p>
+<p>当然销毁的时候，也会通知到我们自定义的ViewModel，用以做内存及资源的回收，具体实现为重写 onCleared()方法：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">HomeDataViewModel</span> <span class="keyword">extends</span> <span class="title">ViewModel</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="function"><span class="keyword">protected</span> <span class="keyword">void</span> <span class="title">onCleared</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        <span class="keyword">super</span>.onCleared();</span><br><span class="line">        <span class="comment">// 做流的关闭，资源回收等</span></span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>向前追溯可以看到调用此方法的实为ViewModel.clear()方法【此处懒得贴代码】，<br>在之前的ViewModelStore代码中，我们观察到有以下代码：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">final</span> <span class="keyword">void</span> <span class="title">clear</span><span class="params">()</span> </span>&#123;</span><br><span class="line">    <span class="keyword">for</span> (ViewModel vm : mMap.values()) &#123;</span><br><span class="line">    <span class="comment">// 调用ViewModel.clear()</span></span><br><span class="line">        vm.clear();</span><br><span class="line">    &#125;</span><br><span class="line">    mMap.clear();</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>继续追溯，你会发现，他会在ComponentActivity构造方法中被调用，具体代码：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line">public ComponentActivity() &#123;</span><br><span class="line">    &#x2F;&#x2F; 忽略其他代码</span><br><span class="line">    getLifecycle().addObserver(new LifecycleEventObserver() &#123;</span><br><span class="line">        @Override</span><br><span class="line">        public void onStateChanged(@NonNull LifecycleOwner source,</span><br><span class="line">                @NonNull Lifecycle.Event event) &#123;</span><br><span class="line">            if (event &#x3D;&#x3D; Lifecycle.Event.ON_DESTROY) &#123;</span><br><span class="line">                if (!isChangingConfigurations()) &#123;</span><br><span class="line">                    getViewModelStore().clear();</span><br><span class="line">                &#125;</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;);</span><br><span class="line"> &#x2F;&#x2F; 忽略其他代码</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>这里创建并注册了生命周期观察者，在Lifecycle.Event.ON_DESTROY事件（界面销毁）时调用ViewModelStore.clear();</p>
+<p>至此，ViewModel的使用及工作原理，我们就大致梳理了一遍了~！</p>
+<h3 id="附录"><a href="#附录" class="headerlink" title="附录"></a><span id="edit_text_save_state">附录</h3><h4 id="EditText控件数据存储与恢复"><a href="#EditText控件数据存储与恢复" class="headerlink" title="EditText控件数据存储与恢复"></a>EditText控件数据存储与恢复</h4><p>在ViewModel以前，Activity重建数据恢复主要依靠Activit.onSaveInstanceState, 我们大胆猜测EditText数据在翻转屏幕时数据依旧存在与此有关，我们尝试跟进一下其保存数据的流程：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line">protected void onSaveInstanceState(@NonNull Bundle outState) &#123;</span><br><span class="line">    &#x2F;&#x2F; 获取Window层级</span><br><span class="line">    outState.putBundle(WINDOW_HIERARCHY_TAG, mWindow.saveHierarchyState());</span><br><span class="line"></span><br><span class="line">    outState.putInt(LAST_AUTOFILL_ID, mLastAutofillId);</span><br><span class="line">    Parcelable p &#x3D; mFragments.saveAllState();</span><br><span class="line">    if (p !&#x3D; null) &#123;</span><br><span class="line">        outState.putParcelable(FRAGMENTS_TAG, p);</span><br><span class="line">    &#125;</span><br><span class="line">    if (mAutoFillResetNeeded) &#123;</span><br><span class="line">        outState.putBoolean(AUTOFILL_RESET_NEEDED, true);</span><br><span class="line">        getAutofillManager().onSaveInstanceState(outState);</span><br><span class="line">    &#125;</span><br><span class="line">    &#x2F;&#x2F; 分发Activity存储状态</span><br><span class="line">    dispatchActivitySaveInstanceState(outState);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>首先EditText作为View显然是依存在Window下的，那么我们尝试从Window下手，先来看看这里调用的<code>mWindow.saveHierarchyState()</code>, 由于这里是抽象方法，所以我们去看<code>PhoneWindow.saveHierarchyState()</code>:</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@Override</span></span><br><span class="line"><span class="function"><span class="keyword">public</span> Bundle <span class="title">saveHierarchyState</span><span class="params">()</span> </span>&#123;</span><br><span class="line">    Bundle outState = <span class="keyword">new</span> Bundle();</span><br><span class="line">    <span class="keyword">if</span> (mContentParent == <span class="keyword">null</span>) &#123;</span><br><span class="line">        <span class="keyword">return</span> outState;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    SparseArray&lt;Parcelable&gt; states = <span class="keyword">new</span> SparseArray&lt;Parcelable&gt;();</span><br><span class="line">    <span class="comment">// 收集父容器中的层级状态</span></span><br><span class="line">    mContentParent.saveHierarchyState(states);</span><br><span class="line">    outState.putSparseParcelableArray(VIEWS_TAG, states);</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 从容器中取得有焦点的控件</span></span><br><span class="line">    <span class="keyword">final</span> View focusedView = mContentParent.findFocus();</span><br><span class="line">    <span class="keyword">if</span> (focusedView != <span class="keyword">null</span> &amp;&amp; focusedView.getId() != View.NO_ID) &#123;</span><br><span class="line">        <span class="comment">// 存储控件ID</span></span><br><span class="line">        outState.putInt(FOCUSED_ID_TAG, focusedView.getId());</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// save the panels</span></span><br><span class="line">    SparseArray&lt;Parcelable&gt; panelStates = <span class="keyword">new</span> SparseArray&lt;Parcelable&gt;();</span><br><span class="line">    savePanelState(panelStates);</span><br><span class="line">    <span class="keyword">if</span> (panelStates.size() &gt; <span class="number">0</span>) &#123;</span><br><span class="line">        outState.putSparseParcelableArray(PANELS_TAG, panelStates);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span> (mDecorContentParent != <span class="keyword">null</span>) &#123;</span><br><span class="line">        SparseArray&lt;Parcelable&gt; actionBarStates = <span class="keyword">new</span> SparseArray&lt;Parcelable&gt;();</span><br><span class="line">        mDecorContentParent.saveToolbarHierarchyState(actionBarStates);</span><br><span class="line">        outState.putSparseParcelableArray(ACTION_BAR_TAG, actionBarStates);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">return</span> outState;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>获取容器View层级及状态<code>mContentParent.saveHierarchyState(states)</code>最终会调用：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@CallSuper</span></span><br><span class="line"><span class="meta">@Nullable</span> <span class="function"><span class="keyword">protected</span> Parcelable <span class="title">onSaveInstanceState</span><span class="params">()</span> </span>&#123;</span><br><span class="line">    mPrivateFlags |= PFLAG_SAVE_STATE_CALLED;</span><br><span class="line">    <span class="keyword">if</span> (mStartActivityRequestWho != <span class="keyword">null</span> || isAutofilled()</span><br><span class="line">            || mAutofillViewId &gt; LAST_APP_AUTOFILL_ID) &#123;</span><br><span class="line">        BaseSavedState state = <span class="keyword">new</span> BaseSavedState(AbsSavedState.EMPTY_STATE);</span><br><span class="line"></span><br><span class="line">        <span class="keyword">if</span> (mStartActivityRequestWho != <span class="keyword">null</span>) &#123;</span><br><span class="line">            state.mSavedData |= BaseSavedState.START_ACTIVITY_REQUESTED_WHO_SAVED;</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        <span class="keyword">if</span> (isAutofilled()) &#123;</span><br><span class="line">            state.mSavedData |= BaseSavedState.IS_AUTOFILLED;</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        <span class="keyword">if</span> (mAutofillViewId &gt; LAST_APP_AUTOFILL_ID) &#123;</span><br><span class="line">            state.mSavedData |= BaseSavedState.AUTOFILL_ID;</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        state.mStartActivityRequestWhoSaved = mStartActivityRequestWho;</span><br><span class="line">        state.mIsAutofilled = isAutofilled();</span><br><span class="line">        state.mHideHighlight = hideAutofillHighlight();</span><br><span class="line">        state.mAutofillViewId = mAutofillViewId;</span><br><span class="line">        <span class="keyword">return</span> state;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">return</span> BaseSavedState.EMPTY_STATE;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p><code>PhoneWindow.saveHierarchyState()</code>的作用是：获取容器中所有View的层级及状态，然后筛选出面板panels和具有焦点的控件返回给Activity，EditText自然就被筛选记录，并被<code>outState.putBundle(WINDOW_HIERARCHY_TAG, mWindow.saveHierarchyState())</code>记录下来，最终被onSaveInstanceState()存储，至于onSaveInstance的具体原理此处不做讨论，有兴趣可自行深挖。</p>
+
+    </div>
+
+    
+    
+    
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/ViewModel/" rel="tag"># ViewModel</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2021/02/28/Jetpack%E4%B9%8B%E7%94%9F%E5%91%BD%E5%91%A8%E6%9C%9F%E6%84%9F%E7%9F%A5%E7%BB%84%E4%BB%B6-Lifecycle%E5%8E%9F%E7%90%86%E7%AF%87/" rel="prev" title="Jetpack之生命周期感知组件-Lifecycle原理篇">
+      <i class="fa fa-chevron-left"></i> Jetpack之生命周期感知组件-Lifecycle原理篇
+    </a></div>
+      <div class="post-nav-item"></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%BC%95%E8%A8%80"><span class="nav-number">1.</span> <span class="nav-text">引言</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#ViewModel%E4%BD%BF%E7%94%A8%E7%AF%87"><span class="nav-number">2.</span> <span class="nav-text">ViewModel使用篇</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#%E5%BC%95%E5%85%A5%E4%BE%9D%E8%B5%96"><span class="nav-number">2.1.</span> <span class="nav-text">引入依赖</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E5%88%9B%E5%BB%BA%E6%A1%88%E4%BE%8B"><span class="nav-number">2.2.</span> <span class="nav-text">创建案例</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E4%BD%BF%E7%94%A8ViewModel%E6%94%B9%E9%80%A0%E6%A1%88%E4%BE%8B"><span class="nav-number">2.3.</span> <span class="nav-text">使用ViewModel改造案例</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#ViewModel%E7%94%9F%E5%91%BD%E5%91%A8%E6%9C%9F"><span class="nav-number">2.4.</span> <span class="nav-text">ViewModel生命周期</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E9%99%84%E5%BD%95"><span class="nav-number">3.</span> <span class="nav-text">附录</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#EditText%E6%8E%A7%E4%BB%B6%E6%95%B0%E6%8D%AE%E5%AD%98%E5%82%A8%E4%B8%8E%E6%81%A2%E5%A4%8D"><span class="nav-number">3.1.</span> <span class="nav-text">EditText控件数据存储与恢复</span></a></li></ol></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="Tinlone"
+      src="/images/favicon-32x32-next.png">
+  <p class="site-author-name" itemprop="name">Tinlone</p>
+  <div class="site-description" itemprop="description">Tinlone的个人博客</div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">11</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">1</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">4</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+
+
+
+      </div>
+
+    </div>
+	
+	<iframe frameborder="no" border="0" marginwidth="0" marginheight="0" width=330 height=86 src="//music.163.com/outchain/player?type=2&id=16435049&auto=1&height=66"></iframe>
+	
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2021</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Tinlone</span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item-icon">
+      <i class="fa fa-chart-area"></i>
+    </span>
+    <span title="站点总字数">37k</span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item-icon">
+      <i class="fa fa-coffee"></i>
+    </span>
+    <span title="站点阅读时长">33 分钟</span>
+</div>
+<!--
+  <div class="powered-by">由 <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://theme-next.org/" class="theme-link" rel="noopener" target="_blank">NexT.Gemini</a> 强力驱动
+  </div>
+-->
+
+        
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/pisces.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+  <script defer src="/lib/three/three.min.js"></script>
+    <script defer src="/lib/three/three-waves.min.js"></script>
+
+
+  
+
+
+
+
+  
+<script src="/js/local-search.js"></script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+</body>
+</html>
