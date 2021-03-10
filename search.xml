@@ -1188,4 +1188,119 @@ StorageNotLow     如果设置为 true，那么当用户设备上的存储空间
         <tag>Lifecycle</tag>
       </tags>
   </entry>
+  <entry>
+    <title>Jetpack之可观察的数据存储器-LiveData使用篇</title>
+    <url>/2021/03/10/Jetpack%E4%B9%8B%E5%8F%AF%E8%A7%82%E5%AF%9F%E7%9A%84%E6%95%B0%E6%8D%AE%E5%AD%98%E5%82%A8%E5%99%A8-LiveData%E4%BD%BF%E7%94%A8%E7%AF%87/</url>
+    <content><![CDATA[<blockquote>
+<p>LiveData 是一种可观察的数据存储器类。与常规的可观察类不同，LiveData 具有生命周期感知能力，意指它遵循其他应用组件（如 Activity、Fragment 或 Service）的生命周期。这种感知能力可确保 LiveData 仅更新处于活跃生命周期状态的应用组件观察者。</p>
+</blockquote>
+<p><a href="https://github.com/TinloneX/ArchitecturalComponentExample">【本系列文章(JAVA/KOTLIN)演示案例均存储在github存储库ArchitecturalComponentExample中】</a></p>
+<p><a href="https://developer.android.google.cn/topic/libraries/architecture/livedata#create_livedata_objects">【如需参考LiveData官方文档请移步此处】</a></p>
+<a id="more"></a>
+
+<h4 id="LiveData的优势"><a href="#LiveData的优势" class="headerlink" title="LiveData的优势"></a>LiveData的优势</h4><p>在正式使用之前，我们先来了解下其优势（即我们为什么要使用它），以下引用取自官方文档：</p>
+<p><strong>确保界面符合数据状态</strong></p>
+<blockquote>
+<p>LiveData 遵循观察者模式。当底层数据发生变化时，LiveData 会通知 Observer 对象。您可以整合代码以在这些 Observer 对象中更新界面。这样一来，您无需在每次应用数据发生变化时更新界面，因为观察者会替您完成更新。</p>
+</blockquote>
+<p><strong>不会发生内存泄漏</strong></p>
+<blockquote>
+<p>观察者会绑定到 Lifecycle 对象，并在其关联的生命周期遭到销毁后进行自我清理。</p>
+</blockquote>
+<p><strong>不会因 Activity 停止而导致崩溃</strong></p>
+<blockquote>
+<p>如果观察者的生命周期处于非活跃状态（如返回栈中的 Activity），则它不会接收任何 LiveData 事件。</p>
+</blockquote>
+<p><strong>不再需要手动处理生命周期</strong></p>
+<blockquote>
+<p>界面组件只是观察相关数据，不会停止或恢复观察。LiveData 将自动管理所有这些操作，因为它在观察时可以感知相关的生命周期状态变化。</p>
+</blockquote>
+<p><strong>数据始终保持最新状态</strong></p>
+<blockquote>
+<p>如果生命周期变为非活跃状态，它会在再次变为活跃状态时接收最新的数据。例如，曾经在后台的 Activity 会在返回前台后立即接收最新的数据。</p>
+</blockquote>
+<p><strong>适当的配置更改</strong></p>
+<blockquote>
+<p>如果由于配置更改（如设备旋转）而重新创建了 Activity 或 Fragment，它会立即接收最新的可用数据。</p>
+</blockquote>
+<p><strong>共享资源</strong></p>
+<blockquote>
+<p>您可以使用单例模式扩展 LiveData 对象以封装系统服务，以便在应用中共享它们。LiveData 对象连接到系统服务一次，然后需要相应资源的任何观察者只需观察 LiveData 对象。如需了解详情，请参阅扩展 LiveData。 </p>
+</blockquote>
+<h4 id="引入依赖"><a href="#引入依赖" class="headerlink" title="引入依赖"></a>引入依赖</h4><p>LiveData作为生命周期感知组件，它的依赖包也是 lifecycle族系，通常的，我们常常将LiveData配合ViewModel使用，当然你也可以单独使用LiveData依赖。</p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">def lifecycle_version &#x3D; &quot;2.3.0&quot;</span><br><span class="line"></span><br><span class="line">&#x2F;&#x2F; 如果你需要配合ViewModel使用，请加上</span><br><span class="line">implementation &quot;androidx.lifecycle:lifecycle-viewmodel-ktx:$lifecycle_version&quot;</span><br><span class="line">&#x2F;&#x2F; LiveData</span><br><span class="line">implementation &quot;androidx.lifecycle:lifecycle-livedata-ktx:$lifecycle_version&quot;</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+<p>此文演示项目为ViewModel+LiveData，如有对ViewModel不了解的可以通过<a href="https://developer.android.google.cn/topic/libraries/architecture/viewmodel">【官方文档】</a>或<a href="https://tinlone.com/2021/03/07/Jetpack%E4%B9%8B%E7%95%8C%E9%9D%A2%E6%95%B0%E6%8D%AE%E5%AD%98%E5%82%A8%E7%BB%84%E4%BB%B6-ViewModel/">【Jetpack之界面数据存储组件-ViewModel】</a>具体了解。</p>
+<blockquote>
+<p>请按照以下步骤使用 LiveData 对象：</p>
+<ul>
+<li>创建 LiveData 的实例以存储某种类型的数据。这通常在 ViewModel 类中完成。</li>
+<li>创建可定义 onChanged() 方法的 Observer 对象，该方法可以控制当 LiveData 对象存储的数据更改时会发生什么。通常情况下，您可以在界面控制器（如 Activity 或 Fragment）中创建 Observer 对象。</li>
+<li>使用 observe() 方法将 Observer 对象附加到 LiveData 对象。observe() 方法会采用 LifecycleOwner 对象。这样会使 Observer 对象订阅 LiveData 对象，以使其收到有关更改的通知。通常情况下，您可以在界面控制器（如 Activity 或 Fragment）中附加 Observer 对象。</li>
+</ul>
+</blockquote>
+<h4 id="创建LiveData"><a href="#创建LiveData" class="headerlink" title="创建LiveData"></a>创建LiveData</h4><p>创建LiveData的方式非常简单，你只需要直接new出他的子类并传入你想要观察的数据类型泛型即可，LiveData提供<code>setValue(T t) & postValue(T t)</code>用以更新值, 可以使用<code>T getValue()</code>获取值：</p>
+<figure class="highlight java"><table><tr><td class="code"><pre><span class="line">MutableLiveData&lt;Integer&gt; price = <span class="keyword">new</span> MutableLiveData&lt;&gt;();</span><br><span class="line"><span class="comment">// 当然你也可以这样</span></span><br><span class="line">MutableLiveData&lt;Seller&gt; mSeller = <span class="keyword">new</span> MutableLiveData&lt;&gt;();</span><br><span class="line"><span class="comment">// 定义更新LiveData值的方法</span></span><br><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">countUp</span><span class="params">()</span> </span>&#123;</span><br><span class="line">    <span class="comment">// 注意，在初始时LiveData中包含的数据可能为空，你需要为它设置值</span></span><br><span class="line">    price.setValue(price.getValue() == <span class="keyword">null</span> ? <span class="number">0</span> : price.getValue() + <span class="number">1</span>);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h4 id="观察LiveData"><a href="#观察LiveData" class="headerlink" title="观察LiveData"></a>观察LiveData</h4><p>在大多数情况下，应用组件的 onCreate() 方法是开始观察 LiveData 对象的正确着手点，原因如下：</p>
+<ul>
+<li>确保系统不会从 Activity 或 Fragment 的 onResume() 方法进行冗余调用。</li>
+<li>确保 Activity 或 Fragment 变为活跃状态后具有可以立即显示的数据。一旦应用组件处于 STARTED 状态，就会从它正在观察的 LiveData 对象接收最新值。只有在设置了要观察的 LiveData 对象时，才会发生这种情况。</li>
+</ul>
+<p>LiveData订阅<code>observe(@NonNull LifecycleOwner owner, @NonNull Observer<? super T> observer)</code>需要两个参数，生命周期拥有者LifecycleOwner和观察者Observer。</p>
+<p>一般的，继承自AndroidX包中的Activity/Fragment组件(api &gt;= 26)已自行实现LifecycleOwner。</p>
+<p><em>在未强调说明的情况下，本文代码块均保持使用Java8特性。</em></p>
+<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="comment">// 建立订阅关系</span></span><br><span class="line">viewModel.price.observe(<span class="keyword">this</span>, <span class="keyword">this</span>::updatePriceButton);</span><br><span class="line"></span><br><span class="line"><span class="comment">// 定义Observer.onChanged(T t)回调执行的函数</span></span><br><span class="line"><span class="function"><span class="keyword">private</span> <span class="keyword">void</span> <span class="title">updatePriceButton</span><span class="params">(<span class="keyword">int</span> price)</span> </span>&#123;</span><br><span class="line">   <span class="comment">// 在未强调时，此处均为日志打印，详细代码见Demo</span></span><br><span class="line">   <span class="comment">// 后续代码块中将简化或不写类似实现</span></span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 创建一个onClick触发LiveData值的更新</span></span><br><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">countUp</span><span class="params">(View view)</span> </span>&#123;</span><br><span class="line">    viewModel.countUp();</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>我们来看一下执行效果：</p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">订阅数据变化👉 0</span><br><span class="line">订阅数据变化👉 1</span><br><span class="line">订阅数据变化👉 2</span><br></pre></td></tr></table></figure>
+<p>当我们改变被观察的值时，我们的观察者也如预期被通知到了，这样便实现了最简LiveData数据观察流程（详细代码<a href="https://github.com/TinloneX/ArchitecturalComponentExample/tree/main/LiveDataExample/LiveDataExampleJava/app/src/main/java/com/tinlone/livedataexamplejava">【Java示例请参见此处】</a>、<a href="https://github.com/TinloneX/ArchitecturalComponentExample/tree/main/LiveDataExample/LiveDataExampleKotlin/app/src/main/java/com/tinlone/livedataexamplekotlin">【Kotlin示例请参见此处】</a>）。</p>
+<h4 id="扩展LiveData"><a href="#扩展LiveData" class="headerlink" title="扩展LiveData"></a>扩展LiveData</h4><p>你可以继承LiveData自行实现LiveData的数据变更状态的分发，已演示项目为例：</p>
+<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">MyPriceLiveData</span> <span class="keyword">extends</span> <span class="title">LiveData</span>&lt;<span class="title">Integer</span>&gt; </span>&#123;</span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">static</span> <span class="keyword">final</span> String TAG = <span class="string">&quot;LiveDataExampleLog&quot;</span>;</span><br><span class="line">    <span class="comment">// 此处定义监听，监听触发时调用 setValue(T t)方法</span></span><br><span class="line">    PriceManager.PriceListener listener = <span class="keyword">this</span>::setValue;</span><br><span class="line"></span><br><span class="line">   <span class="comment">// 同样的你可以将LiveData设置成单例，此处不做实现</span></span><br><span class="line"></span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="function"><span class="keyword">protected</span> <span class="keyword">void</span> <span class="title">onActive</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        <span class="comment">// 此处定义生命周期处于 STARTED 或 RESUMED 状态时的操作</span></span><br><span class="line">        Log.i(TAG, <span class="string">&quot;MyPriceLiveData.onActive&quot;</span>);</span><br><span class="line">        PriceManager.getInstance().requestPriceUpdate(listener);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="function"><span class="keyword">protected</span> <span class="keyword">void</span> <span class="title">onInactive</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        Log.i(TAG, <span class="string">&quot;MyPriceLiveData.onInactive&quot;</span>);</span><br><span class="line">        <span class="comment">// 此处定义没有任何活跃观察者时，解除对PriceManager的关联</span></span><br><span class="line">        PriceManager.getInstance().removeUpdateListener(listener);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>我们像先前一样使用：</p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">&#x2F;&#x2F; ViewModel中</span><br><span class="line">private final PriceManager priceManager &#x3D; PriceManager.getInstance();</span><br><span class="line">MyPriceLiveData extensionData &#x3D; new MyPriceLiveData();</span><br><span class="line"></span><br><span class="line">public void updatePriceForExtension() &#123;</span><br><span class="line">    priceManager.updatePrice(priceManager.price + 1);</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">&#x2F;&#x2F; Activity&#x2F;Fragment中</span><br><span class="line">&#x2F;&#x2F; 订阅LiveData扩展</span><br><span class="line">viewModel.extensionData.observe(this, this::updateExtensionButton);</span><br><span class="line"></span><br><span class="line">&#x2F;&#x2F; 点击事件触发值更新</span><br><span class="line">public void extensionData(View view) &#123;</span><br><span class="line">    viewModel.updatePriceForExtension();</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>我们运行查看结果，并做息屏亮屏操作：</p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">&#x2F;&#x2F; 点击按钮</span><br><span class="line">测试扩展LiveData👉 1</span><br><span class="line">测试扩展LiveData👉 2</span><br><span class="line">&#x2F;&#x2F; 息屏</span><br><span class="line">MyPriceLiveData.onInactive</span><br><span class="line">&#x2F;&#x2F; 亮屏</span><br><span class="line">MyPriceLiveData.onActive</span><br><span class="line">&#x2F;&#x2F; 此处PriceManager未做值未改变时不更新的限制，故会重新分发值变化</span><br><span class="line">测试扩展LiveData👉 2</span><br></pre></td></tr></table></figure>
+<p>我们的扩展LiveData会在息屏/亮屏时触发<code> onInactive()/ onActive()</code>回调，从而执行我们的自定义实现代码。</p>
+<h4 id="转换-LiveData"><a href="#转换-LiveData" class="headerlink" title="转换 LiveData"></a>转换 LiveData</h4><p>LiveData为我们提供了数据转换功能，包含<code>Transformations.map()</code>、<code>Transformations.switchMap()</code>两种方式，其调用方式一致，区别在于 map() 的第二个参数（可理解为转换器）需返回泛型T，而switchMap() 的第二个参数（可理解为转换器）需返回LiveData<T>。</p>
+<p>map()转换：</p>
+<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="comment">// ViewModel中</span></span><br><span class="line">MutableLiveData&lt;Integer&gt; priceForMap = <span class="keyword">new</span> MutableLiveData&lt;&gt;();</span><br><span class="line"><span class="comment">// 观察price并转换为字符串的可观察对象</span></span><br><span class="line">LiveData&lt;String&gt; userThink = Transformations.map(priceForMap,</span><br><span class="line">        price -&gt; price + (price % <span class="number">2</span> == <span class="number">0</span> ? <span class="string">&quot;块刚刚好&quot;</span> : <span class="string">&quot;块贵了&quot;</span>));</span><br><span class="line"><span class="comment">// 更新price值</span></span><br><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">setPriceForMap</span><span class="params">()</span> </span>&#123;</span><br><span class="line">    priceForMap.setValue(priceForMap.getValue() == <span class="keyword">null</span> ? <span class="number">0</span> : priceForMap.getValue() + <span class="number">1</span>);</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// Activity/Fragment中使用</span></span><br><span class="line"><span class="comment">// 数据转换 订阅价格的转换 =&gt; 用户价格感知</span></span><br><span class="line">viewModel.userThink.observe(<span class="keyword">this</span>, <span class="keyword">this</span>::updateUserThinkButton);</span><br></pre></td></tr></table></figure>
+<p>我们执行观察结果：</p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">转换数据(map)👉 0块刚刚好</span><br><span class="line">转换数据(map)👉 1块贵了</span><br><span class="line">转换数据(map)👉 2块刚刚好</span><br></pre></td></tr></table></figure>
+<p>switchMap()转换：</p>
+<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="comment">// 转换前的LiveData</span></span><br><span class="line">MutableLiveData&lt;Integer&gt; priceForSwitch = <span class="keyword">new</span> MutableLiveData&lt;&gt;();</span><br><span class="line"><span class="comment">// 转换后的目标LiveData</span></span><br><span class="line">MutableLiveData&lt;String&gt; sellerThink = <span class="keyword">new</span> MutableLiveData&lt;&gt;();</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">private</span> MutableLiveData&lt;String&gt; <span class="title">getSellerThink</span><span class="params">(<span class="keyword">int</span> price)</span> </span>&#123;</span><br><span class="line">    String think = price + (price &lt;= <span class="number">3</span> ? <span class="string">&quot;穷鬼&quot;</span> : <span class="string">&quot;冤大头&quot;</span>);</span><br><span class="line">    sellerThink.setValue(think);</span><br><span class="line">    <span class="keyword">return</span> sellerThink;</span><br><span class="line">&#125;</span><br><span class="line"><span class="comment">// 更新price值</span></span><br><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">setPriceForSeller</span><span class="params">()</span> </span>&#123;</span><br><span class="line">    priceForSwitch.setValue(priceForSwitch.getValue() == <span class="keyword">null</span> ? <span class="number">0</span> : priceForSwitch.getValue() + <span class="number">1</span>);</span><br><span class="line">&#125;</span><br><span class="line"><span class="comment">// 转换结果LiveData</span></span><br><span class="line">LiveData&lt;String&gt; switchToUserLook = Transformations.switchMap(priceForSwitch, <span class="keyword">this</span>::getSellerThink);</span><br></pre></td></tr></table></figure>
+<p>调用方式与map()一致，你可以对转换后的LiveData观测，也可以对转换结果LiveData观测，此处省略，我们来观察其执行结果：</p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">我是商家想法的订阅：0穷鬼</span><br><span class="line">转换数据(switchMap)👉 0穷鬼</span><br><span class="line">我是商家想法的订阅：1穷鬼</span><br><span class="line">转换数据(switchMap)👉 1穷鬼</span><br></pre></td></tr></table></figure>
+<p>对转换后的LiveData观测及以对转换结果LiveData观测均能收到响应。为判断2个LiveData是否观察的是同一个对象，我们将转换后的目标及结果改造为对象，观察其hashCode是否相等：</p>
+<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="comment">// 转换后的目标LiveData</span></span><br><span class="line">MutableLiveData&lt;Seller&gt; mSeller = <span class="keyword">new</span> MutableLiveData&lt;&gt;();</span><br><span class="line"><span class="comment">// 转换结果LiveData</span></span><br><span class="line">LiveData&lt;Seller&gt; switchToSeller = Transformations.switchMap(priceForSeller, <span class="keyword">this</span>::getSeller);</span><br></pre></td></tr></table></figure>
+<p>执行观察结果打印：</p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">订阅的Seller.hashCode() &#x3D; 84056966</span><br><span class="line">viewModel.mSeller.getValue().hashCode() &#x3D; 84056966</span><br><span class="line">viewModel.switchToSeller.getValue().hashCode() &#x3D; 84056966</span><br></pre></td></tr></table></figure>
+<p>我们发现，转换后的目标LiveData及转换结果LiveData实际观察对象为同一个，不会为数据创建副本。</p>
+<h4 id="合并LiveData"><a href="#合并LiveData" class="headerlink" title="合并LiveData"></a>合并LiveData</h4><blockquote>
+<p>MediatorLiveData 是 LiveData 的子类，允许您合并多个 LiveData 源。只要任何原始的 LiveData 源对象发生更改，就会触发 MediatorLiveData 对象的观察者。</p>
+</blockquote>
+<p>首先我们需要定义一个合并LiveData源：</p>
+<figure class="highlight java"><table><tr><td class="code"><pre><span class="line">MediatorLiveData&lt;Object&gt; mediatorLiveData = <span class="keyword">new</span> MediatorLiveData&lt;&gt;();</span><br></pre></td></tr></table></figure>
+<p>并在使用时，为其添加观察的LiveData源：</p>
+<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="comment">// 合并观察1</span></span><br><span class="line">viewModel.mediatorLiveData.addSource(viewModel.switchToSeller, <span class="keyword">this</span>::onMediatorData);</span><br><span class="line"><span class="comment">// 合并观察2</span></span><br><span class="line">viewModel.mediatorLiveData.addSource(viewModel.userThink, <span class="keyword">this</span>::onMediatorData);</span><br><span class="line"><span class="comment">// 观察数据合并</span></span><br><span class="line">viewModel.mediatorLiveData.observe(<span class="keyword">this</span>,<span class="keyword">this</span>::onMediatorData);</span><br><span class="line"></span><br><span class="line"><span class="keyword">boolean</span> mediatorFlag = <span class="keyword">false</span>;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 触发不同的数据更新</span></span><br><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">mediatorData</span><span class="params">(View view)</span> </span>&#123;</span><br><span class="line">    <span class="keyword">if</span> (mediatorFlag) &#123;</span><br><span class="line">        viewModel.setPriceForSeller();</span><br><span class="line">    &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">        viewModel.setPriceForMap();</span><br><span class="line">    &#125;</span><br><span class="line">    mediatorFlag = !mediatorFlag;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>我们观察其执行结果：</p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">&#x2F;&#x2F; 第一次触发</span><br><span class="line">转换数据(map)👉 0块刚刚好</span><br><span class="line">合并数据👉 0块刚刚好</span><br><span class="line">&#x2F;&#x2F; 第二次触发</span><br><span class="line">我是商家想法的订阅：0穷鬼</span><br><span class="line">合并数据👉 0穷鬼</span><br><span class="line">转换数据(switchMap)👉 0穷鬼</span><br></pre></td></tr></table></figure>
+<p>我们发现，在触发单个LiveData值变化时除了其本身LiveData的观察者被触发，合并数据的观察者也会被触发。</p>
+<p>对于此API的应用场景，官方有提出以下场景：</p>
+<blockquote>
+<p>例如，如果界面中有可以从本地数据库或网络更新的 LiveData 对象，则可以向 MediatorLiveData 对象添加以下源：</p>
+<ul>
+<li>与存储在数据库中的数据关联的 LiveData 对象。</li>
+<li>与从网络访问的数据关联的 LiveData 对象。</li>
+</ul>
+</blockquote>
+<blockquote>
+<p>您的 Activity 只需观察 MediatorLiveData 对象即可从这两个源接收更新。</p>
+</blockquote>
+<h3 id="小节"><a href="#小节" class="headerlink" title="小节"></a>小节</h3><p>LiveData 是生命周期相关的数据观察者，你可以通过自定义LiveData、使用map()及switchMap()转换LiveData源为你需要的LiveData源、你也可以合并观察不同的LiveData源的变化，这些方式基本能满足对一般数据观察的需求。</p>
+]]></content>
+      <categories>
+        <category>Jetpack</category>
+      </categories>
+      <tags>
+        <tag>LiveData</tag>
+      </tags>
+  </entry>
 </search>
