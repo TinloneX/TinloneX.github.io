@@ -1,6 +1,121 @@
 <?xml version="1.0" encoding="utf-8"?>
 <search>
   <entry>
+    <title>Jetpack之可观察的数据存储器-LiveData使用篇</title>
+    <url>/2021/03/10/Jetpack%E4%B9%8B%E5%8F%AF%E8%A7%82%E5%AF%9F%E7%9A%84%E6%95%B0%E6%8D%AE%E5%AD%98%E5%82%A8%E5%99%A8-LiveData%E4%BD%BF%E7%94%A8%E7%AF%87/</url>
+    <content><![CDATA[<blockquote>
+<p>LiveData 是一种可观察的数据存储器类。与常规的可观察类不同，LiveData 具有生命周期感知能力，意指它遵循其他应用组件（如 Activity、Fragment 或 Service）的生命周期。这种感知能力可确保 LiveData 仅更新处于活跃生命周期状态的应用组件观察者。</p>
+</blockquote>
+<p><a href="https://github.com/TinloneX/ArchitecturalComponentExample">【本系列文章(JAVA/KOTLIN)演示案例均存储在github存储库ArchitecturalComponentExample中】</a></p>
+<p><a href="https://developer.android.google.cn/topic/libraries/architecture/livedata#create_livedata_objects">【如需参考LiveData官方文档请移步此处】</a></p>
+<a id="more"></a>
+
+<h4 id="LiveData的优势"><a href="#LiveData的优势" class="headerlink" title="LiveData的优势"></a>LiveData的优势</h4><p>在正式使用之前，我们先来了解下其优势（即我们为什么要使用它），以下引用取自官方文档：</p>
+<p><strong>确保界面符合数据状态</strong></p>
+<blockquote>
+<p>LiveData 遵循观察者模式。当底层数据发生变化时，LiveData 会通知 Observer 对象。您可以整合代码以在这些 Observer 对象中更新界面。这样一来，您无需在每次应用数据发生变化时更新界面，因为观察者会替您完成更新。</p>
+</blockquote>
+<p><strong>不会发生内存泄漏</strong></p>
+<blockquote>
+<p>观察者会绑定到 Lifecycle 对象，并在其关联的生命周期遭到销毁后进行自我清理。</p>
+</blockquote>
+<p><strong>不会因 Activity 停止而导致崩溃</strong></p>
+<blockquote>
+<p>如果观察者的生命周期处于非活跃状态（如返回栈中的 Activity），则它不会接收任何 LiveData 事件。</p>
+</blockquote>
+<p><strong>不再需要手动处理生命周期</strong></p>
+<blockquote>
+<p>界面组件只是观察相关数据，不会停止或恢复观察。LiveData 将自动管理所有这些操作，因为它在观察时可以感知相关的生命周期状态变化。</p>
+</blockquote>
+<p><strong>数据始终保持最新状态</strong></p>
+<blockquote>
+<p>如果生命周期变为非活跃状态，它会在再次变为活跃状态时接收最新的数据。例如，曾经在后台的 Activity 会在返回前台后立即接收最新的数据。</p>
+</blockquote>
+<p><strong>适当的配置更改</strong></p>
+<blockquote>
+<p>如果由于配置更改（如设备旋转）而重新创建了 Activity 或 Fragment，它会立即接收最新的可用数据。</p>
+</blockquote>
+<p><strong>共享资源</strong></p>
+<blockquote>
+<p>您可以使用单例模式扩展 LiveData 对象以封装系统服务，以便在应用中共享它们。LiveData 对象连接到系统服务一次，然后需要相应资源的任何观察者只需观察 LiveData 对象。如需了解详情，请参阅扩展 LiveData。 </p>
+</blockquote>
+<h4 id="引入依赖"><a href="#引入依赖" class="headerlink" title="引入依赖"></a>引入依赖</h4><p>LiveData作为生命周期感知组件，它的依赖包也是 lifecycle族系，通常的，我们常常将LiveData配合ViewModel使用，当然你也可以单独使用LiveData依赖。</p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">def lifecycle_version &#x3D; &quot;2.3.0&quot;</span><br><span class="line"></span><br><span class="line">&#x2F;&#x2F; 如果你需要配合ViewModel使用，请加上</span><br><span class="line">implementation &quot;androidx.lifecycle:lifecycle-viewmodel-ktx:$lifecycle_version&quot;</span><br><span class="line">&#x2F;&#x2F; LiveData</span><br><span class="line">implementation &quot;androidx.lifecycle:lifecycle-livedata-ktx:$lifecycle_version&quot;</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+<p>此文演示项目为ViewModel+LiveData，如有对ViewModel不了解的可以通过<a href="https://developer.android.google.cn/topic/libraries/architecture/viewmodel">【官方文档】</a>或<a href="https://tinlone.com/2021/03/07/Jetpack%E4%B9%8B%E7%95%8C%E9%9D%A2%E6%95%B0%E6%8D%AE%E5%AD%98%E5%82%A8%E7%BB%84%E4%BB%B6-ViewModel/">【Jetpack之界面数据存储组件-ViewModel】</a>具体了解。</p>
+<blockquote>
+<p>请按照以下步骤使用 LiveData 对象：</p>
+<ul>
+<li>创建 LiveData 的实例以存储某种类型的数据。这通常在 ViewModel 类中完成。</li>
+<li>创建可定义 onChanged() 方法的 Observer 对象，该方法可以控制当 LiveData 对象存储的数据更改时会发生什么。通常情况下，您可以在界面控制器（如 Activity 或 Fragment）中创建 Observer 对象。</li>
+<li>使用 observe() 方法将 Observer 对象附加到 LiveData 对象。observe() 方法会采用 LifecycleOwner 对象。这样会使 Observer 对象订阅 LiveData 对象，以使其收到有关更改的通知。通常情况下，您可以在界面控制器（如 Activity 或 Fragment）中附加 Observer 对象。</li>
+</ul>
+</blockquote>
+<h4 id="创建LiveData"><a href="#创建LiveData" class="headerlink" title="创建LiveData"></a>创建LiveData</h4><p>创建LiveData的方式非常简单，你只需要直接new出他的子类并传入你想要观察的数据类型泛型即可，LiveData提供<code>setValue(T t) & postValue(T t)</code>用以更新值, 可以使用<code>T getValue()</code>获取值：</p>
+<figure class="highlight java"><table><tr><td class="code"><pre><span class="line">MutableLiveData&lt;Integer&gt; price = <span class="keyword">new</span> MutableLiveData&lt;&gt;();</span><br><span class="line"><span class="comment">// 当然你也可以这样</span></span><br><span class="line">MutableLiveData&lt;Seller&gt; mSeller = <span class="keyword">new</span> MutableLiveData&lt;&gt;();</span><br><span class="line"><span class="comment">// 定义更新LiveData值的方法</span></span><br><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">countUp</span><span class="params">()</span> </span>&#123;</span><br><span class="line">    <span class="comment">// 注意，在初始时LiveData中包含的数据可能为空，你需要为它设置值</span></span><br><span class="line">    price.setValue(price.getValue() == <span class="keyword">null</span> ? <span class="number">0</span> : price.getValue() + <span class="number">1</span>);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h4 id="观察LiveData"><a href="#观察LiveData" class="headerlink" title="观察LiveData"></a>观察LiveData</h4><p>在大多数情况下，应用组件的 onCreate() 方法是开始观察 LiveData 对象的正确着手点，原因如下：</p>
+<ul>
+<li>确保系统不会从 Activity 或 Fragment 的 onResume() 方法进行冗余调用。</li>
+<li>确保 Activity 或 Fragment 变为活跃状态后具有可以立即显示的数据。一旦应用组件处于 STARTED 状态，就会从它正在观察的 LiveData 对象接收最新值。只有在设置了要观察的 LiveData 对象时，才会发生这种情况。</li>
+</ul>
+<p>LiveData订阅<code>observe(@NonNull LifecycleOwner owner, @NonNull Observer<? super T> observer)</code>需要两个参数，生命周期拥有者LifecycleOwner和观察者Observer。</p>
+<p>一般的，继承自AndroidX包中的Activity/Fragment组件(api &gt;= 26)已自行实现LifecycleOwner。</p>
+<p><em>在未强调说明的情况下，本文代码块均保持使用Java8特性。</em></p>
+<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="comment">// 建立订阅关系</span></span><br><span class="line">viewModel.price.observe(<span class="keyword">this</span>, <span class="keyword">this</span>::updatePriceButton);</span><br><span class="line"></span><br><span class="line"><span class="comment">// 定义Observer.onChanged(T t)回调执行的函数</span></span><br><span class="line"><span class="function"><span class="keyword">private</span> <span class="keyword">void</span> <span class="title">updatePriceButton</span><span class="params">(<span class="keyword">int</span> price)</span> </span>&#123;</span><br><span class="line">   <span class="comment">// 在未强调时，此处均为日志打印，详细代码见Demo</span></span><br><span class="line">   <span class="comment">// 后续代码块中将简化或不写类似实现</span></span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 创建一个onClick触发LiveData值的更新</span></span><br><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">countUp</span><span class="params">(View view)</span> </span>&#123;</span><br><span class="line">    viewModel.countUp();</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>我们来看一下执行效果：</p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">订阅数据变化👉 0</span><br><span class="line">订阅数据变化👉 1</span><br><span class="line">订阅数据变化👉 2</span><br></pre></td></tr></table></figure>
+<p>当我们改变被观察的值时，我们的观察者也如预期被通知到了，这样便实现了最简LiveData数据观察流程（详细代码<a href="https://github.com/TinloneX/ArchitecturalComponentExample/tree/main/LiveDataExample/LiveDataExampleJava/app/src/main/java/com/tinlone/livedataexamplejava">【Java示例请参见此处】</a>、<a href="https://github.com/TinloneX/ArchitecturalComponentExample/tree/main/LiveDataExample/LiveDataExampleKotlin/app/src/main/java/com/tinlone/livedataexamplekotlin">【Kotlin示例请参见此处】</a>）。</p>
+<h4 id="扩展LiveData"><a href="#扩展LiveData" class="headerlink" title="扩展LiveData"></a>扩展LiveData</h4><p>你可以继承LiveData自行实现LiveData的数据变更状态的分发，已演示项目为例：</p>
+<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">MyPriceLiveData</span> <span class="keyword">extends</span> <span class="title">LiveData</span>&lt;<span class="title">Integer</span>&gt; </span>&#123;</span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">static</span> <span class="keyword">final</span> String TAG = <span class="string">&quot;LiveDataExampleLog&quot;</span>;</span><br><span class="line">    <span class="comment">// 此处定义监听，监听触发时调用 setValue(T t)方法</span></span><br><span class="line">    PriceManager.PriceListener listener = <span class="keyword">this</span>::setValue;</span><br><span class="line"></span><br><span class="line">   <span class="comment">// 同样的你可以将LiveData设置成单例，此处不做实现</span></span><br><span class="line"></span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="function"><span class="keyword">protected</span> <span class="keyword">void</span> <span class="title">onActive</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        <span class="comment">// 此处定义生命周期处于 STARTED 或 RESUMED 状态时的操作</span></span><br><span class="line">        Log.i(TAG, <span class="string">&quot;MyPriceLiveData.onActive&quot;</span>);</span><br><span class="line">        PriceManager.getInstance().requestPriceUpdate(listener);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="function"><span class="keyword">protected</span> <span class="keyword">void</span> <span class="title">onInactive</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        Log.i(TAG, <span class="string">&quot;MyPriceLiveData.onInactive&quot;</span>);</span><br><span class="line">        <span class="comment">// 此处定义没有任何活跃观察者时，解除对PriceManager的关联</span></span><br><span class="line">        PriceManager.getInstance().removeUpdateListener(listener);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>我们像先前一样使用：</p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">&#x2F;&#x2F; ViewModel中</span><br><span class="line">private final PriceManager priceManager &#x3D; PriceManager.getInstance();</span><br><span class="line">MyPriceLiveData extensionData &#x3D; new MyPriceLiveData();</span><br><span class="line"></span><br><span class="line">public void updatePriceForExtension() &#123;</span><br><span class="line">    priceManager.updatePrice(priceManager.price + 1);</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">&#x2F;&#x2F; Activity&#x2F;Fragment中</span><br><span class="line">&#x2F;&#x2F; 订阅LiveData扩展</span><br><span class="line">viewModel.extensionData.observe(this, this::updateExtensionButton);</span><br><span class="line"></span><br><span class="line">&#x2F;&#x2F; 点击事件触发值更新</span><br><span class="line">public void extensionData(View view) &#123;</span><br><span class="line">    viewModel.updatePriceForExtension();</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>我们运行查看结果，并做息屏亮屏操作：</p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">&#x2F;&#x2F; 点击按钮</span><br><span class="line">测试扩展LiveData👉 1</span><br><span class="line">测试扩展LiveData👉 2</span><br><span class="line">&#x2F;&#x2F; 息屏</span><br><span class="line">MyPriceLiveData.onInactive</span><br><span class="line">&#x2F;&#x2F; 亮屏</span><br><span class="line">MyPriceLiveData.onActive</span><br><span class="line">&#x2F;&#x2F; 此处PriceManager未做值未改变时不更新的限制，故会重新分发值变化</span><br><span class="line">测试扩展LiveData👉 2</span><br></pre></td></tr></table></figure>
+<p>我们的扩展LiveData会在息屏/亮屏时触发<code> onInactive()/ onActive()</code>回调，从而执行我们的自定义实现代码。</p>
+<h4 id="转换-LiveData"><a href="#转换-LiveData" class="headerlink" title="转换 LiveData"></a>转换 LiveData</h4><p>LiveData为我们提供了数据转换功能，包含<code>Transformations.map()</code>、<code>Transformations.switchMap()</code>两种方式，其调用方式一致，区别在于 map() 的第二个参数（可理解为转换器）需返回泛型T，而switchMap() 的第二个参数（可理解为转换器）需返回LiveData<T>。</p>
+<p>map()转换：</p>
+<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="comment">// ViewModel中</span></span><br><span class="line">MutableLiveData&lt;Integer&gt; priceForMap = <span class="keyword">new</span> MutableLiveData&lt;&gt;();</span><br><span class="line"><span class="comment">// 观察price并转换为字符串的可观察对象</span></span><br><span class="line">LiveData&lt;String&gt; userThink = Transformations.map(priceForMap,</span><br><span class="line">        price -&gt; price + (price % <span class="number">2</span> == <span class="number">0</span> ? <span class="string">&quot;块刚刚好&quot;</span> : <span class="string">&quot;块贵了&quot;</span>));</span><br><span class="line"><span class="comment">// 更新price值</span></span><br><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">setPriceForMap</span><span class="params">()</span> </span>&#123;</span><br><span class="line">    priceForMap.setValue(priceForMap.getValue() == <span class="keyword">null</span> ? <span class="number">0</span> : priceForMap.getValue() + <span class="number">1</span>);</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// Activity/Fragment中使用</span></span><br><span class="line"><span class="comment">// 数据转换 订阅价格的转换 =&gt; 用户价格感知</span></span><br><span class="line">viewModel.userThink.observe(<span class="keyword">this</span>, <span class="keyword">this</span>::updateUserThinkButton);</span><br></pre></td></tr></table></figure>
+<p>我们执行观察结果：</p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">转换数据(map)👉 0块刚刚好</span><br><span class="line">转换数据(map)👉 1块贵了</span><br><span class="line">转换数据(map)👉 2块刚刚好</span><br></pre></td></tr></table></figure>
+<p>switchMap()转换：</p>
+<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="comment">// 转换前的LiveData</span></span><br><span class="line">MutableLiveData&lt;Integer&gt; priceForSwitch = <span class="keyword">new</span> MutableLiveData&lt;&gt;();</span><br><span class="line"><span class="comment">// 转换后的目标LiveData</span></span><br><span class="line">MutableLiveData&lt;String&gt; sellerThink = <span class="keyword">new</span> MutableLiveData&lt;&gt;();</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">private</span> MutableLiveData&lt;String&gt; <span class="title">getSellerThink</span><span class="params">(<span class="keyword">int</span> price)</span> </span>&#123;</span><br><span class="line">    String think = price + (price &lt;= <span class="number">3</span> ? <span class="string">&quot;穷鬼&quot;</span> : <span class="string">&quot;冤大头&quot;</span>);</span><br><span class="line">    sellerThink.setValue(think);</span><br><span class="line">    <span class="keyword">return</span> sellerThink;</span><br><span class="line">&#125;</span><br><span class="line"><span class="comment">// 更新price值</span></span><br><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">setPriceForSeller</span><span class="params">()</span> </span>&#123;</span><br><span class="line">    priceForSwitch.setValue(priceForSwitch.getValue() == <span class="keyword">null</span> ? <span class="number">0</span> : priceForSwitch.getValue() + <span class="number">1</span>);</span><br><span class="line">&#125;</span><br><span class="line"><span class="comment">// 转换结果LiveData</span></span><br><span class="line">LiveData&lt;String&gt; switchToUserLook = Transformations.switchMap(priceForSwitch, <span class="keyword">this</span>::getSellerThink);</span><br></pre></td></tr></table></figure>
+<p>调用方式与map()一致，你可以对转换后的LiveData观测，也可以对转换结果LiveData观测，此处省略，我们来观察其执行结果：</p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">我是商家想法的订阅：0穷鬼</span><br><span class="line">转换数据(switchMap)👉 0穷鬼</span><br><span class="line">我是商家想法的订阅：1穷鬼</span><br><span class="line">转换数据(switchMap)👉 1穷鬼</span><br></pre></td></tr></table></figure>
+<p>对转换后的LiveData观测及以对转换结果LiveData观测均能收到响应。为判断2个LiveData是否观察的是同一个对象，我们将转换后的目标及结果改造为对象，观察其hashCode是否相等：</p>
+<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="comment">// 转换后的目标LiveData</span></span><br><span class="line">MutableLiveData&lt;Seller&gt; mSeller = <span class="keyword">new</span> MutableLiveData&lt;&gt;();</span><br><span class="line"><span class="comment">// 转换结果LiveData</span></span><br><span class="line">LiveData&lt;Seller&gt; switchToSeller = Transformations.switchMap(priceForSeller, <span class="keyword">this</span>::getSeller);</span><br></pre></td></tr></table></figure>
+<p>执行观察结果打印：</p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">订阅的Seller.hashCode() &#x3D; 84056966</span><br><span class="line">viewModel.mSeller.getValue().hashCode() &#x3D; 84056966</span><br><span class="line">viewModel.switchToSeller.getValue().hashCode() &#x3D; 84056966</span><br></pre></td></tr></table></figure>
+<p>我们发现，转换后的目标LiveData及转换结果LiveData实际观察对象为同一个，不会为数据创建副本。</p>
+<h4 id="合并LiveData"><a href="#合并LiveData" class="headerlink" title="合并LiveData"></a>合并LiveData</h4><blockquote>
+<p>MediatorLiveData 是 LiveData 的子类，允许您合并多个 LiveData 源。只要任何原始的 LiveData 源对象发生更改，就会触发 MediatorLiveData 对象的观察者。</p>
+</blockquote>
+<p>首先我们需要定义一个合并LiveData源：</p>
+<figure class="highlight java"><table><tr><td class="code"><pre><span class="line">MediatorLiveData&lt;Object&gt; mediatorLiveData = <span class="keyword">new</span> MediatorLiveData&lt;&gt;();</span><br></pre></td></tr></table></figure>
+<p>并在使用时，为其添加观察的LiveData源：</p>
+<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="comment">// 合并观察1</span></span><br><span class="line">viewModel.mediatorLiveData.addSource(viewModel.switchToSeller, <span class="keyword">this</span>::onMediatorData);</span><br><span class="line"><span class="comment">// 合并观察2</span></span><br><span class="line">viewModel.mediatorLiveData.addSource(viewModel.userThink, <span class="keyword">this</span>::onMediatorData);</span><br><span class="line"><span class="comment">// 观察数据合并</span></span><br><span class="line">viewModel.mediatorLiveData.observe(<span class="keyword">this</span>,<span class="keyword">this</span>::onMediatorData);</span><br><span class="line"></span><br><span class="line"><span class="keyword">boolean</span> mediatorFlag = <span class="keyword">false</span>;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 触发不同的数据更新</span></span><br><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">mediatorData</span><span class="params">(View view)</span> </span>&#123;</span><br><span class="line">    <span class="keyword">if</span> (mediatorFlag) &#123;</span><br><span class="line">        viewModel.setPriceForSeller();</span><br><span class="line">    &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">        viewModel.setPriceForMap();</span><br><span class="line">    &#125;</span><br><span class="line">    mediatorFlag = !mediatorFlag;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>我们观察其执行结果：</p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">&#x2F;&#x2F; 第一次触发</span><br><span class="line">转换数据(map)👉 0块刚刚好</span><br><span class="line">合并数据👉 0块刚刚好</span><br><span class="line">&#x2F;&#x2F; 第二次触发</span><br><span class="line">我是商家想法的订阅：0穷鬼</span><br><span class="line">合并数据👉 0穷鬼</span><br><span class="line">转换数据(switchMap)👉 0穷鬼</span><br></pre></td></tr></table></figure>
+<p>我们发现，在触发单个LiveData值变化时除了其本身LiveData的观察者被触发，合并数据的观察者也会被触发。</p>
+<p>对于此API的应用场景，官方有提出以下场景：</p>
+<blockquote>
+<p>例如，如果界面中有可以从本地数据库或网络更新的 LiveData 对象，则可以向 MediatorLiveData 对象添加以下源：</p>
+<ul>
+<li>与存储在数据库中的数据关联的 LiveData 对象。</li>
+<li>与从网络访问的数据关联的 LiveData 对象。</li>
+</ul>
+</blockquote>
+<blockquote>
+<p>您的 Activity 只需观察 MediatorLiveData 对象即可从这两个源接收更新。</p>
+</blockquote>
+<h3 id="小节"><a href="#小节" class="headerlink" title="小节"></a>小节</h3><p>LiveData 是生命周期相关的数据观察者，你可以通过自定义LiveData、使用map()及switchMap()转换LiveData源为你需要的LiveData源、你也可以合并观察不同的LiveData源的变化，这些方式基本能满足对一般数据观察的需求。</p>
+]]></content>
+      <categories>
+        <category>Jetpack</category>
+      </categories>
+      <tags>
+        <tag>LiveData</tag>
+      </tags>
+  </entry>
+  <entry>
     <title>Jetpack之生命周期感知组件-Lifecycle使用篇</title>
     <url>/2021/02/25/Jetpack%E4%B9%8B%E7%94%9F%E5%91%BD%E5%91%A8%E6%9C%9F%E6%84%9F%E7%9F%A5%E7%BB%84%E4%BB%B6-Lifecycle%E4%BD%BF%E7%94%A8%E7%AF%87/</url>
     <content><![CDATA[<h3 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h3><p>什么是生命周期感知组件？</p>
@@ -66,6 +181,56 @@
       </categories>
       <tags>
         <tag>Lifecycle</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>WorkManager基本使用及源码分析(二) - WorkManagerInitializer</title>
+    <url>/2021/02/06/WorkManager%E5%9F%BA%E6%9C%AC%E4%BD%BF%E7%94%A8%E5%8F%8A%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90(%E4%BA%8C)%20-%20WorkManagerInitializer/</url>
+    <content><![CDATA[<h2 id="目录"><a href="#目录" class="headerlink" title="目录"></a>目录</h2><ul>
+<li><a href="#part_source">源码篇</a><ul>
+<li><a href="#AndroidManifest">2.1 AndroidManifest</a><ul>
+<li><a href="#WorkManagerInitializer">2.1.1 WorkManagerInitializer</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+<hr>
+<h3 id="源码篇"><a href="#源码篇" class="headerlink" title=" 源码篇"></a><span id="part_source"> 源码篇</h3><p>上一篇中我们简单使用了WorkManager的一般功能，基础使用还是比较简单的。<strong>“WorkManager 是一个 API，可供您轻松调度那些即使在退出应用或重启设备后仍应运行的可延期异步任务”</strong>。那么我们来了解一下他到底是怎么工作的吧。</p>
+<a id="more"></a>
+
+<h4 id="2-1-AndroidManifest"><a href="#2-1-AndroidManifest" class="headerlink" title=" 2.1 AndroidManifest"></a><span id="AndroidManifest"> 2.1 AndroidManifest</h4><p>秉承看三方库源码的一般习惯，先从AndroidManifest.xml文件看起，我们知道一般的，想要了解一个库的主要组成就要想了解一个App一样首先要了解它有哪些组件构成，而<strong>库的AndroidManifest文件一般都会合并至应用AndroidManifest.xml中</strong>，且一般的需要初始化的库，常规的初始化方案是<strong>使用ContentProvider尽早地初始化且减少代码侵入</strong>，对这种方式不了解的，请参见<a href="https://blog.csdn.net/a1018875550/article/details/102760643">Android-使用ContentProvider来初始化你的sdk</a>系列文章。</p>
+<p>废话不多说，让我们来看看work-runtime库的AndroidManifest.xml有哪些玄机。</p>
+<p>work-runtime库的AndroidManifest.xml我们可以在AndroidStudio的 <strong>Project窗口中External Libraries</strong>栏目中查找”work-runtime”即可看到WorkManager的aar包结构和内容。打开AndroidManefest.xml我们发现以下重要组件：</p>
+<ul>
+<li><strong><provider></strong> <code>androidx.work.impl.WorkManagerInitializer</code></li>
+<li><strong><service></strong> <code>androidx.work.impl.background.systemalarm.SystemAlarmService</code></li>
+<li><strong><service></strong> <code>androidx.work.impl.background.systemjob.SystemJobService</code></li>
+<li><strong><service></strong> <code>androidx.work.impl.foreground.SystemForegroundService</code></li>
+<li><strong><receiver></strong> <code>androidx.work.impl.utils.ForceStopRunnable$BroadcastReceiver</code></li>
+<li><strong><receiver></strong> <code>androidx.work.impl.background.systemalarm.ConstraintProxy$BatteryChargingProxy</code></li>
+<li><strong><receiver></strong> <code>androidx.work.impl.background.systemalarm.ConstraintProxy$BatteryNotLowProxy</code></li>
+<li><strong><receiver></strong> <code>androidx.work.impl.background.systemalarm.ConstraintProxy$StorageNotLowProxy</code></li>
+<li><strong><receiver></strong> <code>androidx.work.impl.background.systemalarm.ConstraintProxy$NetworkStateProxy</code></li>
+<li><strong><receiver></strong> <code>androidx.work.impl.background.systemalarm.RescheduleReceiver</code></li>
+<li><strong><receiver></strong> <code>androidx.work.impl.background.systemalarm.ConstraintProxyUpdateReceiver</code></li>
+<li><strong><receiver></strong> <code>androidx.work.impl.diagnostics.DiagnosticsReceiver</code></li>
+</ul>
+<p>我们可以大胆猜测： <em>WorkManager使用ContentProvider <code>WorkManagerInitializer</code>执行初始化操作, 通过Service管理任务执行及状态，通过BroadcastReceiver掌握任务执行时机和条件。</em></p>
+<p><strong><span id="WorkManagerInitializer"> WorkManagerInitializer</strong></p>
+<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment"> * The &#123;<span class="doctag">@link</span> ContentProvider&#125; responsible for initializing &#123;<span class="doctag">@link</span> WorkManagerImpl&#125;.</span></span><br><span class="line"><span class="comment"> * // 机翻：负责初始化&#123;<span class="doctag">@link</span> WorkManagerImpl&#125;的&#123;<span class="doctag">@link</span> ContentProvider&#125;。</span></span><br><span class="line"><span class="comment"> * <span class="doctag">@hide</span>  // 隐藏API，对调用者不可见</span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line"><span class="meta">@RestrictTo(RestrictTo.Scope.LIBRARY_GROUP)</span></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">WorkManagerInitializer</span> <span class="keyword">extends</span> <span class="title">ContentProvider</span> </span>&#123;</span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">boolean</span> <span class="title">onCreate</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        <span class="comment">// Initialize WorkManager with the default configuration.</span></span><br><span class="line">        <span class="comment">// 机翻：使用默认配置初始化WorkManager。</span></span><br><span class="line">        WorkManager.initialize(getContext(), <span class="keyword">new</span> Configuration.Builder().build());</span><br><span class="line">        <span class="keyword">return</span> <span class="keyword">true</span>;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="comment">// ... 省略其他无关代码</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>WorkManager.initialize -&gt; WorkManagerImpl.initialize</p>
+<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="comment">// &#123;@link WorkManagerImpl#initialize&#125;</span></span><br><span class="line"><span class="meta">@RestrictTo(RestrictTo.Scope.LIBRARY_GROUP)</span></span><br><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">initialize</span><span class="params">(<span class="meta">@NonNull</span> Context context, <span class="meta">@NonNull</span> Configuration configuration)</span> </span>&#123;</span><br><span class="line">    <span class="keyword">synchronized</span> (sLock) &#123;</span><br><span class="line">     <span class="comment">// ... 重复创建检查，若被多次调用此创建方法则抛错WorkManager is already initialized.</span></span><br><span class="line">        <span class="keyword">if</span> (sDelegatedInstance == <span class="keyword">null</span>) &#123;</span><br><span class="line">            context = context.getApplicationContext();</span><br><span class="line">            <span class="keyword">if</span> (sDefaultInstance == <span class="keyword">null</span>) &#123;</span><br><span class="line">                sDefaultInstance = <span class="keyword">new</span> WorkManagerImpl(</span><br><span class="line">                        context, configuration,</span><br><span class="line">                        <span class="keyword">new</span> WorkManagerTaskExecutor(configuration.getTaskExecutor()));</span><br><span class="line">            &#125;</span><br><span class="line">            sDelegatedInstance = sDefaultInstance;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>代码中<code>configuration.getTaskExecutor()</code>最终调用方法为：</p>
+<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="keyword">private</span> <span class="meta">@NonNull</span> <span class="function">Executor <span class="title">createDefaultExecutor</span><span class="params">()</span> </span>&#123;</span><br><span class="line">    <span class="keyword">return</span> Executors.newFixedThreadPool(</span><br><span class="line">            <span class="comment">// This value is the same as the core pool size for AsyncTask#THREAD_POOL_EXECUTOR.</span></span><br><span class="line">            <span class="comment">// 机翻：这个值与AsyncTask#THREAD_POOL_EXECUTOR的核心池大小相同。</span></span><br><span class="line">            Math.max(<span class="number">2</span>, Math.min(Runtime.getRuntime().availableProcessors() - <span class="number">1</span>, <span class="number">4</span>)));</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>备注：一般地，AsyncTask里线程池核心线程数为CPU + 1，最大线程数为CPU * 2 + 1</p>
+<p>纵观代码，我们发现WorkManagerInitializer就是一个负责初始化WorkManager的ContentProvider，职责单一，简单明了。<br><code>WorkManager.initialize()</code>最终使用ContentProvider上下文对象context、默认configuration及线程池容量与AsyncTask核心线程数一致的Executor创建了WorkManagerImpl单例实例。</p>
+]]></content>
+      <categories>
+        <category>Jetpack</category>
+      </categories>
+      <tags>
+        <tag>WorkManager</tag>
       </tags>
   </entry>
   <entry>
@@ -140,56 +305,6 @@
       </tags>
   </entry>
   <entry>
-    <title>WorkManager基本使用及源码分析(二) - WorkManagerInitializer</title>
-    <url>/2021/02/06/WorkManager%E5%9F%BA%E6%9C%AC%E4%BD%BF%E7%94%A8%E5%8F%8A%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90(%E4%BA%8C)%20-%20WorkManagerInitializer/</url>
-    <content><![CDATA[<h2 id="目录"><a href="#目录" class="headerlink" title="目录"></a>目录</h2><ul>
-<li><a href="#part_source">源码篇</a><ul>
-<li><a href="#AndroidManifest">2.1 AndroidManifest</a><ul>
-<li><a href="#WorkManagerInitializer">2.1.1 WorkManagerInitializer</a></li>
-</ul>
-</li>
-</ul>
-</li>
-</ul>
-<hr>
-<h3 id="源码篇"><a href="#源码篇" class="headerlink" title=" 源码篇"></a><span id="part_source"> 源码篇</h3><p>上一篇中我们简单使用了WorkManager的一般功能，基础使用还是比较简单的。<strong>“WorkManager 是一个 API，可供您轻松调度那些即使在退出应用或重启设备后仍应运行的可延期异步任务”</strong>。那么我们来了解一下他到底是怎么工作的吧。</p>
-<a id="more"></a>
-
-<h4 id="2-1-AndroidManifest"><a href="#2-1-AndroidManifest" class="headerlink" title=" 2.1 AndroidManifest"></a><span id="AndroidManifest"> 2.1 AndroidManifest</h4><p>秉承看三方库源码的一般习惯，先从AndroidManifest.xml文件看起，我们知道一般的，想要了解一个库的主要组成就要想了解一个App一样首先要了解它有哪些组件构成，而<strong>库的AndroidManifest文件一般都会合并至应用AndroidManifest.xml中</strong>，且一般的需要初始化的库，常规的初始化方案是<strong>使用ContentProvider尽早地初始化且减少代码侵入</strong>，对这种方式不了解的，请参见<a href="https://blog.csdn.net/a1018875550/article/details/102760643">Android-使用ContentProvider来初始化你的sdk</a>系列文章。</p>
-<p>废话不多说，让我们来看看work-runtime库的AndroidManifest.xml有哪些玄机。</p>
-<p>work-runtime库的AndroidManifest.xml我们可以在AndroidStudio的 <strong>Project窗口中External Libraries</strong>栏目中查找”work-runtime”即可看到WorkManager的aar包结构和内容。打开AndroidManefest.xml我们发现以下重要组件：</p>
-<ul>
-<li><strong><provider></strong> <code>androidx.work.impl.WorkManagerInitializer</code></li>
-<li><strong><service></strong> <code>androidx.work.impl.background.systemalarm.SystemAlarmService</code></li>
-<li><strong><service></strong> <code>androidx.work.impl.background.systemjob.SystemJobService</code></li>
-<li><strong><service></strong> <code>androidx.work.impl.foreground.SystemForegroundService</code></li>
-<li><strong><receiver></strong> <code>androidx.work.impl.utils.ForceStopRunnable$BroadcastReceiver</code></li>
-<li><strong><receiver></strong> <code>androidx.work.impl.background.systemalarm.ConstraintProxy$BatteryChargingProxy</code></li>
-<li><strong><receiver></strong> <code>androidx.work.impl.background.systemalarm.ConstraintProxy$BatteryNotLowProxy</code></li>
-<li><strong><receiver></strong> <code>androidx.work.impl.background.systemalarm.ConstraintProxy$StorageNotLowProxy</code></li>
-<li><strong><receiver></strong> <code>androidx.work.impl.background.systemalarm.ConstraintProxy$NetworkStateProxy</code></li>
-<li><strong><receiver></strong> <code>androidx.work.impl.background.systemalarm.RescheduleReceiver</code></li>
-<li><strong><receiver></strong> <code>androidx.work.impl.background.systemalarm.ConstraintProxyUpdateReceiver</code></li>
-<li><strong><receiver></strong> <code>androidx.work.impl.diagnostics.DiagnosticsReceiver</code></li>
-</ul>
-<p>我们可以大胆猜测： <em>WorkManager使用ContentProvider <code>WorkManagerInitializer</code>执行初始化操作, 通过Service管理任务执行及状态，通过BroadcastReceiver掌握任务执行时机和条件。</em></p>
-<p><strong><span id="WorkManagerInitializer"> WorkManagerInitializer</strong></p>
-<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment"> * The &#123;<span class="doctag">@link</span> ContentProvider&#125; responsible for initializing &#123;<span class="doctag">@link</span> WorkManagerImpl&#125;.</span></span><br><span class="line"><span class="comment"> * // 机翻：负责初始化&#123;<span class="doctag">@link</span> WorkManagerImpl&#125;的&#123;<span class="doctag">@link</span> ContentProvider&#125;。</span></span><br><span class="line"><span class="comment"> * <span class="doctag">@hide</span>  // 隐藏API，对调用者不可见</span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line"><span class="meta">@RestrictTo(RestrictTo.Scope.LIBRARY_GROUP)</span></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">WorkManagerInitializer</span> <span class="keyword">extends</span> <span class="title">ContentProvider</span> </span>&#123;</span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">boolean</span> <span class="title">onCreate</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        <span class="comment">// Initialize WorkManager with the default configuration.</span></span><br><span class="line">        <span class="comment">// 机翻：使用默认配置初始化WorkManager。</span></span><br><span class="line">        WorkManager.initialize(getContext(), <span class="keyword">new</span> Configuration.Builder().build());</span><br><span class="line">        <span class="keyword">return</span> <span class="keyword">true</span>;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="comment">// ... 省略其他无关代码</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-<p>WorkManager.initialize -&gt; WorkManagerImpl.initialize</p>
-<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="comment">// &#123;@link WorkManagerImpl#initialize&#125;</span></span><br><span class="line"><span class="meta">@RestrictTo(RestrictTo.Scope.LIBRARY_GROUP)</span></span><br><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">initialize</span><span class="params">(<span class="meta">@NonNull</span> Context context, <span class="meta">@NonNull</span> Configuration configuration)</span> </span>&#123;</span><br><span class="line">    <span class="keyword">synchronized</span> (sLock) &#123;</span><br><span class="line">     <span class="comment">// ... 重复创建检查，若被多次调用此创建方法则抛错WorkManager is already initialized.</span></span><br><span class="line">        <span class="keyword">if</span> (sDelegatedInstance == <span class="keyword">null</span>) &#123;</span><br><span class="line">            context = context.getApplicationContext();</span><br><span class="line">            <span class="keyword">if</span> (sDefaultInstance == <span class="keyword">null</span>) &#123;</span><br><span class="line">                sDefaultInstance = <span class="keyword">new</span> WorkManagerImpl(</span><br><span class="line">                        context, configuration,</span><br><span class="line">                        <span class="keyword">new</span> WorkManagerTaskExecutor(configuration.getTaskExecutor()));</span><br><span class="line">            &#125;</span><br><span class="line">            sDelegatedInstance = sDefaultInstance;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-<p>代码中<code>configuration.getTaskExecutor()</code>最终调用方法为：</p>
-<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="keyword">private</span> <span class="meta">@NonNull</span> <span class="function">Executor <span class="title">createDefaultExecutor</span><span class="params">()</span> </span>&#123;</span><br><span class="line">    <span class="keyword">return</span> Executors.newFixedThreadPool(</span><br><span class="line">            <span class="comment">// This value is the same as the core pool size for AsyncTask#THREAD_POOL_EXECUTOR.</span></span><br><span class="line">            <span class="comment">// 机翻：这个值与AsyncTask#THREAD_POOL_EXECUTOR的核心池大小相同。</span></span><br><span class="line">            Math.max(<span class="number">2</span>, Math.min(Runtime.getRuntime().availableProcessors() - <span class="number">1</span>, <span class="number">4</span>)));</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-<p>备注：一般地，AsyncTask里线程池核心线程数为CPU + 1，最大线程数为CPU * 2 + 1</p>
-<p>纵观代码，我们发现WorkManagerInitializer就是一个负责初始化WorkManager的ContentProvider，职责单一，简单明了。<br><code>WorkManager.initialize()</code>最终使用ContentProvider上下文对象context、默认configuration及线程池容量与AsyncTask核心线程数一致的Executor创建了WorkManagerImpl单例实例。</p>
-]]></content>
-      <categories>
-        <category>Jetpack</category>
-      </categories>
-      <tags>
-        <tag>WorkManager</tag>
-      </tags>
-  </entry>
-  <entry>
     <title>WorkManager基本使用及源码分析(五) - Processor</title>
     <url>/2021/02/06/WorkManager%E5%9F%BA%E6%9C%AC%E4%BD%BF%E7%94%A8%E5%8F%8A%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90(%E4%BA%94)%20-%20Processor/</url>
     <content><![CDATA[<h2 id="目录"><a href="#目录" class="headerlink" title="目录"></a>目录</h2><ul>
@@ -239,6 +354,154 @@
       </categories>
       <tags>
         <tag>WorkManager</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>性能优化之内存优化</title>
+    <url>/2021/04/04/%E6%80%A7%E8%83%BD%E4%BC%98%E5%8C%96%E4%B9%8B%E5%86%85%E5%AD%98%E4%BC%98%E5%8C%96/</url>
+    <content><![CDATA[<h3 id="内存"><a href="#内存" class="headerlink" title="内存"></a>内存</h3><p>JAVA是在JVM所虚拟出的内存环境中运行的，JVM的内存可分为三个区：</p>
+<p>堆(heap)、栈(stack)和方法区(method)。</p>
+<p>栈(stack)</p>
+<p>是简单的数据结构，但在计算机中使用广泛。栈最显著的特征是：LIFO(Last In, First Out, 后进先出),栈中只存放基本类型和对象的引用</p>
+<p>堆(heap)</p>
+<p>堆内存用于存放由new创建的对象和数组。在堆中分配的内存，由java虚拟机自动垃圾回收器来管理。JVM只有一个堆区(heap)被所有线程共享，堆中不存放基本类型和对象引用，只存放对象本身。</p>
+<p>方法区(method)</p>
+<p>又叫静态区，跟堆一样，被所有的线程共享。方法区包含所有的class和static变量</p>
+<a id="more"></a>
+
+<h3 id="内存泄漏"><a href="#内存泄漏" class="headerlink" title="内存泄漏"></a>内存泄漏</h3><p>是指程序中己动态分配的堆内存由于某种原因程序未释放或无法释放，导致一直占据该内存单元，直至程序结束，都无法再使用该内存单元。</p>
+<h4 id="内存泄漏常见原因"><a href="#内存泄漏常见原因" class="headerlink" title="内存泄漏常见原因"></a>内存泄漏常见原因</h4><p><strong>1. Context的不当引用</strong></p>
+<p>当持有Context的对象生命周期较长时，持有的Context即使被销毁也不会被回收掉。</p>
+<ul>
+<li>单例对象直接或间接持有Context：</li>
+</ul>
+<pre><code>单例直接持有Activity对象，或通过持有Fragment、View等间接持有Context对象。
+</code></pre>
+<ul>
+<li><p>Activity/Fragment中的非静态内部类、匿名内部类</p>
+<p>  Activity中使用非静态内部类/匿名内部类，如Handler及各类事件监听。当内部类生命周期较长(耗时)时，若Activity被销毁，易造成内存泄漏或崩溃。</p>
+</li>
+<li><p>多线程异步回调（崩溃）</p>
+<p>  子线程执行后回调主线程方法，若持有主线程Handler或Context，当Activity销毁，此时易出现内存泄漏或崩溃。 </p>
+</li>
+</ul>
+<p>解决办法：</p>
+<ul>
+<li>非必要情况下，不建议这样编程；</li>
+<li>单例生命周期敏感且不持有生命周期较短的Context对象强引用：若需使用Activity对象，应对Activity做弱引用封装，且应提供解除引用的方法，在Activity销毁时解除引用；必须持有context的，能使用ApplicationContext则尽量使用Application；</li>
+<li>对于Handler，建议不使用匿名声明的方式创建，在Activity销毁时调用Handler.removeCallback，解除对Activity的引用；</li>
+<li>使用内部类的情况，可使用静态内部类，需持有Activity的应对Activity做弱引用封装</li>
+<li>对于内部类或线程操作耗时/异步的情况，在Activity销毁时应通知对应内部类解除对Activity的引用，清理未执行完毕的线程。</li>
+</ul>
+<p><strong>2. 资源未回收</strong></p>
+<ul>
+<li><p>bind/unbind、register/unregister、start/stop、run/cancel </p>
+<p>  在一些组件使用过程中，应注意其绑定和解绑、执行和取消等操作应成对存在，否则若其持有Activity的引用，将会在Activity被销毁时产生内存泄漏或崩溃，如属性动画、广播、bind服务等。</p>
+</li>
+<li><p>Closeable对象未调用close()</p>
+<p>  IO流/数据库游标cursor应在使用完毕后调用close()方法，即使它执行失败/错误也应调用关闭，否则将造成内存泄漏甚至崩溃。</p>
+</li>
+<li><p>bitmap</p>
+<p>  bitmap资源在使用完成后，未主动调用recycle()并置空，在系统未主动回收时会造成大量内存占用。</p>
+</li>
+</ul>
+<p>解决办法：</p>
+<ul>
+<li>对于组件的使用，应注意规范，Activity销毁时及时释放资源：例如EventBus.getDefault().register()/unregister()；   ButterKnife.bind(this)/unbind()； bindService()/unbindService()等；</li>
+<li>Closeable对象在使用完毕后应及时调用close()；可使用 <code>try(IO对象)</code>的方式避免遗忘；特别的对于具有缓存(Flushable)功能的流，应注意调用flush()保证数据完整性；</li>
+<li>bitmap资源在使用完成后，主动调用recycle()并置空</li>
+</ul>
+<p><strong>3. 创建/保存大量对象</strong></p>
+<ul>
+<li><p>频繁调用的方法中创建对象，例如onDraw()、onResume()</p>
+<p>  在频繁调用的方法中创建对象（即使是局部变量），会导致一定时间内，内存堆积，若GC回收不及时会占用大量内存空间，若GC频繁回收则会产生内存抖动，导致卡顿。</p>
+</li>
+<li><p>声明的全局List或Map（只进不出/未及时清理）</p>
+<p>  全局声明的List或Map，若存放大量对象且对象不常使用，将占用大量内存且无法回收。    </p>
+</li>
+<li><p>未及时清理的缓存对象</p>
+<p>  在用户体验优化上我们常常使用缓存提升加载速度，若缓存并非经常使用的情况下，将会白白占用内存空间。</p>
+</li>
+</ul>
+<p>解决办法：</p>
+<ul>
+<li>尽量避免在频繁调用的方法中创建对象，必要情况下使用享元模式，控制对象生成数量；</li>
+<li>全局List和Map等集合容器，不使用的元素应及时移除；</li>
+<li>缓存应根据设备内存状况设置最大存储容量，并建立LRU等缓存机制，在保证体验的情况下最大程度优化内存；</li>
+</ul>
+<p><strong>4. WebView、MapView</strong></p>
+<p>原生WebView存在已知的内存泄漏风险，针对这类性能消耗较大的组件（控件），若未处理好其内存问题，将会是应用内存管理的灾难。</p>
+<p>解决办法：</p>
+<ul>
+<li>对于WebView、MapView等，应主动管理其创建/销毁/回收流程，让内存尽快的释放出来；</li>
+<li>有条件的，可以为其申请单独的进程，提升主进程的稳定性，减小主进程的内存压力；</li>
+</ul>
+<h3 id="内存溢出"><a href="#内存溢出" class="headerlink" title="内存溢出"></a>内存溢出</h3><p>系统会给每个APP分配内存也就是Heap Size值。当APP占用的内存加上我们申请的内存资源超过了Dalvik虚拟机的最大内存时就会抛出的Out Of Memory异常。</p>
+<ul>
+<li>java.lang.OutOfMemoryError:Javaheapspace：堆内存不够或程序中有死循环</li>
+<li>java.lang.OutOfMemoryError:GCoverheadlimitexceeded：当GC为释放很小空间占用大量时间时抛出；堆太小，没有足够的内存</li>
+<li>java.lang.OutOfMemoryError:PermGenspace：P区内存不够</li>
+<li>java.lang.OutOfMemoryError:Directbuffermemory：Directbuffer内存不足</li>
+<li>java.lang.OutOfMemoryError:unabletocreatenewnativethread：Stack空间不足以创建额外的线程，创建的线程过多或Stack空间太小</li>
+<li>java.lang.StackOverflowError：线程栈的溢出，方法调用层次过多或线程栈太小。</li>
+</ul>
+<p>解决办法：</p>
+<ul>
+<li>对于启动参数内存值设定的过小的情况，可以使用修改启动参数的方法解决：</li>
+</ul>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">-Xms3062m &#x2F;&#x2F; 提升堆内存</span><br><span class="line">-XX:-UseGCOverheadLimit &#x2F;&#x2F; 限制使用内存</span><br><span class="line">&#x2F;&#x2F; JVM的Perm区主要用于存放Class和Meta信息的,Class在被Loader时就会被放到PermGenspace，这个区域成为年老代，GC在主程序运行期间不会对年老区进行清理，</span><br><span class="line">&#x2F;&#x2F; 默认是64M大小，当程序需要加载的对象比较多时，超过64M就会报这部分内存溢出了，需要加大内存分配，一般128m足够</span><br><span class="line">-XX:MaxPermSize&#x3D;128m</span><br><span class="line">-XXermSize&#x3D;128m</span><br><span class="line">-XX:MaxDirectMemorySize&#x3D;128m  &#x2F;&#x2F; 调整Directbuffer内存大小</span><br></pre></td></tr></table></figure>
+<ul>
+<li>检查代码中是否存在死循环或递归层次较深的场景，修复或优化此类代码；</li>
+<li>优化内存，减少内存泄漏，使内存保持在健康良好的状态。</li>
+</ul>
+<h3 id="内存优化"><a href="#内存优化" class="headerlink" title="内存优化"></a>内存优化</h3><p>内存优化主要从减少内存占用、杜绝内存泄漏、提升应用内存限制这几个方面考量，内存优化是个没有止境的话题，当然不是最优就是最好的，它需要在内存和体验上找寻一个平衡点，当然，内存泄漏是越少越好。</p>
+<h4 id="减少内存占用"><a href="#减少内存占用" class="headerlink" title="减少内存占用"></a>减少内存占用</h4><ul>
+<li><p><strong>对象</strong></p>
+<ul>
+<li>避免重复创建对象，能使用对象池的尽量使用对象池，如Message.obtain()；</li>
+<li>避免频繁创建对象，对于频繁调用的方法，尽量不在其中创建大量对象；</li>
+<li>及时回收对象，对于不使用或不频繁使用的对象应主动释放</li>
+</ul>
+</li>
+<li><p><strong>资源</strong></p>
+<ul>
+<li>对于Bitmap，加载前应针对场景对其进行尺寸和数据长度压缩，使用后应及时释放；</li>
+<li>对于icon资源，应使用对应分辨率的切图，避免icon加载时系统缩放占用额外的内存空间；</li>
+<li>对于文件流和游标，使用完毕后应及时关闭，避免IO占用额外的内存空间；</li>
+<li>珍惜线程资源，使用线程池管理线程，减少线程的创建</li>
+</ul>
+</li>
+<li><p><strong>缓存</strong></p>
+<ul>
+<li>对于内存消耗较大且不常使用的数据避免存储在内存中</li>
+<li>缓存应考虑设备及应用的内存限制，设定合理的缓存容量及缓存策略</li>
+</ul>
+</li>
+</ul>
+<h4 id="杜绝内存泄漏"><a href="#杜绝内存泄漏" class="headerlink" title="杜绝内存泄漏"></a>杜绝内存泄漏</h4><ul>
+<li><p><strong>编码规范</strong></p>
+<ul>
+<li>依照前文内存泄漏相关说明，检查代码，减少内存泄漏</li>
+</ul>
+</li>
+<li><p><strong>检查工具</strong></p>
+<ul>
+<li>dumpsys meminfo package_name|pid<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">adb shell dumpsys meminfo com.company.project</span><br></pre></td></tr></table></figure></li>
+<li>%AndroidSDK%\platform-tools\systrace\systrace.py</li>
+</ul>
+  <figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">&#x2F;&#x2F; 指定版本python2.7</span><br><span class="line">&#x2F;&#x2F; -o： 指定文件输出位置和文件名</span><br><span class="line">&#x2F;&#x2F; -t： 抓取systrace的时间长度</span><br><span class="line">&#x2F;&#x2F; -a： 指定特殊进程包名 </span><br><span class="line">python %AndroidSDK%\platform-tools\systrace\systrace.py -a com.company.project -t 10 -o trace.html</span><br></pre></td></tr></table></figure>
+<ul>
+<li>LeakCanary</li>
+<li>MAT（Memory Analyzer Tool）</li>
+</ul>
+</li>
+</ul>
+]]></content>
+      <categories>
+        <category>性能优化</category>
+      </categories>
+      <tags>
+        <tag>内存优化</tag>
       </tags>
   </entry>
   <entry>
@@ -1186,269 +1449,6 @@ StorageNotLow     如果设置为 true，那么当用户设备上的存储空间
       </categories>
       <tags>
         <tag>Lifecycle</tag>
-      </tags>
-  </entry>
-  <entry>
-    <title>Jetpack之可观察的数据存储器-LiveData使用篇</title>
-    <url>/2021/03/10/Jetpack%E4%B9%8B%E5%8F%AF%E8%A7%82%E5%AF%9F%E7%9A%84%E6%95%B0%E6%8D%AE%E5%AD%98%E5%82%A8%E5%99%A8-LiveData%E4%BD%BF%E7%94%A8%E7%AF%87/</url>
-    <content><![CDATA[<blockquote>
-<p>LiveData 是一种可观察的数据存储器类。与常规的可观察类不同，LiveData 具有生命周期感知能力，意指它遵循其他应用组件（如 Activity、Fragment 或 Service）的生命周期。这种感知能力可确保 LiveData 仅更新处于活跃生命周期状态的应用组件观察者。</p>
-</blockquote>
-<p><a href="https://github.com/TinloneX/ArchitecturalComponentExample">【本系列文章(JAVA/KOTLIN)演示案例均存储在github存储库ArchitecturalComponentExample中】</a></p>
-<p><a href="https://developer.android.google.cn/topic/libraries/architecture/livedata#create_livedata_objects">【如需参考LiveData官方文档请移步此处】</a></p>
-<a id="more"></a>
-
-<h4 id="LiveData的优势"><a href="#LiveData的优势" class="headerlink" title="LiveData的优势"></a>LiveData的优势</h4><p>在正式使用之前，我们先来了解下其优势（即我们为什么要使用它），以下引用取自官方文档：</p>
-<p><strong>确保界面符合数据状态</strong></p>
-<blockquote>
-<p>LiveData 遵循观察者模式。当底层数据发生变化时，LiveData 会通知 Observer 对象。您可以整合代码以在这些 Observer 对象中更新界面。这样一来，您无需在每次应用数据发生变化时更新界面，因为观察者会替您完成更新。</p>
-</blockquote>
-<p><strong>不会发生内存泄漏</strong></p>
-<blockquote>
-<p>观察者会绑定到 Lifecycle 对象，并在其关联的生命周期遭到销毁后进行自我清理。</p>
-</blockquote>
-<p><strong>不会因 Activity 停止而导致崩溃</strong></p>
-<blockquote>
-<p>如果观察者的生命周期处于非活跃状态（如返回栈中的 Activity），则它不会接收任何 LiveData 事件。</p>
-</blockquote>
-<p><strong>不再需要手动处理生命周期</strong></p>
-<blockquote>
-<p>界面组件只是观察相关数据，不会停止或恢复观察。LiveData 将自动管理所有这些操作，因为它在观察时可以感知相关的生命周期状态变化。</p>
-</blockquote>
-<p><strong>数据始终保持最新状态</strong></p>
-<blockquote>
-<p>如果生命周期变为非活跃状态，它会在再次变为活跃状态时接收最新的数据。例如，曾经在后台的 Activity 会在返回前台后立即接收最新的数据。</p>
-</blockquote>
-<p><strong>适当的配置更改</strong></p>
-<blockquote>
-<p>如果由于配置更改（如设备旋转）而重新创建了 Activity 或 Fragment，它会立即接收最新的可用数据。</p>
-</blockquote>
-<p><strong>共享资源</strong></p>
-<blockquote>
-<p>您可以使用单例模式扩展 LiveData 对象以封装系统服务，以便在应用中共享它们。LiveData 对象连接到系统服务一次，然后需要相应资源的任何观察者只需观察 LiveData 对象。如需了解详情，请参阅扩展 LiveData。 </p>
-</blockquote>
-<h4 id="引入依赖"><a href="#引入依赖" class="headerlink" title="引入依赖"></a>引入依赖</h4><p>LiveData作为生命周期感知组件，它的依赖包也是 lifecycle族系，通常的，我们常常将LiveData配合ViewModel使用，当然你也可以单独使用LiveData依赖。</p>
-<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">def lifecycle_version &#x3D; &quot;2.3.0&quot;</span><br><span class="line"></span><br><span class="line">&#x2F;&#x2F; 如果你需要配合ViewModel使用，请加上</span><br><span class="line">implementation &quot;androidx.lifecycle:lifecycle-viewmodel-ktx:$lifecycle_version&quot;</span><br><span class="line">&#x2F;&#x2F; LiveData</span><br><span class="line">implementation &quot;androidx.lifecycle:lifecycle-livedata-ktx:$lifecycle_version&quot;</span><br><span class="line"></span><br></pre></td></tr></table></figure>
-<p>此文演示项目为ViewModel+LiveData，如有对ViewModel不了解的可以通过<a href="https://developer.android.google.cn/topic/libraries/architecture/viewmodel">【官方文档】</a>或<a href="https://tinlone.com/2021/03/07/Jetpack%E4%B9%8B%E7%95%8C%E9%9D%A2%E6%95%B0%E6%8D%AE%E5%AD%98%E5%82%A8%E7%BB%84%E4%BB%B6-ViewModel/">【Jetpack之界面数据存储组件-ViewModel】</a>具体了解。</p>
-<blockquote>
-<p>请按照以下步骤使用 LiveData 对象：</p>
-<ul>
-<li>创建 LiveData 的实例以存储某种类型的数据。这通常在 ViewModel 类中完成。</li>
-<li>创建可定义 onChanged() 方法的 Observer 对象，该方法可以控制当 LiveData 对象存储的数据更改时会发生什么。通常情况下，您可以在界面控制器（如 Activity 或 Fragment）中创建 Observer 对象。</li>
-<li>使用 observe() 方法将 Observer 对象附加到 LiveData 对象。observe() 方法会采用 LifecycleOwner 对象。这样会使 Observer 对象订阅 LiveData 对象，以使其收到有关更改的通知。通常情况下，您可以在界面控制器（如 Activity 或 Fragment）中附加 Observer 对象。</li>
-</ul>
-</blockquote>
-<h4 id="创建LiveData"><a href="#创建LiveData" class="headerlink" title="创建LiveData"></a>创建LiveData</h4><p>创建LiveData的方式非常简单，你只需要直接new出他的子类并传入你想要观察的数据类型泛型即可，LiveData提供<code>setValue(T t) & postValue(T t)</code>用以更新值, 可以使用<code>T getValue()</code>获取值：</p>
-<figure class="highlight java"><table><tr><td class="code"><pre><span class="line">MutableLiveData&lt;Integer&gt; price = <span class="keyword">new</span> MutableLiveData&lt;&gt;();</span><br><span class="line"><span class="comment">// 当然你也可以这样</span></span><br><span class="line">MutableLiveData&lt;Seller&gt; mSeller = <span class="keyword">new</span> MutableLiveData&lt;&gt;();</span><br><span class="line"><span class="comment">// 定义更新LiveData值的方法</span></span><br><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">countUp</span><span class="params">()</span> </span>&#123;</span><br><span class="line">    <span class="comment">// 注意，在初始时LiveData中包含的数据可能为空，你需要为它设置值</span></span><br><span class="line">    price.setValue(price.getValue() == <span class="keyword">null</span> ? <span class="number">0</span> : price.getValue() + <span class="number">1</span>);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-<h4 id="观察LiveData"><a href="#观察LiveData" class="headerlink" title="观察LiveData"></a>观察LiveData</h4><p>在大多数情况下，应用组件的 onCreate() 方法是开始观察 LiveData 对象的正确着手点，原因如下：</p>
-<ul>
-<li>确保系统不会从 Activity 或 Fragment 的 onResume() 方法进行冗余调用。</li>
-<li>确保 Activity 或 Fragment 变为活跃状态后具有可以立即显示的数据。一旦应用组件处于 STARTED 状态，就会从它正在观察的 LiveData 对象接收最新值。只有在设置了要观察的 LiveData 对象时，才会发生这种情况。</li>
-</ul>
-<p>LiveData订阅<code>observe(@NonNull LifecycleOwner owner, @NonNull Observer<? super T> observer)</code>需要两个参数，生命周期拥有者LifecycleOwner和观察者Observer。</p>
-<p>一般的，继承自AndroidX包中的Activity/Fragment组件(api &gt;= 26)已自行实现LifecycleOwner。</p>
-<p><em>在未强调说明的情况下，本文代码块均保持使用Java8特性。</em></p>
-<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="comment">// 建立订阅关系</span></span><br><span class="line">viewModel.price.observe(<span class="keyword">this</span>, <span class="keyword">this</span>::updatePriceButton);</span><br><span class="line"></span><br><span class="line"><span class="comment">// 定义Observer.onChanged(T t)回调执行的函数</span></span><br><span class="line"><span class="function"><span class="keyword">private</span> <span class="keyword">void</span> <span class="title">updatePriceButton</span><span class="params">(<span class="keyword">int</span> price)</span> </span>&#123;</span><br><span class="line">   <span class="comment">// 在未强调时，此处均为日志打印，详细代码见Demo</span></span><br><span class="line">   <span class="comment">// 后续代码块中将简化或不写类似实现</span></span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 创建一个onClick触发LiveData值的更新</span></span><br><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">countUp</span><span class="params">(View view)</span> </span>&#123;</span><br><span class="line">    viewModel.countUp();</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-<p>我们来看一下执行效果：</p>
-<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">订阅数据变化👉 0</span><br><span class="line">订阅数据变化👉 1</span><br><span class="line">订阅数据变化👉 2</span><br></pre></td></tr></table></figure>
-<p>当我们改变被观察的值时，我们的观察者也如预期被通知到了，这样便实现了最简LiveData数据观察流程（详细代码<a href="https://github.com/TinloneX/ArchitecturalComponentExample/tree/main/LiveDataExample/LiveDataExampleJava/app/src/main/java/com/tinlone/livedataexamplejava">【Java示例请参见此处】</a>、<a href="https://github.com/TinloneX/ArchitecturalComponentExample/tree/main/LiveDataExample/LiveDataExampleKotlin/app/src/main/java/com/tinlone/livedataexamplekotlin">【Kotlin示例请参见此处】</a>）。</p>
-<h4 id="扩展LiveData"><a href="#扩展LiveData" class="headerlink" title="扩展LiveData"></a>扩展LiveData</h4><p>你可以继承LiveData自行实现LiveData的数据变更状态的分发，已演示项目为例：</p>
-<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">MyPriceLiveData</span> <span class="keyword">extends</span> <span class="title">LiveData</span>&lt;<span class="title">Integer</span>&gt; </span>&#123;</span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">static</span> <span class="keyword">final</span> String TAG = <span class="string">&quot;LiveDataExampleLog&quot;</span>;</span><br><span class="line">    <span class="comment">// 此处定义监听，监听触发时调用 setValue(T t)方法</span></span><br><span class="line">    PriceManager.PriceListener listener = <span class="keyword">this</span>::setValue;</span><br><span class="line"></span><br><span class="line">   <span class="comment">// 同样的你可以将LiveData设置成单例，此处不做实现</span></span><br><span class="line"></span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="function"><span class="keyword">protected</span> <span class="keyword">void</span> <span class="title">onActive</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        <span class="comment">// 此处定义生命周期处于 STARTED 或 RESUMED 状态时的操作</span></span><br><span class="line">        Log.i(TAG, <span class="string">&quot;MyPriceLiveData.onActive&quot;</span>);</span><br><span class="line">        PriceManager.getInstance().requestPriceUpdate(listener);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="function"><span class="keyword">protected</span> <span class="keyword">void</span> <span class="title">onInactive</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        Log.i(TAG, <span class="string">&quot;MyPriceLiveData.onInactive&quot;</span>);</span><br><span class="line">        <span class="comment">// 此处定义没有任何活跃观察者时，解除对PriceManager的关联</span></span><br><span class="line">        PriceManager.getInstance().removeUpdateListener(listener);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-<p>我们像先前一样使用：</p>
-<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">&#x2F;&#x2F; ViewModel中</span><br><span class="line">private final PriceManager priceManager &#x3D; PriceManager.getInstance();</span><br><span class="line">MyPriceLiveData extensionData &#x3D; new MyPriceLiveData();</span><br><span class="line"></span><br><span class="line">public void updatePriceForExtension() &#123;</span><br><span class="line">    priceManager.updatePrice(priceManager.price + 1);</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">&#x2F;&#x2F; Activity&#x2F;Fragment中</span><br><span class="line">&#x2F;&#x2F; 订阅LiveData扩展</span><br><span class="line">viewModel.extensionData.observe(this, this::updateExtensionButton);</span><br><span class="line"></span><br><span class="line">&#x2F;&#x2F; 点击事件触发值更新</span><br><span class="line">public void extensionData(View view) &#123;</span><br><span class="line">    viewModel.updatePriceForExtension();</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-<p>我们运行查看结果，并做息屏亮屏操作：</p>
-<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">&#x2F;&#x2F; 点击按钮</span><br><span class="line">测试扩展LiveData👉 1</span><br><span class="line">测试扩展LiveData👉 2</span><br><span class="line">&#x2F;&#x2F; 息屏</span><br><span class="line">MyPriceLiveData.onInactive</span><br><span class="line">&#x2F;&#x2F; 亮屏</span><br><span class="line">MyPriceLiveData.onActive</span><br><span class="line">&#x2F;&#x2F; 此处PriceManager未做值未改变时不更新的限制，故会重新分发值变化</span><br><span class="line">测试扩展LiveData👉 2</span><br></pre></td></tr></table></figure>
-<p>我们的扩展LiveData会在息屏/亮屏时触发<code> onInactive()/ onActive()</code>回调，从而执行我们的自定义实现代码。</p>
-<h4 id="转换-LiveData"><a href="#转换-LiveData" class="headerlink" title="转换 LiveData"></a>转换 LiveData</h4><p>LiveData为我们提供了数据转换功能，包含<code>Transformations.map()</code>、<code>Transformations.switchMap()</code>两种方式，其调用方式一致，区别在于 map() 的第二个参数（可理解为转换器）需返回泛型T，而switchMap() 的第二个参数（可理解为转换器）需返回LiveData<T>。</p>
-<p>map()转换：</p>
-<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="comment">// ViewModel中</span></span><br><span class="line">MutableLiveData&lt;Integer&gt; priceForMap = <span class="keyword">new</span> MutableLiveData&lt;&gt;();</span><br><span class="line"><span class="comment">// 观察price并转换为字符串的可观察对象</span></span><br><span class="line">LiveData&lt;String&gt; userThink = Transformations.map(priceForMap,</span><br><span class="line">        price -&gt; price + (price % <span class="number">2</span> == <span class="number">0</span> ? <span class="string">&quot;块刚刚好&quot;</span> : <span class="string">&quot;块贵了&quot;</span>));</span><br><span class="line"><span class="comment">// 更新price值</span></span><br><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">setPriceForMap</span><span class="params">()</span> </span>&#123;</span><br><span class="line">    priceForMap.setValue(priceForMap.getValue() == <span class="keyword">null</span> ? <span class="number">0</span> : priceForMap.getValue() + <span class="number">1</span>);</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// Activity/Fragment中使用</span></span><br><span class="line"><span class="comment">// 数据转换 订阅价格的转换 =&gt; 用户价格感知</span></span><br><span class="line">viewModel.userThink.observe(<span class="keyword">this</span>, <span class="keyword">this</span>::updateUserThinkButton);</span><br></pre></td></tr></table></figure>
-<p>我们执行观察结果：</p>
-<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">转换数据(map)👉 0块刚刚好</span><br><span class="line">转换数据(map)👉 1块贵了</span><br><span class="line">转换数据(map)👉 2块刚刚好</span><br></pre></td></tr></table></figure>
-<p>switchMap()转换：</p>
-<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="comment">// 转换前的LiveData</span></span><br><span class="line">MutableLiveData&lt;Integer&gt; priceForSwitch = <span class="keyword">new</span> MutableLiveData&lt;&gt;();</span><br><span class="line"><span class="comment">// 转换后的目标LiveData</span></span><br><span class="line">MutableLiveData&lt;String&gt; sellerThink = <span class="keyword">new</span> MutableLiveData&lt;&gt;();</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">private</span> MutableLiveData&lt;String&gt; <span class="title">getSellerThink</span><span class="params">(<span class="keyword">int</span> price)</span> </span>&#123;</span><br><span class="line">    String think = price + (price &lt;= <span class="number">3</span> ? <span class="string">&quot;穷鬼&quot;</span> : <span class="string">&quot;冤大头&quot;</span>);</span><br><span class="line">    sellerThink.setValue(think);</span><br><span class="line">    <span class="keyword">return</span> sellerThink;</span><br><span class="line">&#125;</span><br><span class="line"><span class="comment">// 更新price值</span></span><br><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">setPriceForSeller</span><span class="params">()</span> </span>&#123;</span><br><span class="line">    priceForSwitch.setValue(priceForSwitch.getValue() == <span class="keyword">null</span> ? <span class="number">0</span> : priceForSwitch.getValue() + <span class="number">1</span>);</span><br><span class="line">&#125;</span><br><span class="line"><span class="comment">// 转换结果LiveData</span></span><br><span class="line">LiveData&lt;String&gt; switchToUserLook = Transformations.switchMap(priceForSwitch, <span class="keyword">this</span>::getSellerThink);</span><br></pre></td></tr></table></figure>
-<p>调用方式与map()一致，你可以对转换后的LiveData观测，也可以对转换结果LiveData观测，此处省略，我们来观察其执行结果：</p>
-<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">我是商家想法的订阅：0穷鬼</span><br><span class="line">转换数据(switchMap)👉 0穷鬼</span><br><span class="line">我是商家想法的订阅：1穷鬼</span><br><span class="line">转换数据(switchMap)👉 1穷鬼</span><br></pre></td></tr></table></figure>
-<p>对转换后的LiveData观测及以对转换结果LiveData观测均能收到响应。为判断2个LiveData是否观察的是同一个对象，我们将转换后的目标及结果改造为对象，观察其hashCode是否相等：</p>
-<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="comment">// 转换后的目标LiveData</span></span><br><span class="line">MutableLiveData&lt;Seller&gt; mSeller = <span class="keyword">new</span> MutableLiveData&lt;&gt;();</span><br><span class="line"><span class="comment">// 转换结果LiveData</span></span><br><span class="line">LiveData&lt;Seller&gt; switchToSeller = Transformations.switchMap(priceForSeller, <span class="keyword">this</span>::getSeller);</span><br></pre></td></tr></table></figure>
-<p>执行观察结果打印：</p>
-<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">订阅的Seller.hashCode() &#x3D; 84056966</span><br><span class="line">viewModel.mSeller.getValue().hashCode() &#x3D; 84056966</span><br><span class="line">viewModel.switchToSeller.getValue().hashCode() &#x3D; 84056966</span><br></pre></td></tr></table></figure>
-<p>我们发现，转换后的目标LiveData及转换结果LiveData实际观察对象为同一个，不会为数据创建副本。</p>
-<h4 id="合并LiveData"><a href="#合并LiveData" class="headerlink" title="合并LiveData"></a>合并LiveData</h4><blockquote>
-<p>MediatorLiveData 是 LiveData 的子类，允许您合并多个 LiveData 源。只要任何原始的 LiveData 源对象发生更改，就会触发 MediatorLiveData 对象的观察者。</p>
-</blockquote>
-<p>首先我们需要定义一个合并LiveData源：</p>
-<figure class="highlight java"><table><tr><td class="code"><pre><span class="line">MediatorLiveData&lt;Object&gt; mediatorLiveData = <span class="keyword">new</span> MediatorLiveData&lt;&gt;();</span><br></pre></td></tr></table></figure>
-<p>并在使用时，为其添加观察的LiveData源：</p>
-<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="comment">// 合并观察1</span></span><br><span class="line">viewModel.mediatorLiveData.addSource(viewModel.switchToSeller, <span class="keyword">this</span>::onMediatorData);</span><br><span class="line"><span class="comment">// 合并观察2</span></span><br><span class="line">viewModel.mediatorLiveData.addSource(viewModel.userThink, <span class="keyword">this</span>::onMediatorData);</span><br><span class="line"><span class="comment">// 观察数据合并</span></span><br><span class="line">viewModel.mediatorLiveData.observe(<span class="keyword">this</span>,<span class="keyword">this</span>::onMediatorData);</span><br><span class="line"></span><br><span class="line"><span class="keyword">boolean</span> mediatorFlag = <span class="keyword">false</span>;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 触发不同的数据更新</span></span><br><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">mediatorData</span><span class="params">(View view)</span> </span>&#123;</span><br><span class="line">    <span class="keyword">if</span> (mediatorFlag) &#123;</span><br><span class="line">        viewModel.setPriceForSeller();</span><br><span class="line">    &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">        viewModel.setPriceForMap();</span><br><span class="line">    &#125;</span><br><span class="line">    mediatorFlag = !mediatorFlag;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-<p>我们观察其执行结果：</p>
-<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">&#x2F;&#x2F; 第一次触发</span><br><span class="line">转换数据(map)👉 0块刚刚好</span><br><span class="line">合并数据👉 0块刚刚好</span><br><span class="line">&#x2F;&#x2F; 第二次触发</span><br><span class="line">我是商家想法的订阅：0穷鬼</span><br><span class="line">合并数据👉 0穷鬼</span><br><span class="line">转换数据(switchMap)👉 0穷鬼</span><br></pre></td></tr></table></figure>
-<p>我们发现，在触发单个LiveData值变化时除了其本身LiveData的观察者被触发，合并数据的观察者也会被触发。</p>
-<p>对于此API的应用场景，官方有提出以下场景：</p>
-<blockquote>
-<p>例如，如果界面中有可以从本地数据库或网络更新的 LiveData 对象，则可以向 MediatorLiveData 对象添加以下源：</p>
-<ul>
-<li>与存储在数据库中的数据关联的 LiveData 对象。</li>
-<li>与从网络访问的数据关联的 LiveData 对象。</li>
-</ul>
-</blockquote>
-<blockquote>
-<p>您的 Activity 只需观察 MediatorLiveData 对象即可从这两个源接收更新。</p>
-</blockquote>
-<h3 id="小节"><a href="#小节" class="headerlink" title="小节"></a>小节</h3><p>LiveData 是生命周期相关的数据观察者，你可以通过自定义LiveData、使用map()及switchMap()转换LiveData源为你需要的LiveData源、你也可以合并观察不同的LiveData源的变化，这些方式基本能满足对一般数据观察的需求。</p>
-]]></content>
-      <categories>
-        <category>Jetpack</category>
-      </categories>
-      <tags>
-        <tag>LiveData</tag>
-      </tags>
-  </entry>
-  <entry>
-    <title>性能优化之内存优化</title>
-    <url>/2021/04/04/%E6%80%A7%E8%83%BD%E4%BC%98%E5%8C%96%E4%B9%8B%E5%86%85%E5%AD%98%E4%BC%98%E5%8C%96/</url>
-    <content><![CDATA[<h3 id="内存"><a href="#内存" class="headerlink" title="内存"></a>内存</h3><p>JAVA是在JVM所虚拟出的内存环境中运行的，JVM的内存可分为三个区：</p>
-<p>堆(heap)、栈(stack)和方法区(method)。</p>
-<p>栈(stack)</p>
-<p>是简单的数据结构，但在计算机中使用广泛。栈最显著的特征是：LIFO(Last In, First Out, 后进先出),栈中只存放基本类型和对象的引用</p>
-<p>堆(heap)</p>
-<p>堆内存用于存放由new创建的对象和数组。在堆中分配的内存，由java虚拟机自动垃圾回收器来管理。JVM只有一个堆区(heap)被所有线程共享，堆中不存放基本类型和对象引用，只存放对象本身。</p>
-<p>方法区(method)</p>
-<p>又叫静态区，跟堆一样，被所有的线程共享。方法区包含所有的class和static变量</p>
-<a id="more"></a>
-
-<h3 id="内存泄漏"><a href="#内存泄漏" class="headerlink" title="内存泄漏"></a>内存泄漏</h3><p>是指程序中己动态分配的堆内存由于某种原因程序未释放或无法释放，导致一直占据该内存单元，直至程序结束，都无法再使用该内存单元。</p>
-<h4 id="内存泄漏常见原因"><a href="#内存泄漏常见原因" class="headerlink" title="内存泄漏常见原因"></a>内存泄漏常见原因</h4><p><strong>1. Context的不当引用</strong></p>
-<p>当持有Context的对象生命周期较长时，持有的Context即使被销毁也不会被回收掉。</p>
-<ul>
-<li>单例对象直接或间接持有Context：</li>
-</ul>
-<pre><code>单例直接持有Activity对象，或通过持有Fragment、View等间接持有Context对象。
-</code></pre>
-<ul>
-<li><p>Activity/Fragment中的非静态内部类、匿名内部类</p>
-<p>  Activity中使用非静态内部类/匿名内部类，如Handler及各类事件监听。当内部类生命周期较长(耗时)时，若Activity被销毁，易造成内存泄漏或崩溃。</p>
-</li>
-<li><p>多线程异步回调（崩溃）</p>
-<p>  子线程执行后回调主线程方法，若持有主线程Handler或Context，当Activity销毁，此时易出现内存泄漏或崩溃。 </p>
-</li>
-</ul>
-<p>解决办法：</p>
-<ul>
-<li>非必要情况下，不建议这样编程；</li>
-<li>单例生命周期敏感且不持有生命周期较短的Context对象强引用：若需使用Activity对象，应对Activity做弱引用封装，且应提供解除引用的方法，在Activity销毁时解除引用；必须持有context的，能使用ApplicationContext则尽量使用Application；</li>
-<li>对于Handler，建议不使用匿名声明的方式创建，在Activity销毁时调用Handler.removeCallback，解除对Activity的引用；</li>
-<li>使用内部类的情况，可使用静态内部类，需持有Activity的应对Activity做弱引用封装</li>
-<li>对于内部类或线程操作耗时/异步的情况，在Activity销毁时应通知对应内部类解除对Activity的引用，清理未执行完毕的线程。</li>
-</ul>
-<p><strong>2. 资源未回收</strong></p>
-<ul>
-<li><p>bind/unbind、register/unregister、start/stop、run/cancel </p>
-<p>  在一些组件使用过程中，应注意其绑定和解绑、执行和取消等操作应成对存在，否则若其持有Activity的引用，将会在Activity被销毁时产生内存泄漏或崩溃，如属性动画、广播、bind服务等。</p>
-</li>
-<li><p>Closeable对象未调用close()</p>
-<p>  IO流/数据库游标cursor应在使用完毕后调用close()方法，即使它执行失败/错误也应调用关闭，否则将造成内存泄漏甚至崩溃。</p>
-</li>
-<li><p>bitmap</p>
-<p>  bitmap资源在使用完成后，未主动调用recycle()并置空，在系统未主动回收时会造成大量内存占用。</p>
-</li>
-</ul>
-<p>解决办法：</p>
-<ul>
-<li>对于组件的使用，应注意规范，Activity销毁时及时释放资源：例如EventBus.getDefault().register()/unregister()；   ButterKnife.bind(this)/unbind()； bindService()/unbindService()等；</li>
-<li>Closeable对象在使用完毕后应及时调用close()；可使用 <code>try(IO对象)</code>的方式避免遗忘；特别的对于具有缓存(Flushable)功能的流，应注意调用flush()保证数据完整性；</li>
-<li>bitmap资源在使用完成后，主动调用recycle()并置空</li>
-</ul>
-<p><strong>3. 创建/保存大量对象</strong></p>
-<ul>
-<li><p>频繁调用的方法中创建对象，例如onDraw()、onResume()</p>
-<p>  在频繁调用的方法中创建对象（即使是局部变量），会导致一定时间内，内存堆积，若GC回收不及时会占用大量内存空间，若GC频繁回收则会产生内存抖动，导致卡顿。</p>
-</li>
-<li><p>声明的全局List或Map（只进不出/未及时清理）</p>
-<p>  全局声明的List或Map，若存放大量对象且对象不常使用，将占用大量内存且无法回收。    </p>
-</li>
-<li><p>未及时清理的缓存对象</p>
-<p>  在用户体验优化上我们常常使用缓存提升加载速度，若缓存并非经常使用的情况下，将会白白占用内存空间。</p>
-</li>
-</ul>
-<p>解决办法：</p>
-<ul>
-<li>尽量避免在频繁调用的方法中创建对象，必要情况下使用享元模式，控制对象生成数量；</li>
-<li>全局List和Map等集合容器，不使用的元素应及时移除；</li>
-<li>缓存应根据设备内存状况设置最大存储容量，并建立LRU等缓存机制，在保证体验的情况下最大程度优化内存；</li>
-</ul>
-<p><strong>4. WebView、MapView</strong></p>
-<p>原生WebView存在已知的内存泄漏风险，针对这类性能消耗较大的组件（控件），若未处理好其内存问题，将会是应用内存管理的灾难。</p>
-<p>解决办法：</p>
-<ul>
-<li>对于WebView、MapView等，应主动管理其创建/销毁/回收流程，让内存尽快的释放出来；</li>
-<li>有条件的，可以为其申请单独的进程，提升主进程的稳定性，减小主进程的内存压力；</li>
-</ul>
-<h3 id="内存溢出"><a href="#内存溢出" class="headerlink" title="内存溢出"></a>内存溢出</h3><p>系统会给每个APP分配内存也就是Heap Size值。当APP占用的内存加上我们申请的内存资源超过了Dalvik虚拟机的最大内存时就会抛出的Out Of Memory异常。</p>
-<ul>
-<li>java.lang.OutOfMemoryError:Javaheapspace：堆内存不够或程序中有死循环</li>
-<li>java.lang.OutOfMemoryError:GCoverheadlimitexceeded：当GC为释放很小空间占用大量时间时抛出；堆太小，没有足够的内存</li>
-<li>java.lang.OutOfMemoryError:PermGenspace：P区内存不够</li>
-<li>java.lang.OutOfMemoryError:Directbuffermemory：Directbuffer内存不足</li>
-<li>java.lang.OutOfMemoryError:unabletocreatenewnativethread：Stack空间不足以创建额外的线程，创建的线程过多或Stack空间太小</li>
-<li>java.lang.StackOverflowError：线程栈的溢出，方法调用层次过多或线程栈太小。</li>
-</ul>
-<p>解决办法：</p>
-<ul>
-<li>对于启动参数内存值设定的过小的情况，可以使用修改启动参数的方法解决：</li>
-</ul>
-<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">-Xms3062m &#x2F;&#x2F; 提升堆内存</span><br><span class="line">-XX:-UseGCOverheadLimit &#x2F;&#x2F; 限制使用内存</span><br><span class="line">&#x2F;&#x2F; JVM的Perm区主要用于存放Class和Meta信息的,Class在被Loader时就会被放到PermGenspace，这个区域成为年老代，GC在主程序运行期间不会对年老区进行清理，</span><br><span class="line">&#x2F;&#x2F; 默认是64M大小，当程序需要加载的对象比较多时，超过64M就会报这部分内存溢出了，需要加大内存分配，一般128m足够</span><br><span class="line">-XX:MaxPermSize&#x3D;128m</span><br><span class="line">-XXermSize&#x3D;128m</span><br><span class="line">-XX:MaxDirectMemorySize&#x3D;128m  &#x2F;&#x2F; 调整Directbuffer内存大小</span><br></pre></td></tr></table></figure>
-<ul>
-<li>检查代码中是否存在死循环或递归层次较深的场景，修复或优化此类代码；</li>
-<li>优化内存，减少内存泄漏，使内存保持在健康良好的状态。</li>
-</ul>
-<h3 id="内存优化"><a href="#内存优化" class="headerlink" title="内存优化"></a>内存优化</h3><p>内存优化主要从减少内存占用、杜绝内存泄漏、提升应用内存限制这几个方面考量，内存优化是个没有止境的话题，当然不是最优就是最好的，它需要在内存和体验上找寻一个平衡点，当然，内存泄漏是越少越好。</p>
-<h4 id="减少内存占用"><a href="#减少内存占用" class="headerlink" title="减少内存占用"></a>减少内存占用</h4><ul>
-<li><p><strong>对象</strong></p>
-<ul>
-<li>避免重复创建对象，能使用对象池的尽量使用对象池，如Message.obtain()；</li>
-<li>避免频繁创建对象，对于频繁调用的方法，尽量不在其中创建大量对象；</li>
-<li>及时回收对象，对于不使用或不频繁使用的对象应主动释放</li>
-</ul>
-</li>
-<li><p><strong>资源</strong></p>
-<ul>
-<li>对于Bitmap，加载前应针对场景对其进行尺寸和数据长度压缩，使用后应及时释放；</li>
-<li>对于icon资源，应使用对应分辨率的切图，避免icon加载时系统缩放占用额外的内存空间；</li>
-<li>对于文件流和游标，使用完毕后应及时关闭，避免IO占用额外的内存空间；</li>
-<li>珍惜线程资源，使用线程池管理线程，减少线程的创建</li>
-</ul>
-</li>
-<li><p><strong>缓存</strong></p>
-<ul>
-<li>对于内存消耗较大且不常使用的数据避免存储在内存中</li>
-<li>缓存应考虑设备及应用的内存限制，设定合理的缓存容量及缓存策略</li>
-</ul>
-</li>
-</ul>
-<h4 id="杜绝内存泄漏"><a href="#杜绝内存泄漏" class="headerlink" title="杜绝内存泄漏"></a>杜绝内存泄漏</h4><ul>
-<li><p><strong>编码规范</strong></p>
-<ul>
-<li>依照前文内存泄漏相关说明，检查代码，减少内存泄漏</li>
-</ul>
-</li>
-<li><p><strong>检查工具</strong></p>
-<ul>
-<li>dumpsys meminfo package_name|pid<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">adb shell dumpsys meminfo com.company.project</span><br></pre></td></tr></table></figure></li>
-<li>%AndroidSDK%\platform-tools\systrace\systrace.py</li>
-</ul>
-  <figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">&#x2F;&#x2F; 指定版本python2.7</span><br><span class="line">&#x2F;&#x2F; -o： 指定文件输出位置和文件名</span><br><span class="line">&#x2F;&#x2F; -t： 抓取systrace的时间长度</span><br><span class="line">&#x2F;&#x2F; -a： 指定特殊进程包名 </span><br><span class="line">python %AndroidSDK%\platform-tools\systrace\systrace.py -a com.company.project -t 10 -o trace.html</span><br></pre></td></tr></table></figure>
-<ul>
-<li>LeakCanary</li>
-<li>MAT（Memory Analyzer Tool）</li>
-</ul>
-</li>
-</ul>
-]]></content>
-      <categories>
-        <category>性能优化</category>
-      </categories>
-      <tags>
-        <tag>内存优化</tag>
       </tags>
   </entry>
 </search>
