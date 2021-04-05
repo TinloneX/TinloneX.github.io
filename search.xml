@@ -496,6 +496,17 @@
 </ul>
 </li>
 </ul>
+<h4 id="提升应用内存限制"><a href="#提升应用内存限制" class="headerlink" title="提升应用内存限制"></a>提升应用内存限制</h4><ul>
+<li><p><strong>创建子进程</strong></p>
+<p>  创建子进程的方法：使用android:process标签</p>
+<p>  可以将内存消耗较大的模块放入子进程中执行，系统会为子进程分配新的内存空间，以达到减小主进程内存消耗地目的，例如Web模块、map模块等。</p>
+<p>  当然，这样做的缺点也很明显：创建子进程会增加系统开销，进程间通信往往更加复杂。</p>
+</li>
+<li><p><strong>使用jni在native heap上申请空间</strong></p>
+<p>  nativeheap的增长并不受dalvik vm heapsize的限制，native heap size可以远远超过dalvik heap size的限制。</p>
+<p>  只要RAM有剩余空间，程序员可以一直在native heap上申请空间，当然如果 RAM快耗尽，memory killer会杀进程释放RAM。大家使用一些软件时，有时候会闪退，就可能是软件在native层申请了比较多的内存导致的。</p>
+</li>
+</ul>
 ]]></content>
       <categories>
         <category>性能优化</category>
