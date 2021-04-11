@@ -188,6 +188,98 @@
   
   
   <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="http://tinlone.com/2021/04/11/Activity%E5%90%AF%E5%8A%A8%E6%B5%81%E7%A8%8B%E6%B5%85%E6%9E%90%EF%BC%88%E4%B8%80%EF%BC%89--%20API30%E8%B0%83%E7%94%A8%E6%B5%81%E7%A8%8B/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/favicon-32x32-next.png">
+      <meta itemprop="name" content="Tinlone">
+      <meta itemprop="description" content="Tinlone的个人博客">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Tinlone">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          
+            <a href="/2021/04/11/Activity%E5%90%AF%E5%8A%A8%E6%B5%81%E7%A8%8B%E6%B5%85%E6%9E%90%EF%BC%88%E4%B8%80%EF%BC%89--%20API30%E8%B0%83%E7%94%A8%E6%B5%81%E7%A8%8B/" class="post-title-link" itemprop="url">Activity启动流程浅析（一）-- 调用流程</a>
+        </h2>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+              
+
+              <time title="创建时间：2021-04-11 18:05:00 / 修改时间：18:04:40" itemprop="dateCreated datePublished" datetime="2021-04-11T18:05:00+08:00">2021-04-11</time>
+            </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/framework/" itemprop="url" rel="index"><span itemprop="name">framework</span></a>
+                </span>
+            </span>
+
+          <br>
+            <span class="post-meta-item" title="本文字数">
+              <span class="post-meta-item-icon">
+                <i class="far fa-file-word"></i>
+              </span>
+                <span class="post-meta-item-text">本文字数：</span>
+              <span>4.8k</span>
+            </span>
+            <span class="post-meta-item" title="阅读时长">
+              <span class="post-meta-item-icon">
+                <i class="far fa-clock"></i>
+              </span>
+                <span class="post-meta-item-text">阅读时长 &asymp;</span>
+              <span>4 分钟</span>
+            </span>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+          <h3 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h3><p>Activity一般是安卓开发接触到的第一个重要组件，代表着与用户交互的活动视窗，活动与活动之间往往不是相互独立的，<code>startActivity()</code>就是从一个活动跳转到另一个活动的桥梁。而对于<code>startActivity()</code>的了解，我们往往只停留在它的使用上，很少去深究它的原理<br>。</p>
+<p>今天，就让我们跟随着源码，一步一步的追溯它的调用流程，初步了解下它的调用链，后续我们还可以继续挖掘，关于应用启动、启动模式、hook启动流程等相关技术支持。</p>
+<p>此系列博客在未声明API版本情况下，将使用<strong>API30</strong> 版本的AndroidSDK源码。</p>
+<p>源码查看工具使用AndroidStudio。源码来源<code>%AndroidSDK%/sources</code>。一般方式：备份一份source目录，使用AndroidStudio Open你想观察的api版本的源码目录。</p>
+          <!--noindex-->
+            <div class="post-button">
+              <a class="btn" href="/2021/04/11/Activity%E5%90%AF%E5%8A%A8%E6%B5%81%E7%A8%8B%E6%B5%85%E6%9E%90%EF%BC%88%E4%B8%80%EF%BC%89--%20API30%E8%B0%83%E7%94%A8%E6%B5%81%E7%A8%8B/#more" rel="contents">
+                阅读全文 &raquo;
+              </a>
+            </div>
+          <!--/noindex-->
+        
+      
+    </div>
+
+    
+    
+    
+      <footer class="post-footer">
+        <div class="post-eof"></div>
+      </footer>
+  </article>
+  
+  
+  
+
+      
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
     <link itemprop="mainEntityOfPage" href="http://tinlone.com/2021/04/04/%E6%80%A7%E8%83%BD%E4%BC%98%E5%8C%96%E4%B9%8B%E5%86%85%E5%AD%98%E4%BC%98%E5%8C%96/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
@@ -1103,107 +1195,6 @@
   
   
 
-      
-  
-  
-  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
-    <link itemprop="mainEntityOfPage" href="http://tinlone.com/2021/02/06/WorkManager%E5%9F%BA%E6%9C%AC%E4%BD%BF%E7%94%A8%E5%8F%8A%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90(%E5%9B%9B)%20-%20SystemJobService/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="image" content="/images/favicon-32x32-next.png">
-      <meta itemprop="name" content="Tinlone">
-      <meta itemprop="description" content="Tinlone的个人博客">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="Tinlone">
-    </span>
-      <header class="post-header">
-        <h2 class="post-title" itemprop="name headline">
-          
-            <a href="/2021/02/06/WorkManager%E5%9F%BA%E6%9C%AC%E4%BD%BF%E7%94%A8%E5%8F%8A%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90(%E5%9B%9B)%20-%20SystemJobService/" class="post-title-link" itemprop="url">WorkManager基本使用及源码分析(四) - SystemJobService</a>
-        </h2>
-
-        <div class="post-meta">
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="far fa-calendar"></i>
-              </span>
-              <span class="post-meta-item-text">发表于</span>
-              
-
-              <time title="创建时间：2021-02-06 17:07:13 / 修改时间：17:06:48" itemprop="dateCreated datePublished" datetime="2021-02-06T17:07:13+08:00">2021-02-06</time>
-            </span>
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="far fa-folder"></i>
-              </span>
-              <span class="post-meta-item-text">分类于</span>
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/Jetpack/" itemprop="url" rel="index"><span itemprop="name">Jetpack</span></a>
-                </span>
-            </span>
-
-          <br>
-            <span class="post-meta-item" title="本文字数">
-              <span class="post-meta-item-icon">
-                <i class="far fa-file-word"></i>
-              </span>
-                <span class="post-meta-item-text">本文字数：</span>
-              <span>1k</span>
-            </span>
-            <span class="post-meta-item" title="阅读时长">
-              <span class="post-meta-item-icon">
-                <i class="far fa-clock"></i>
-              </span>
-                <span class="post-meta-item-text">阅读时长 &asymp;</span>
-              <span>1 分钟</span>
-            </span>
-
-        </div>
-      </header>
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-          <h2 id="目录"><a href="#目录" class="headerlink" title="目录"></a>目录</h2><ul>
-<li><a href="#part_source">源码篇</a><ul>
-<li><a href="#SystemJobService">SystemJobService</a></li>
-</ul>
-</li>
-</ul>
-<hr>
-<h3 id="源码篇"><a href="#源码篇" class="headerlink" title=" 源码篇"></a><span id="part_source"> 源码篇</h3><p>上一篇中我们简单使用了WorkManager的一般功能，基础使用还是比较简单的。<strong>“WorkManager 是一个 API，可供您轻松调度那些即使在退出应用或重启设备后仍应运行的可延期异步任务”</strong>。那么我们来了解一下他到底是怎么工作的吧。</p>
-<p><strong><span id="SystemJobService"> SystemJobService</strong></p>
-<blockquote>
-<p>Service invoked by {@link android.app.job.JobScheduler} to run work tasks.</p>
-</blockquote>
-<p>服务将被JobScheduler调用来执行工作任务。<br>从描述可得<code>SystemJobService</code>与<code>SystemAlarmService</code>职责是一致的，都是“run work tasks”。</p>
-          <!--noindex-->
-            <div class="post-button">
-              <a class="btn" href="/2021/02/06/WorkManager%E5%9F%BA%E6%9C%AC%E4%BD%BF%E7%94%A8%E5%8F%8A%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90(%E5%9B%9B)%20-%20SystemJobService/#more" rel="contents">
-                阅读全文 &raquo;
-              </a>
-            </div>
-          <!--/noindex-->
-        
-      
-    </div>
-
-    
-    
-    
-      <footer class="post-footer">
-        <div class="post-eof"></div>
-      </footer>
-  </article>
-  
-  
-  
-
 
   
   <nav class="pagination">
@@ -1275,20 +1266,20 @@
       <div class="site-state-item site-state-posts">
           <a href="/archives/">
         
-          <span class="site-state-item-count">14</span>
+          <span class="site-state-item-count">15</span>
           <span class="site-state-item-name">日志</span>
         </a>
       </div>
       <div class="site-state-item site-state-categories">
             <a href="/categories/">
           
-        <span class="site-state-item-count">3</span>
+        <span class="site-state-item-count">4</span>
         <span class="site-state-item-name">分类</span></a>
       </div>
       <div class="site-state-item site-state-tags">
             <a href="/tags/">
           
-        <span class="site-state-item-count">7</span>
+        <span class="site-state-item-count">8</span>
         <span class="site-state-item-name">标签</span></a>
       </div>
   </nav>
@@ -1327,12 +1318,12 @@
     <span class="post-meta-item-icon">
       <i class="fa fa-chart-area"></i>
     </span>
-    <span title="站点总字数">48k</span>
+    <span title="站点总字数">53k</span>
     <span class="post-meta-divider">|</span>
     <span class="post-meta-item-icon">
       <i class="fa fa-coffee"></i>
     </span>
-    <span title="站点阅读时长">44 分钟</span>
+    <span title="站点阅读时长">48 分钟</span>
 </div>
 <!--
   <div class="powered-by">由 <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://theme-next.org/" class="theme-link" rel="noopener" target="_blank">NexT.Gemini</a> 强力驱动
