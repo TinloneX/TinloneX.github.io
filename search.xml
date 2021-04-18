@@ -1414,7 +1414,10 @@ StorageNotLow     如果设置为 true，那么当用户设备上的存储空间
 <p>当然的ActivityThread.handleLaunchActivity() 就是实际的新的Activity从创建到展示的流程了。</p>
 <p>至此，其实整个从 startActivity的调用到目标Activity创建的调用流程就已经分析完毕了。</p>
 <p>最后，我们来画一画整个流程的时序图。</p>
-<p>【时序图还在画，观众老爷请稍候】</p>
+<h4 id="分步骤时序图"><a href="#分步骤时序图" class="headerlink" title="分步骤时序图"></a>分步骤时序图</h4><p><strong>Activity-&gt;ActivityManagerService</strong><br><img src="https://z3.ax1x.com/2021/04/18/cIFvv9.png" alt="a_ams"></p>
+<p><strong>Activity检查及准备阶段</strong><br><img src="https://z3.ax1x.com/2021/04/18/cIFzuR.png" alt="a_check"></p>
+<p><strong>IApplication -&gt; ActivityThread -&gt; Activity</strong><br><img src="https://z3.ax1x.com/2021/04/18/cIki4O.png" alt="ap_am_a"></p>
+<h4 id="整体流程时序图"><a href="#整体流程时序图" class="headerlink" title="整体流程时序图"></a>整体流程时序图</h4><p><img src="https://z3.ax1x.com/2021/04/18/cIFbNT.png" alt="whole_line"></p>
 ]]></content>
       <categories>
         <category>framework</category>
