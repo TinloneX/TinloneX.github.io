@@ -805,7 +805,12 @@
 
         <div class="love-stage">
           <figure class="photo-frame">
-            <img src="/b.jpg" alt="B">
+            <img
+              id="left-photo-image"
+              src="/b.jpg"
+              data-remote-src="https://imgloc.com/image/OR9nHn"
+              data-fallback-src="/b.jpg"
+              alt="B">
             <figcaption class="photo-label">左边的温柔小世界</figcaption>
           </figure>
 
@@ -818,7 +823,12 @@
           </div>
 
           <figure class="photo-frame right">
-            <img src="/g.jpg" alt="G">
+            <img
+              id="right-photo-image"
+              src="/g.jpg"
+              data-remote-src="https://imgloc.com/image/OR92wL"
+              data-fallback-src="/g.jpg"
+              alt="G">
             <figcaption class="photo-label">右边的可爱小宇宙</figcaption>
           </figure>
         </div>
@@ -953,6 +963,52 @@
       var minutesEl = document.getElementById("minutes");
       var secondsEl = document.getElementById("seconds");
       var totalSecondsEl = document.getElementById("total-seconds");
+      var leftPhotoImage = document.getElementById("left-photo-image");
+      var rightPhotoImage = document.getElementById("right-photo-image");
+
+      function loadPreferredImage(imageElement) {
+        if (!imageElement) {
+          return;
+        }
+
+        var remoteSrc = imageElement.getAttribute("data-remote-src");
+        var fallbackSrc = imageElement.getAttribute("data-fallback-src") || imageElement.getAttribute("src");
+
+        if (!remoteSrc) {
+          imageElement.src = fallbackSrc;
+          return;
+        }
+
+        var remoteImage = new Image();
+        var hasSettled = false;
+        var fallbackTimer = window.setTimeout(function () {
+          if (hasSettled) {
+            return;
+          }
+          hasSettled = true;
+          imageElement.src = fallbackSrc;
+        }, 5000);
+
+        remoteImage.onload = function () {
+          if (hasSettled) {
+            return;
+          }
+          hasSettled = true;
+          window.clearTimeout(fallbackTimer);
+          imageElement.src = remoteSrc;
+        };
+
+        remoteImage.onerror = function () {
+          if (hasSettled) {
+            return;
+          }
+          hasSettled = true;
+          window.clearTimeout(fallbackTimer);
+          imageElement.src = fallbackSrc;
+        };
+
+        remoteImage.src = remoteSrc;
+      }
 
       function pad(num) {
         return String(num).padStart(2, "0");
@@ -974,6 +1030,8 @@
         totalSecondsEl.textContent = totalSeconds.toLocaleString("zh-CN");
       }
 
+      loadPreferredImage(leftPhotoImage);
+      loadPreferredImage(rightPhotoImage);
       tick();
       window.setInterval(tick, 1000);
     })();
