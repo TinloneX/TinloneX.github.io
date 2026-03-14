@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="zh-CN">
 <head>
   <meta charset="utf-8">
@@ -706,23 +706,37 @@
           <h1 class="title">樱花天空漫游记</h1>
           <p class="subtitle">
             浅蓝色天空像棉花糖一样轻轻铺开，左右两侧是相伴而立的照片，中间是一棵温柔盛放的樱花树，
-            花瓣在微风里慢慢飘落，把春日午后的空气都染成了甜甜的粉色童话。
-          </p>
+            花瓣在微风里慢慢飘落，把春日午后的空气都染成了甜甜的粉色童话。          </p>
         </div>
 
         <div class="scene">
           <a class="photo-card left" href="/love.html">
-            <img src="/b.jpg" alt="左侧照片">
+            <img
+              id="left-photo-image"
+              src="/b.jpg"
+              data-remote-src="https://imgloc.com/image/OR9nHn"
+              data-fallback-src="/b.jpg"
+              alt="左侧照片">
             <p>春风左岸</p>
           </a>
 
           <a class="photo-card right" href="/love.html">
-            <img src="/g.jpg" alt="右侧照片">
+            <img
+              id="right-photo-image"
+              src="/g.jpg"
+              data-remote-src="https://imgloc.com/image/OR92wL"
+              data-fallback-src="/g.jpg"
+              alt="右侧照片">
             <p>樱色右岸</p>
           </a>
 
           <div class="tree" aria-hidden="true">
-            <img src="/yhs.png" alt="樱花树">
+            <img
+              id="sakura-tree-image"
+              src="/yhs.png"
+              data-remote-src="https://imgloc.com/image/OR90FM"
+              data-fallback-src="/yhs.png"
+              alt="樱花树">
           </div>
 
           <div class="ground-decor" aria-hidden="true">
@@ -741,9 +755,7 @@
       <section class="cats-section">
         <h2 class="cats-title">喵喵樱花巡游队</h2>
         <p class="cats-subtitle">
-          7 只圆滚滚的卡通小猫在草地边排排坐，
-          一起守着这场慢慢飘落的樱花雨，让眼前的春日风景更像一张甜甜的童话插画。
-        </p>
+          7 只圆滚滚的卡通小猫在草地边排排坐，          一起守着这场慢慢飘落的樱花雨，让眼前的春日风景更像一张甜甜的童话插画。        </p>
 
         <div class="cats-row">
           <div class="cat-card">
@@ -840,8 +852,59 @@
 
   <script>
     (function () {
+      var leftPhotoImage = document.getElementById("left-photo-image");
+      var rightPhotoImage = document.getElementById("right-photo-image");
+      var treeImage = document.getElementById("sakura-tree-image");
       var petalsRoot = document.getElementById("petals");
       var petalCount = 40;
+
+      function loadPreferredImage(imageElement) {
+        if (!imageElement) {
+          return;
+        }
+
+        var remoteSrc = imageElement.getAttribute("data-remote-src");
+        var fallbackSrc = imageElement.getAttribute("data-fallback-src") || imageElement.getAttribute("src");
+
+        if (!remoteSrc) {
+          imageElement.src = fallbackSrc;
+          return;
+        }
+
+        var remoteImage = new Image();
+        var hasSettled = false;
+        var fallbackTimer = window.setTimeout(function () {
+          if (hasSettled) {
+            return;
+          }
+          hasSettled = true;
+          imageElement.src = fallbackSrc;
+        }, 5000);
+
+        remoteImage.onload = function () {
+          if (hasSettled) {
+            return;
+          }
+          hasSettled = true;
+          window.clearTimeout(fallbackTimer);
+          imageElement.src = remoteSrc;
+        };
+
+        remoteImage.onerror = function () {
+          if (hasSettled) {
+            return;
+          }
+          hasSettled = true;
+          window.clearTimeout(fallbackTimer);
+          imageElement.src = fallbackSrc;
+        };
+
+        remoteImage.src = remoteSrc;
+      }
+
+      loadPreferredImage(leftPhotoImage);
+      loadPreferredImage(rightPhotoImage);
+      loadPreferredImage(treeImage);
 
       for (var i = 0; i < petalCount; i += 1) {
         var petal = document.createElement("span");
@@ -860,3 +923,4 @@
   </script>
 </body>
 </html>
+
