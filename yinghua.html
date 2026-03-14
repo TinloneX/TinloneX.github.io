@@ -271,41 +271,6 @@
         drop-shadow(0 6px 10px rgba(255, 214, 229, 0.2));
     }
 
-    .swing {
-      position: absolute;
-      right: 8%;
-      bottom: 170px;
-      width: 120px;
-      height: 140px;
-      z-index: 3;
-      animation: sway 4s ease-in-out infinite;
-      transform-origin: top center;
-    }
-
-    .rope {
-      position: absolute;
-      top: 0;
-      width: 4px;
-      height: 94px;
-      background: #f8f2dd;
-      border-radius: 999px;
-    }
-
-    .rope.left { left: 34px; }
-    .rope.right { right: 34px; }
-
-    .seat {
-      position: absolute;
-      left: 50%;
-      bottom: 16px;
-      width: 96px;
-      height: 20px;
-      transform: translateX(-50%);
-      border-radius: 999px;
-      background: linear-gradient(180deg, #ffe7a7, #ffc46f);
-      box-shadow: 0 10px 18px rgba(255, 184, 94, 0.25);
-    }
-
     .petals {
       position: absolute;
       inset: 0;
@@ -593,11 +558,6 @@
       50% { opacity: 1; transform: scale(1.1); }
     }
 
-    @keyframes sway {
-      0%, 100% { transform: rotate(-4deg); }
-      50% { transform: rotate(4deg); }
-    }
-
     @keyframes petal-fall {
       0% {
         transform: translate3d(0, -10vh, 0) rotate(0deg) scale(var(--petal-scale, 0.8));
@@ -648,32 +608,28 @@
       }
 
       .scene {
-        min-height: 780px;
+        min-height: 640px;
       }
 
       .photo-card {
-        position: relative;
-        top: auto;
-        left: auto;
-        right: auto;
-        margin: 18px auto 0;
-        width: min(78vw, 320px);
+        top: 190px;
+        width: min(24vw, 210px);
+        min-width: 140px;
       }
 
-      .photo-card.left,
+      .photo-card.left {
+        left: clamp(4px, 2vw, 18px);
+        transform: rotate(-6deg) translateY(12px) scale(0.92);
+      }
+
       .photo-card.right {
-        transform: none;
+        right: clamp(4px, 2vw, 18px);
+        transform: rotate(6deg) scale(0.92);
       }
 
       .tree {
-        width: min(78vw, 420px);
-        bottom: 150px;
-      }
-
-      .swing {
-        right: 2%;
-        bottom: 240px;
-        transform: scale(0.85);
+        width: min(50vw, 360px);
+        bottom: 118px;
       }
 
       .hill.back {
@@ -681,7 +637,8 @@
       }
 
       .cats-row {
-        grid-template-columns: repeat(2, minmax(110px, 1fr));
+        grid-template-columns: repeat(7, minmax(110px, 1fr));
+        min-width: 840px;
       }
     }
 
@@ -701,16 +658,34 @@
       }
 
       .scene {
-        min-height: 720px;
+        min-height: 560px;
+      }
+
+      .photo-card {
+        top: 214px;
+        width: min(32vw, 165px);
+        min-width: 110px;
+        padding: 10px 10px 14px;
+      }
+
+      .photo-card.left {
+        left: 2px;
+        transform: rotate(-5deg) translateY(10px) scale(0.88);
+      }
+
+      .photo-card.right {
+        right: 2px;
+        transform: rotate(5deg) scale(0.88);
       }
 
       .tree {
-        width: min(90vw, 360px);
-        bottom: 168px;
+        width: min(54vw, 240px);
+        bottom: 112px;
       }
 
       .cats-row {
         grid-template-columns: 1fr;
+        min-width: 0;
       }
     }
   </style>
@@ -745,12 +720,6 @@
             <img src="/g.jpg" alt="右侧照片">
             <p>樱色右岸</p>
           </a>
-
-          <div class="swing" aria-hidden="true">
-            <span class="rope left"></span>
-            <span class="rope right"></span>
-            <span class="seat"></span>
-          </div>
 
           <div class="tree" aria-hidden="true">
             <img src="/yhs.png" alt="樱花树">
