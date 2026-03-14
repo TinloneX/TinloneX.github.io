@@ -1,4 +1,6 @@
 (function () {
+  document.body.classList.add("js-ready");
+
   var header = document.querySelector(".site-header");
   var navToggle = document.querySelector(".nav-toggle");
   var navMenu = document.querySelector(".nav-menu");
