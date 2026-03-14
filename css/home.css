@@ -996,6 +996,36 @@ img {
   transform: translateY(0);
 }
 
+/* Disable reveal effects for blog article pages so the original content always stays visible. */
+.content-section,
+.content-section .article-layout,
+.content-section .article-shell,
+.content-section .article-body,
+.content-section .toc-panel,
+.connect .comment-shell {
+  visibility: visible !important;
+  opacity: 1 !important;
+}
+
+.page-hero .section-heading.reveal,
+.content-section.reveal,
+.content-section .article-layout.reveal,
+.content-section .article-layout .article-shell.reveal,
+.content-section .article-layout .article-body.reveal,
+.content-section .article-layout .toc-panel.reveal,
+.connect .comment-shell.reveal {
+  display: block !important;
+  opacity: 1 !important;
+  visibility: visible !important;
+  transform: none !important;
+  transition: none !important;
+  animation: none !important;
+}
+
+.content-section .article-layout {
+  display: grid !important;
+}
+
 @keyframes float {
   0%,
   100% {
