@@ -37,7 +37,7 @@
             <div class="rule"><strong>运算题</strong><p>所有加法题都没有正确答案，只记录你偏爱接近值、跨位感还是落差感。</p></div>
           </div>
           <div class="actions">
-            <button class="primary" id="startBtn" type="button">开始本轮误测</button>
+            <button class="primary" id="startBtn" type="button">开始瞎测</button>
             <button class="secondary" id="rerollBtn" type="button">重抽 15 题</button>
           </div>
         </article>
@@ -239,7 +239,12 @@
       return { type:'addition', title:`${a} + ${b} = ?`, signature:`a-${a}-${b}-${options.slice().sort((m,n)=>m-n).join('-')}`, a, b, options:options.map((v)=>({label:String(v),value:v})) };
     };
 
-    function buildQuiz() {
+    function scrollToFirstQuestion() {
+      const first = document.querySelector('.q');
+      if (first) first.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+
+    function buildQuiz(shouldScrollToFirst = false) {
       currentQuestions = shuffle([...unique(numQ, 9), ...unique(charQ, 3), ...unique(addQ, 3)]).map((q, i) => ({ ...q, id: i + 1 }));
       const form = document.getElementById('quizForm');
       form.innerHTML = currentQuestions.map((q, i) => `
@@ -257,7 +262,8 @@
       form.querySelectorAll('input[type="radio"]').forEach((el) => el.addEventListener('change', updateProgress));
       document.getElementById('resultPanel').classList.add('hidden');
       updateProgress();
-      window.scrollTo({ top: 0, behavior: 'smooth' });
+      if (shouldScrollToFirst) scrollToFirstQuestion();
+      else window.scrollTo({ top: 0, behavior: 'smooth' });
     }
 
     function updateProgress() {
@@ -337,9 +343,9 @@
       document.getElementById('probabilityList').innerHTML = PERSONAS.map((p) => `<li><span>${p.code} · ${p.name}</span><strong>${p.rate}%</strong></li>`).join('');
     }
 
-    document.getElementById('startBtn').addEventListener('click', buildQuiz);
-    document.getElementById('rerollBtn').addEventListener('click', buildQuiz);
-    document.getElementById('retryBtn').addEventListener('click', buildQuiz);
+    document.getElementById('startBtn').addEventListener('click', () => buildQuiz(true));
+    document.getElementById('rerollBtn').addEventListener('click', () => buildQuiz());
+    document.getElementById('retryBtn').addEventListener('click', () => buildQuiz());
     document.getElementById('submitBtn').addEventListener('click', scoreQuiz);
     renderProbabilityList();
     buildQuiz();
