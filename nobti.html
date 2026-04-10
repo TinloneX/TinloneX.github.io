@@ -1,0 +1,348 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>NoBTI | 反性格测试型测试</title>
+  <meta name="description" content="NoBTI，随机 15 题的反性格测试型测试。">
+  <style>
+    :root{--bg:#f6efe4;--bg2:#e6d5bf;--card:rgba(255,250,243,.86);--ink:#2a211b;--muted:#67584d;--line:rgba(42,33,27,.12);--a:#d85f38;--b:#2f6c63;--c:#d7a83c;--shadow:0 24px 60px rgba(70,46,26,.12)}
+    *{box-sizing:border-box}html,body{margin:0;min-width:320px;background:radial-gradient(circle at 18% 16%,rgba(255,255,255,.72),transparent 22%),radial-gradient(circle at 82% 10%,rgba(255,236,204,.6),transparent 18%),linear-gradient(180deg,var(--bg),var(--bg2));color:var(--ink);font-family:Georgia,"Noto Serif SC","Songti SC",serif}
+    body::before{content:"";position:fixed;inset:0;pointer-events:none;opacity:.45;background-image:linear-gradient(rgba(42,33,27,.025) 1px,transparent 1px),linear-gradient(90deg,rgba(42,33,27,.025) 1px,transparent 1px);background-size:32px 32px}
+    .page{width:min(calc(100% - 24px),1180px);margin:0 auto;padding:24px 0 44px;position:relative;z-index:1}.hero,.panel,.result,.q{background:var(--card);border:1px solid rgba(255,255,255,.72);box-shadow:var(--shadow);border-radius:28px;backdrop-filter:blur(10px)}
+    .hero,.panel,.result{padding:24px}.hero{position:relative;overflow:hidden}.hero::after{content:"NoBTI";position:absolute;right:20px;top:8px;font-size:clamp(3rem,12vw,8rem);line-height:1;color:rgba(216,95,56,.08);font-weight:700;letter-spacing:.08em}
+    .eyebrow{margin:0;color:var(--b);letter-spacing:.28em;font-size:.82rem;text-transform:uppercase}.title{margin:10px 0;font-size:clamp(2.6rem,7vw,5.6rem);line-height:.95}.title span{color:var(--a)}.subtitle,.muted,.rule p,.note,.desc,.reason,.type small{color:var(--muted);line-height:1.8}
+    .hero-grid,.rules,.types,.dims,.meta,.result-grid{display:grid;gap:14px}.hero-grid{grid-template-columns:1.45fr .95fr}.rules,.meta,.types{grid-template-columns:repeat(3,minmax(0,1fr))}.dims{grid-template-columns:repeat(4,minmax(0,1fr))}.result-grid{grid-template-columns:1.15fr .85fr}
+    .box,.rule,.type,.dim,.meta-card,.side{padding:16px;border-radius:22px;border:1px solid var(--line);background:rgba(255,255,255,.52)}h2{margin:0 0 12px;font-size:1.08rem}.list{list-style:none;margin:0;padding:0;display:grid;gap:8px;max-height:320px;overflow:auto}.list li{display:flex;justify-content:space-between;gap:10px;border-bottom:1px dashed var(--line);padding-bottom:7px;font-size:.95rem}
+    .actions{display:flex;flex-wrap:wrap;gap:12px;margin-top:18px}button{border:0;cursor:pointer;border-radius:999px;padding:13px 20px;font:inherit;transition:.2s}button:hover{transform:translateY(-2px)}.primary{background:var(--a);color:#fff8f3;box-shadow:0 14px 32px rgba(216,95,56,.26)}.secondary{background:rgba(47,108,99,.12);color:var(--b);border:1px solid rgba(47,108,99,.18)}
+    .panel,.result{margin-top:22px}.head{display:flex;justify-content:space-between;align-items:end;gap:16px;flex-wrap:wrap;margin-bottom:18px}.progress{min-width:min(100%,300px);flex:1}.pmeta{display:flex;justify-content:space-between;gap:10px;margin-bottom:8px;color:var(--muted);font-size:.92rem}.bar{height:12px;border-radius:999px;background:rgba(42,33,27,.08);overflow:hidden}.bar span{display:block;height:100%;width:0;background:linear-gradient(90deg,var(--a),var(--c));transition:width .25s}
+    .questions{display:grid;gap:14px}.q{padding:18px;border:1px solid var(--line);box-shadow:none;background:rgba(255,255,255,.52)}.qtop{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:12px}.idx{font-size:.9rem;color:var(--b);letter-spacing:.12em;text-transform:uppercase}.badge,.rate,.algo{display:inline-flex;align-items:center;padding:8px 14px;border-radius:999px;border:1px solid var(--line);background:rgba(255,255,255,.62);font-size:.92rem}
+    .qtype{font-size:.84rem;padding:6px 10px;border-radius:999px;background:rgba(216,95,56,.1);color:var(--a)}.qt{margin:0;font-size:1.16rem;line-height:1.6}.ops{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;margin-top:14px}.opt{display:block;position:relative}.opt input{position:absolute;opacity:0}.opt span{display:flex;min-height:70px;align-items:center;justify-content:center;text-align:center;padding:12px;border-radius:18px;border:1px solid var(--line);background:rgba(255,255,255,.72);transition:.2s}.opt span:hover{transform:translateY(-1px);border-color:rgba(216,95,56,.28)}.opt input:checked+span{border-color:var(--a);background:rgba(216,95,56,.12);box-shadow:0 12px 24px rgba(216,95,56,.12)}
+    .hidden{display:none}.name{margin:0;font-size:clamp(2rem,5vw,3.5rem);line-height:1}.badge-row{display:flex;flex-wrap:wrap;gap:10px;margin-bottom:14px}.reason{margin-top:16px;padding:14px 16px;border-radius:18px;background:rgba(47,108,99,.08);border:1px solid rgba(47,108,99,.16);color:#304e49}.dim strong{display:flex;justify-content:space-between;gap:8px}.dimbar{height:8px;border-radius:999px;background:rgba(42,33,27,.08);overflow:hidden;margin:10px 0 8px}.dimbar span{display:block;height:100%;background:linear-gradient(90deg,var(--b),var(--a))}
+    @media (max-width:980px){.hero-grid,.result-grid,.rules,.types,.meta,.dims{grid-template-columns:1fr 1fr}}@media (max-width:720px){.page{width:min(calc(100% - 16px),1180px);padding-top:16px}.hero,.panel,.result{padding:18px;border-radius:24px}.hero-grid,.result-grid,.rules,.types,.meta,.dims,.ops{grid-template-columns:1fr}.qt{font-size:1.05rem}}
+  </style>
+</head>
+<body>
+  <main class="page">
+    <section class="hero">
+      <p class="eyebrow">Anti-Personality Calibration</p>
+      <h1 class="title"><span>No</span>BTI</h1>
+      <p class="subtitle">一个把性格测试拆成圆弧、尖角、字符回声和错误加法的反性格测试。每次随机 15 题，其中 9 题数字、3 题字符、3 题加法，最后落到 25 种低命中率人格之一。</p>
+      <div class="hero-grid">
+        <article class="box">
+          <h2>这份测试如何一本正经地胡说</h2>
+          <div class="rules">
+            <div class="rule"><strong>数字题</strong><p>按圆弧数、尖角数、奇偶属性、素合属性、位数、数根与重复率累计维度。</p></div>
+            <div class="rule"><strong>字符题</strong><p>按对称感、封闭度、ASCII 起伏、重复回声与形状密度累计维度。</p></div>
+            <div class="rule"><strong>运算题</strong><p>所有加法题都没有正确答案，只记录你偏爱接近值、跨位感还是落差感。</p></div>
+          </div>
+          <div class="actions">
+            <button class="primary" id="startBtn" type="button">开始本轮误测</button>
+            <button class="secondary" id="rerollBtn" type="button">重抽 15 题</button>
+          </div>
+        </article>
+        <aside class="box">
+          <h2>命中率约束</h2>
+          <p class="muted">25 种人格全部限制在 1% 到 5% 之间，总命中率为 100%。页面会先计算维度画像，再用稳定哈希落入概率桶。</p>
+          <ul class="list" id="probabilityList"></ul>
+        </aside>
+      </div>
+    </section>
+
+    <section class="panel">
+      <div class="head">
+        <div>
+          <h2>本轮题面</h2>
+          <p class="muted">请选择每题里最顺眼、最像“嗯就这个吧”的选项。这里只有偏好，没有对错。</p>
+        </div>
+        <div class="progress">
+          <div class="pmeta"><span id="progressText">已完成 0 / 15</span><span>数字 9 · 字符 3 · 运算 3</span></div>
+          <div class="bar"><span id="progressBar"></span></div>
+        </div>
+      </div>
+      <div class="types">
+        <div class="type"><strong>60% 数字题</strong><small>随机数字，按圆弧、尖角、奇偶、素合、数根与位数加权。</small></div>
+        <div class="type"><strong>20% 字符题</strong><small>随机字符组，按对称、封闭、回声、ASCII 起伏与形状密度计分。</small></div>
+        <div class="type"><strong>20% 运算题</strong><small>随机加法与四个错误答案，按接近值、偏大偏小、进位感和差距感统计。</small></div>
+      </div>
+      <form id="quizForm" class="questions"></form>
+      <div class="actions"><button class="primary" id="submitBtn" type="button">生成反人格结论</button></div>
+    </section>
+
+    <section class="result hidden" id="resultPanel">
+      <div class="head">
+        <div>
+          <h2>测试结论</h2>
+          <p class="muted">结果由维度画像和受控概率桶共同决定，页面会同时显示人格结论与各项维度。</p>
+        </div>
+        <div class="actions"><button class="secondary" id="retryBtn" type="button">再测一次</button></div>
+      </div>
+      <div class="result-grid">
+        <div>
+          <div class="badge-row">
+            <span class="badge" id="personaCode"></span>
+            <span class="rate" id="personaRate"></span>
+            <span class="algo" id="personaAlgo"></span>
+          </div>
+          <h3 class="name" id="personaName"></h3>
+          <p class="desc" id="personaIntro"></p>
+          <p class="desc" id="personaDesc"></p>
+          <div class="reason" id="personaReason"></div>
+        </div>
+        <aside class="side">
+          <h2>判定摘要</h2>
+          <div class="meta">
+            <div class="meta-card"><strong id="metaA">-</strong><p class="muted">本轮最高维度</p></div>
+            <div class="meta-card"><strong id="metaB">-</strong><p class="muted">次高维度</p></div>
+            <div class="meta-card"><strong id="metaC">-</strong><p class="muted">算法气质词</p></div>
+          </div>
+          <p class="note">NoBTI 不提供真相，只提供风格稳定的误读。</p>
+        </aside>
+      </div>
+      <div class="dims" id="dimensionGrid"></div>
+    </section>
+  </main>
+
+  <script>
+    const PERSONAS = [
+      { code:'LOOP',name:'绕圈派',rate:5,vibe:'弧面优先',tone:'回旋、缓冲、慢热',tags:['arc','symmetry','echo'],desc:'你像一段会自己把棱角磨平的回路。你不急着冲向结论，更擅长在细节边缘来回试探，直到气氛和节奏都顺手为止。别人以为你犹豫，其实你是在给决定留缓冲带。你天然警觉过度锋利的表达，更偏爱圆润、可回收、可反复的结构。你看似散漫，实际很懂得避免把事情推到无法收场的极端。'},
+      { code:'SPRK',name:'火花客',rate:5,vibe:'尖角爆发',tone:'锋利、果断、起跳快',tags:['corner','prime','drift'],desc:'你的人格像桌角撞出的清脆声，短促、明确、偶尔带点不讲理的锋利。你偏爱能立刻产生形状感的东西，哪怕它们不够圆满。你相信先把轮廓立住，再决定要不要修饰，因此在很多场景里总是第一个发出“先这样”的人。你的行动不是莽，而是一种对停滞的过敏。越含糊的局面，越会逼出你直接的判断。'},
+      { code:'MOSS',name:'苔面人',rate:5,vibe:'静态铺展',tone:'铺展、吸附、耐久',tags:['composite','balance','closed'],desc:'你不像传统意义上的外放人格，更像缓慢覆盖地表的一层安静纹理。你对环境变化的感知细腻，擅长在别人还没察觉前先调整姿态。你的优势并不是喧哗，而是持续、均匀、柔软地占据一个位置。很多人以为你佛系，其实你只是明白稳定本身就是力量。你不需要戏剧性转折来证明存在感。'},
+      { code:'GLNT',name:'钝光体',rate:5,vibe:'温吞反射',tone:'克制、迟准、斜视角',tags:['arc','balance','drift'],desc:'你有一种不急于发亮的光泽。你不擅长用最响亮的方式赢得注意，却总能在第二眼、第三眼里变得越来越耐看。你对过度明确的秩序和过度热烈的情绪都保持距离，更愿意站在斜角处观察，看它们是否真能长期成立。你的判断常常带着一点迟来的精准。'},
+      { code:'WAVE',name:'浪纹者',rate:5,vibe:'周期律动',tone:'起伏、敏感、节律型',tags:['arc','echo','carry'],desc:'你依赖节奏感甚于依赖规则。比起一次性做对，你更擅长通过反复试摆找到最顺的摆幅。你的思考不是直线推进，而是来回波动后逐步收拢，因此在陌生局面里反而比很多人更稳。你对情绪、语气和细小偏差都有雷达，这让你敏感，也让你更会找入口。'},
+      { code:'AXIS',name:'轴感派',rate:5,vibe:'对称执念',tone:'均衡、精细、对位',tags:['symmetry','balance','closed'],desc:'你对“看起来差不多”有极高要求，喜欢左右呼应、前后对应、语气和动作能互相映照的结构。这不是形式主义，而是你判断安全感的方式。一个事物如果能自我平衡，你就更愿意相信它可以继续运转。你并不死板，只是很难在明显失衡的局面里放松。'},
+      { code:'RIFT',name:'裂隙型',rate:4,vibe:'落差偏好',tone:'错位、洞察、反骨',tags:['gap','drift','prime'],desc:'你经常被细小裂缝吸引，因为真正的变化往往不是从表面开始，而是从不连贯的地方渗出来。你对标准答案兴趣一般，却会对不协调、掉拍、轻微错位的东西产生好奇。很多时候，你的洞察力就来自这种对“差一点点”的执着。这个人格并不稳定，但往往很有发现力。'},
+      { code:'BEND',name:'折返客',rate:4,vibe:'回头能力',tone:'可逆、松弛、灵活',tags:['echo','balance','proximity'],desc:'你一点也不羞于折返。你知道回头不是失败，而是把前面的路径重新读一遍。你愿意修正、愿意重来，也愿意承认自己刚刚并没有真的想好。正因为如此，你比看上去更少被面子绑架。你对结论的态度不是占有，而是暂住，一旦发现结构不对，你会转身得很自然。'},
+      { code:'FIZZ',name:'起泡层',rate:4,vibe:'碎响扩散',tone:'轻快、密集、颗粒感',tags:['smallness','echo','asciiFlow'],desc:'你的存在感像刚刚冒出的气泡，不一定大，但总是连续、轻巧、难以忽视。你喜欢把事情拆成小块处理，通过快速试错和即时反馈建立方向感。你并不依赖宏大叙事，反而擅长在一堆小现象里拼出趋势。你靠密度而不是重量推进自己。'},
+      { code:'LINT',name:'绒屑派',rate:4,vibe:'边缘收集',tone:'细碎、敏感、采样型',tags:['echo','closed','imbalance'],desc:'你对边边角角有天然的亲和力。你会注意到对话里没被说满的尾音，也会在混乱桌面上优先看到那一小片脱落的纸屑。你的人格重点不在中心，而在附着物、余量与残留物。你并不琐碎，你只是知道决定气质的，常常不是主体，而是那些看似不重要的边缘材料。'},
+      { code:'HUSH',name:'静噪者',rate:4,vibe:'低频存在',tone:'低频、筛选、稳压',tags:['balance','closed','carry'],desc:'你的能量不是沉默，而是低频。你不爱把每个念头都推到台前，可一旦开口，通常意味着你已经把无数种可能在心里悄悄滤过。你对环境噪声的忍耐度不高，因此更珍惜那些信号清晰、节奏克制的关系与场景。你不一定显眼，却常常是稳定气压的人。'},
+      { code:'JOLT',name:'突跳派',rate:4,vibe:'偏差驱动',tone:'跃迁、灵感、突然清醒',tags:['drift','prime','carry'],desc:'你很少沿着别人铺好的逻辑线平稳前进，总会在某个节点突然往侧边跳一下。奇怪的是，这种跳跃并不让你离题太远，反而经常把事情推进到更有趣的位置。你习惯先相信直觉中那一下突跳，再用事后整理把它包装成合理。你靠偏差取景，靠机敏落地。'},
+      { code:'MUTE',name:'哑光派',rate:4,vibe:'去反光化',tone:'耐看、内敛、减反射',tags:['balance','smallness','proximity'],desc:'你不喜欢过度闪亮的表达方式。相比那些一眼就想赢的东西，你更容易被低饱和、低姿态、低声量的事物打动。你的判断体系里，“耐看”常常比“惊艳”更重要，“可持续”常常比“立刻有效”更重要。你不是没有锋芒，而是知道锋芒不必时时朝外。'},
+      { code:'VEER',name:'斜行者',rate:4,vibe:'不走正中',tone:'偏航、旁观、留余地',tags:['drift','gap','asciiFlow'],desc:'你不太信任笔直的大路，哪怕它看起来更快。你总想稍微偏一点，从侧面试一试，看有没有被主流遗漏的空气层。你的思维轨迹常常因此显得斜，但那不是跑偏，而是保持余地。你不迷信最标准的做法，只需要一个不被过度规定的位置。'},
+      { code:'CUSP',name:'临界人',rate:4,vibe:'边线徘徊',tone:'阈值感、试探、悬停',tags:['gap','proximity','carry'],desc:'你很擅长停在阈值附近。你不急着跨过去，也不轻易退回来，而是喜欢先感受那条边线到底意味着什么。你会对临界状态、模糊判断、即将变化但还没变化的时刻格外上心。你知道真正有信息量的，不总是结果，而是结果发生前那一小段不稳定的空气。'},
+      { code:'DUST',name:'微尘型',rate:4,vibe:'细量堆积',tone:'细密、沉积、后劲型',tags:['smallness','composite','closed'],desc:'你相信微小单位的长期效应。你不太迷恋戏剧性转折，更愿意把注意力放在那些肉眼难以立刻看出成果的累积动作上。你有时候看起来慢，但这种慢并不松散，而是细密。你清楚很多真正可靠的变化都不是轰然发生，而是一层一层附着上去。'},
+      { code:'KNOT',name:'结点客',rate:4,vibe:'连接欲强',tone:'连接、牵引、抓手感',tags:['closed','echo','balance'],desc:'你很容易把看似无关的东西系在一起，然后从这些连接点里获得方向感。你会在杂乱信息中本能地寻找结点，判断哪里能拽动全局，哪里只是表面热闹。你的脑子像在不停打结，但这些结并不一定是阻碍，反而常常形成个人理解世界的抓手。'},
+      { code:'SILT',name:'淤积者',rate:4,vibe:'缓慢沉降',tone:'沉降、晚一点、少翻车',tags:['composite','balance','proximity'],desc:'你并不追求立刻澄清一切，甚至愿意让很多东西先混一会儿。你知道有些判断需要时间沉降，太快捞出来反而会失真。因此你对待关系、工作和情绪时都带着一点沉稳的延迟。别人会觉得你反应慢，但后来又会发现你的结论更不容易翻车。'},
+      { code:'PIVT',name:'轴转者',rate:4,vibe:'微调高手',tone:'转向、修正、顺滑',tags:['symmetry','carry','proximity'],desc:'你很少大刀阔斧地改变路径，更擅长围绕一个核心点慢慢转向。你的人格像门轴，不一定显眼，却决定了很多转折是否顺滑。你善于用幅度不大的修正解决方向问题，因此看起来不 dramatic，却非常实用。你更相信让整体继续转起来。'},
+      { code:'FOAM',name:'沫感派',rate:3,vibe:'轻体结构',tone:'轻盈、弹性、缓冲层',tags:['arc','smallness','balance'],desc:'你对轻盈有一种近乎原则性的偏爱。你并不等于不负责，只是比起笨重、僵硬、需要用力维持的结构，你更想靠弹性和空隙保持秩序。你的很多决定看起来像顺手一拨，但正是这种不过度施力的方式，让你避免了很多无谓内耗。'},
+      { code:'GRIT',name:'砂砾派',rate:3,vibe:'摩擦留痕',tone:'颗粒、阻力、真实感',tags:['corner','gap','magnitude'],desc:'你不是那种一滑到底的人。你更像砂砾，细小但有阻力，接触过的地方会留下摩擦感。这种气质让你很难被彻底忽视，因为你会在很多流程里制造必要的卡顿，提醒别人别太轻易把某个决定当作理所当然。你不一定柔和，却很真实。'},
+      { code:'SWAY',name:'摇摆客',rate:3,vibe:'双向感强',tone:'双向、可动、保留复杂度',tags:['balance','drift','symmetry'],desc:'你并不害怕摇摆，反而知道摇摆是很多复杂问题的正常状态。你常常能同时理解两边，于是显得不够绝对，但也因此拥有少见的回旋空间。你不会急着把自己钉死在某个立场上，因为你知道现实经常比标签更流动。'},
+      { code:'QUAD',name:'四拍型',rate:3,vibe:'节拍整齐',tone:'节拍、规律、可持续',tags:['even','symmetry','carry'],desc:'你喜欢四平八稳，但不是无聊的那种稳。你对节拍、间隔和重复有一种天然亲近感，只要结构开始按你能理解的节奏运转，你就会迅速进入状态。你不排斥变化，只是不喜欢变化完全脱离拍点。你的人格像一段牢靠的四拍律动。'},
+      { code:'NOVA',name:'新星体',rate:3,vibe:'突然放亮',tone:'聚焦、节点高亮、时机型',tags:['prime','magnitude','carry'],desc:'你平时未必总在中心，但你有一种会在关键时刻突然亮起来的能力。那种亮不是持续燃烧，而是抓住节点后瞬间提升存在密度。你适合处理需要突然定调、突然收束、突然把散乱东西聚焦的局面。重要的时候，你往往又会准时发光。'},
+      { code:'ECHO',name:'回声者',rate:3,vibe:'余响很长',tone:'余响、回返、层次感',tags:['echo','closed','proximity'],desc:'你的人格并不靠第一下取胜，而靠之后不断返回的余响。你说过的话、做过的小动作、留出的空白，常常会在别人那里延迟生效。你对重复并不厌烦，甚至会主动利用回声来确认某些东西是不是真的有重量。你安静，却不容易消失。'}
+    ];
+    const DIMENSION_META = {arc:'圆弧感',corner:'尖角感',odd:'奇数倾向',even:'偶数倾向',prime:'素数偏好',composite:'合数偏好',symmetry:'对称偏好',closed:'封闭感',echo:'重复回声',asciiFlow:'字符起伏',carry:'进位张力',gap:'落差敏感',balance:'平衡倾向',drift:'偏航倾向',magnitude:'大数偏爱',smallness:'小数亲和',proximity:'接近值偏好',imbalance:'失衡嗅觉'};
+    const MOOD_MAP = {arc:'回旋型',corner:'切面型',odd:'偏锋型',even:'整拍型',prime:'稀点型',composite:'铺陈型',symmetry:'镜像型',closed:'收束型',echo:'余响型',asciiFlow:'漂移型',carry:'跨位型',gap:'裂缝型',balance:'稳面型',drift:'斜航型',magnitude:'放大型',smallness:'微粒型',proximity:'贴边型',imbalance:'偏差型'};
+    const CHAR_POOL='ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+    const SYM=new Set(['A','H','I','M','O','T','U','V','W','X','Y','8','0']);
+    const CLS=new Set(['A','B','D','O','P','Q','R','0','4','6','8','9']);
+    const CUR=new Set(['B','C','D','G','J','O','P','Q','R','S','U','0','2','3','5','6','8','9']);
+    const ANG=new Set(['A','K','M','N','V','W','X','Y','Z','1','4','7']);
+    let currentQuestions = [];
+
+    const shuffle = (arr) => {
+      const a = [...arr];
+      for (let i = a.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [a[i], a[j]] = [a[j], a[i]];
+      }
+      return a;
+    };
+    const unique = (gen, count) => {
+      const out = [], seen = new Set();
+      while (out.length < count) {
+        const q = gen();
+        if (!seen.has(q.signature)) {
+          seen.add(q.signature);
+          out.push(q);
+        }
+      }
+      return out;
+    };
+    const isPrime = (n) => {
+      if (n < 2) return false;
+      for (let i = 2; i * i <= n; i++) if (n % i === 0) return false;
+      return true;
+    };
+    const droot = (n) => {
+      let v = Math.abs(n);
+      while (v >= 10) v = String(v).split('').reduce((s, x) => s + Number(x), 0);
+      return v;
+    };
+    const digitArcs = (s) => [...s].reduce((m, c) => m + ({'0':1,'6':1,'8':2,'9':1}[c] || 0), 0);
+    const digitCorners = (s) => [...s].reduce((m, c) => m + ({'2':1,'4':3,'5':2,'7':2,'9':1}[c] || 0), 0);
+
+    function analyzeNumber(value) {
+      const s = String(value), arcs = digitArcs(s), corners = digitCorners(s), root = droot(value);
+      return {
+        arc: arcs * 1.8, corner: corners * 2, odd: value % 2 ? 2.4 : 0.4, even: value % 2 === 0 ? 2.4 : 0.4,
+        prime: isPrime(value) ? 3 : 0.6, composite: value > 3 && !isPrime(value) ? 2.8 : 0.5,
+        balance: s.length % 2 === 0 ? 1.8 : 1.1, magnitude: Math.min(value / 35, 6), smallness: Math.max(0, 6 - value / 24),
+        echo: (s.length - new Set(s).size) * 2.5 + (root % 3 === 0 ? 1.2 : 0.4), symmetry: ['0','8'].some((c) => s.includes(c)) ? 1.8 : 0.5,
+        drift: (Math.abs(root - 5) + Math.abs(arcs - corners)) * 0.8, gap: Math.abs(arcs - corners) * 1.4
+      };
+    }
+
+    function analyzeChars(text) {
+      const chars = [...text], codes = chars.map((c) => c.charCodeAt(0));
+      let symmetry = 0, closed = 0, curves = 0, angles = 0, repeats = 0;
+      chars.forEach((ch, i) => {
+        if (SYM.has(ch)) symmetry += 1.3;
+        if (CLS.has(ch)) closed += 1.2;
+        if (CUR.has(ch)) curves += 1.1;
+        if (ANG.has(ch)) angles += 1.15;
+        if (i > 0 && chars[i - 1] === ch) repeats += 1.8;
+      });
+      const asciiFlow = codes.slice(1).reduce((s, c, i) => s + Math.abs(c - codes[i]), 0) / 8;
+      return {
+        symmetry, closed, arc: curves, corner: angles, echo: repeats + (new Set(chars).size < chars.length ? 1.6 : 0.6),
+        asciiFlow, balance: Math.abs(curves - angles) < 1.6 ? 2.4 : 0.8, drift: asciiFlow > 4 ? 2.8 : 1.2,
+        gap: Math.abs(symmetry - closed) + Math.abs(curves - angles) * 0.9, smallness: chars.length <= 4 ? 2 : 0.8,
+        imbalance: Math.max(0.5, Math.abs(codes[0] - codes[codes.length - 1]) / 12)
+      };
+    }
+
+    function analyzeAddition(choice, a, b) {
+      const target = a + b, delta = choice - target;
+      const carryReal = Math.floor(a / 10) + Math.floor(b / 10) !== Math.floor(target / 10);
+      const carryChoice = Math.floor(a / 10) + Math.floor(b / 10) !== Math.floor(choice / 10);
+      return {
+        carry: (carryChoice ? 2.8 : 0.8) + (carryReal === carryChoice ? 1.1 : 0.3), proximity: Math.max(0.5, 6 - Math.abs(delta)),
+        gap: Math.abs(delta) * 0.95 + 0.6, balance: delta === 0 ? 0.2 : (Math.abs(delta) <= 3 ? 2.6 : 0.9),
+        drift: Math.abs(delta) > 5 ? 2.8 : 1, magnitude: delta > 0 ? Math.abs(delta) * 0.8 + 0.8 : 0.4,
+        smallness: delta < 0 ? Math.abs(delta) * 0.8 + 0.8 : 0.4, odd: choice % 2 ? 1.4 : 0.5, even: choice % 2 === 0 ? 1.4 : 0.5,
+        prime: isPrime(choice) ? 1.8 : 0.4, composite: choice > 3 && !isPrime(choice) ? 1.6 : 0.4,
+        imbalance: Math.abs((choice % 10) - (target % 10)) * 0.65 + 0.4
+      };
+    }
+
+    const numQ = () => {
+      const base = Math.floor(Math.random() * 84) + 10;
+      const offsets = shuffle([-7,-3,4,9,12,15,18]).slice(0,3);
+      const options = shuffle([base, ...offsets.map((n) => Math.max(10, base + n))]).slice(0,4);
+      return { type:'number', title:'下面哪个数字让你觉得“它自己已经想好了”？', signature:`n-${options.slice().sort((a,b)=>a-b).join('-')}`, options:options.map((v)=>({label:String(v),value:v})) };
+    };
+    const randChars = () => {
+      const len = Math.floor(Math.random() * 3) + 4;
+      let s = '';
+      for (let i = 0; i < len; i++) s += CHAR_POOL[Math.floor(Math.random() * CHAR_POOL.length)];
+      return s;
+    };
+    const charQ = () => {
+      const prompts = ['哪组字符更像一个“会自己维持秩序”的小团体？','如果要把其中一组贴在门口当暗号，你更想选哪组？','哪组字符最像你今天愿意相信的临时密码？'];
+      const options = shuffle([randChars(),randChars(),randChars(),randChars()]);
+      return { type:'chars', title:prompts[Math.floor(Math.random()*prompts.length)], signature:`c-${options.slice().sort().join('-')}`, options:options.map((v)=>({label:v,value:v})) };
+    };
+    const addQ = () => {
+      const a = Math.floor(Math.random() * 37) + 8, b = Math.floor(Math.random() * 37) + 6, sum = a + b;
+      const options = shuffle(shuffle([-9,-6,-3,3,5,7,11]).slice(0,4).map((d)=>sum + d));
+      return { type:'addition', title:`${a} + ${b} = ?`, signature:`a-${a}-${b}-${options.slice().sort((m,n)=>m-n).join('-')}`, a, b, options:options.map((v)=>({label:String(v),value:v})) };
+    };
+
+    function buildQuiz() {
+      currentQuestions = shuffle([...unique(numQ, 9), ...unique(charQ, 3), ...unique(addQ, 3)]).map((q, i) => ({ ...q, id: i + 1 }));
+      const form = document.getElementById('quizForm');
+      form.innerHTML = currentQuestions.map((q, i) => `
+        <article class="q">
+          <div class="qtop">
+            <span class="idx">Question ${i + 1}</span>
+            <span class="qtype">${q.type === 'number' ? '数字题' : q.type === 'chars' ? '字符题' : '运算题'}</span>
+          </div>
+          <h3 class="qt">${q.title}</h3>
+          <div class="ops">
+            ${q.options.map((o, j) => `<label class="opt"><input type="radio" name="q${q.id}" value="${j}"><span>${o.label}</span></label>`).join('')}
+          </div>
+        </article>
+      `).join('');
+      form.querySelectorAll('input[type="radio"]').forEach((el) => el.addEventListener('change', updateProgress));
+      document.getElementById('resultPanel').classList.add('hidden');
+      updateProgress();
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    function updateProgress() {
+      const done = currentQuestions.reduce((n, q) => n + (document.querySelector(`input[name="q${q.id}"]:checked`) ? 1 : 0), 0);
+      document.getElementById('progressText').textContent = `已完成 ${done} / 15`;
+      document.getElementById('progressBar').style.width = `${done / 15 * 100}%`;
+    }
+
+    function hashScores(dimensions, answers) {
+      const raw = `${Object.keys(dimensions).sort().map((k) => `${k}:${dimensions[k].toFixed(2)}`).join('|')}||${answers.join(',')}`;
+      let hash = 2166136261;
+      for (let i = 0; i < raw.length; i++) { hash ^= raw.charCodeAt(i); hash = Math.imul(hash, 16777619); }
+      return (hash >>> 0) % 100;
+    }
+
+    function bucketPersona(hash) {
+      let cursor = 0;
+      for (const p of PERSONAS) { cursor += p.rate; if (hash < cursor) return p; }
+      return PERSONAS[PERSONAS.length - 1];
+    }
+
+    function collectAnswers() {
+      const picks = [];
+      for (const q of currentQuestions) {
+        const picked = document.querySelector(`input[name="q${q.id}"]:checked`);
+        if (!picked) return null;
+        picks.push(Number(picked.value));
+      }
+      return picks;
+    }
+
+    function buildReason(persona, dominant, secondary, dimensions) {
+      const d1 = DIMENSION_META[dominant], d2 = DIMENSION_META[secondary];
+      const extra = persona.tags.find((t) => t !== dominant && t !== secondary) || persona.tags[0];
+      return `本轮你的最高维度是“${d1}”，其次是“${d2}”，说明你更容易被 ${d1} 与 ${d2} 的组合吸引。算法随后把这组维度放进受控概率桶，命中了 ${persona.code} / ${persona.name}。这个人格偏向 ${persona.tone}，并且你在“${DIMENSION_META[extra]}”上的累计值为 ${((dimensions[extra] || 0)).toFixed(1)}，所以结果不像纯随机，更像一次有风格的误判。`;
+    }
+
+    function renderResult(persona, dimensions, dominant, secondary) {
+      document.getElementById('resultPanel').classList.remove('hidden');
+      document.getElementById('personaCode').textContent = persona.code;
+      document.getElementById('personaRate').textContent = `理论命中率 ${persona.rate}%`;
+      document.getElementById('personaAlgo').textContent = `算法气质 ${persona.vibe}`;
+      document.getElementById('personaName').textContent = persona.name;
+      document.getElementById('personaIntro').textContent = `你在 NoBTI 中被归类为 ${persona.code} 型“${persona.name}”。这不是标准化人格标签，而是一份由数字轮廓、字符形状和错误加法共同拼出的临时画像。`;
+      document.getElementById('personaDesc').textContent = persona.desc;
+      document.getElementById('personaReason').textContent = buildReason(persona, dominant, secondary, dimensions);
+      document.getElementById('metaA').textContent = DIMENSION_META[dominant];
+      document.getElementById('metaB').textContent = DIMENSION_META[secondary];
+      document.getElementById('metaC').textContent = MOOD_MAP[dominant] || persona.vibe;
+      const max = Math.max(...Object.values(dimensions));
+      document.getElementById('dimensionGrid').innerHTML = Object.entries(dimensions).sort((a, b) => b[1] - a[1]).map(([k, v]) => `
+        <article class="dim">
+          <strong><span>${DIMENSION_META[k]}</span><span>${v.toFixed(1)}</span></strong>
+          <div class="dimbar"><span style="width:${max ? Math.max(6, v / max * 100) : 0}%"></span></div>
+          <p class="note">本轮累计得到的 ${DIMENSION_META[k]} 指数，用于参与人格匹配与结论修辞。</p>
+        </article>
+      `).join('');
+      document.getElementById('resultPanel').scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+
+    function scoreQuiz() {
+      const picks = collectAnswers();
+      if (!picks) { alert('还有题目没有选择，NoBTI 需要完整误读样本。'); return; }
+      const dims = Object.fromEntries(Object.keys(DIMENSION_META).map((k) => [k, 0]));
+      const rawChoices = [];
+      currentQuestions.forEach((q, i) => {
+        const chosen = q.options[picks[i]].value;
+        rawChoices.push(chosen);
+        const delta = q.type === 'number' ? analyzeNumber(chosen) : q.type === 'chars' ? analyzeChars(chosen) : analyzeAddition(chosen, q.a, q.b);
+        Object.entries(delta).forEach(([k, v]) => { if (dims[k] !== undefined) dims[k] += v; });
+      });
+      const ordered = Object.entries(dims).sort((a, b) => b[1] - a[1]);
+      renderResult(bucketPersona(hashScores(dims, rawChoices)), dims, ordered[0][0], ordered[1][0]);
+    }
+
+    function renderProbabilityList() {
+      document.getElementById('probabilityList').innerHTML = PERSONAS.map((p) => `<li><span>${p.code} · ${p.name}</span><strong>${p.rate}%</strong></li>`).join('');
+    }
+
+    document.getElementById('startBtn').addEventListener('click', buildQuiz);
+    document.getElementById('rerollBtn').addEventListener('click', buildQuiz);
+    document.getElementById('retryBtn').addEventListener('click', buildQuiz);
+    document.getElementById('submitBtn').addEventListener('click', scoreQuiz);
+    renderProbabilityList();
+    buildQuiz();
+  </script>
+</body>
+</html>
