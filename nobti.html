@@ -4,7 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>NoBTI | 反性格测试型测试</title>
-  <meta name="description" content="NoBTI，随机 15 题的反性格测试型测试。">
+  <meta name="description" content="NoBTI，随机 20 题的反性格测试型测试。">
   <style>
     :root{--bg:#f6efe4;--bg2:#e6d5bf;--card:rgba(255,250,243,.86);--ink:#2a211b;--muted:#67584d;--line:rgba(42,33,27,.12);--a:#d85f38;--b:#2f6c63;--c:#d7a83c;--shadow:0 24px 60px rgba(70,46,26,.12)}
     *{box-sizing:border-box}html,body{margin:0;min-width:320px;background:radial-gradient(circle at 18% 16%,rgba(255,255,255,.72),transparent 22%),radial-gradient(circle at 82% 10%,rgba(255,236,204,.6),transparent 18%),linear-gradient(180deg,var(--bg),var(--bg2));color:var(--ink);font-family:Georgia,"Noto Serif SC","Songti SC",serif}
@@ -19,15 +19,22 @@
     .questions{display:grid;gap:14px}.q{padding:18px;border:1px solid var(--line);box-shadow:none;background:rgba(255,255,255,.52)}.qtop{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:12px}.idx{font-size:.9rem;color:var(--b);letter-spacing:.12em;text-transform:uppercase}.badge,.rate,.algo{display:inline-flex;align-items:center;padding:8px 14px;border-radius:999px;border:1px solid var(--line);background:rgba(255,255,255,.62);font-size:.92rem}
     .qtype{font-size:.84rem;padding:6px 10px;border-radius:999px;background:rgba(216,95,56,.1);color:var(--a)}.qt{margin:0;font-size:1.16rem;line-height:1.6}.ops{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;margin-top:14px}.opt{display:block;position:relative}.opt input{position:absolute;opacity:0}.opt span{display:flex;min-height:70px;align-items:center;justify-content:center;text-align:center;padding:12px;border-radius:18px;border:1px solid var(--line);background:rgba(255,255,255,.72);transition:.2s}.opt span:hover{transform:translateY(-1px);border-color:rgba(216,95,56,.28)}.opt input:checked+span{border-color:var(--a);background:rgba(216,95,56,.12);box-shadow:0 12px 24px rgba(216,95,56,.12)}
     .hidden{display:none}.name{margin:0;font-size:clamp(2rem,5vw,3.5rem);line-height:1}.badge-row{display:flex;flex-wrap:wrap;gap:10px;margin-bottom:14px}.reason{margin-top:16px;padding:14px 16px;border-radius:18px;background:rgba(47,108,99,.08);border:1px solid rgba(47,108,99,.16);color:#304e49}.dim strong{display:flex;justify-content:space-between;gap:8px}.dimbar{height:8px;border-radius:999px;background:rgba(42,33,27,.08);overflow:hidden;margin:10px 0 8px}.dimbar span{display:block;height:100%;background:linear-gradient(90deg,var(--b),var(--a))}
+    .cat{position:fixed;left:-120px;bottom:18px;z-index:5;border:0;background:rgba(255,250,243,.92);color:var(--ink);border-radius:999px;padding:10px 16px;box-shadow:0 10px 24px rgba(70,46,26,.16);font:inherit;cursor:pointer;animation:catWalk 18s linear infinite;white-space:nowrap}
+    .cat:hover{transform:translateY(-2px)}
+    .cat-note{position:fixed;right:14px;bottom:20px;z-index:5;padding:8px 12px;border-radius:999px;background:rgba(47,108,99,.12);border:1px solid rgba(47,108,99,.18);color:var(--b);font-size:.88rem}
+    .q.special-hidden{display:none}
+    @keyframes catWalk{0%{transform:translateX(0)}100%{transform:translateX(calc(100vw + 180px))}}
     @media (max-width:980px){.hero-grid,.result-grid,.rules,.types,.meta,.dims{grid-template-columns:1fr 1fr}}@media (max-width:720px){.page{width:min(calc(100% - 16px),1180px);padding-top:16px}.hero,.panel,.result{padding:18px;border-radius:24px}.hero-grid,.result-grid,.rules,.types,.meta,.dims,.ops{grid-template-columns:1fr}.qt{font-size:1.05rem}}
   </style>
 </head>
 <body>
+  <button class="cat" id="catBtn" type="button">喵咪 /•᷅‎‎•᷄\୭</button>
+  <div class="cat-note" id="catNote">点喵咪 3 次也许会有事发生</div>
   <main class="page">
     <section class="hero">
       <p class="eyebrow">Anti-Personality Calibration</p>
       <h1 class="title"><span>No</span>BTI</h1>
-      <p class="subtitle">一个把性格测试拆成圆弧、尖角、字符回声和错误加法的反性格测试。每次随机 15 题，其中 9 题数字、3 题字符、3 题加法，最后落到 25 种低命中率人格之一。</p>
+      <p class="subtitle">一个把性格测试拆成圆弧、尖角、字符回声和错误加法的反性格测试。每次随机 20 题，其中 12 题数字、4 题字符、4 题加法，最后落到 25 种低命中率人格之一。</p>
       <div class="hero-grid">
         <article class="box">
           <h2>这份测试如何一本正经地胡说</h2>
@@ -38,7 +45,7 @@
           </div>
           <div class="actions">
             <button class="primary" id="startBtn" type="button">开始瞎测</button>
-            <button class="secondary" id="rerollBtn" type="button">重抽 15 题</button>
+            <button class="secondary" id="rerollBtn" type="button">重抽 20 题</button>
           </div>
         </article>
         <aside class="box">
@@ -56,7 +63,7 @@
           <p class="muted">请选择每题里最顺眼、最像“嗯就这个吧”的选项。这里只有偏好，没有对错。</p>
         </div>
         <div class="progress">
-          <div class="pmeta"><span id="progressText">已完成 0 / 15</span><span>数字 9 · 字符 3 · 运算 3</span></div>
+          <div class="pmeta"><span id="progressText">已完成 0 / 20 · 彩蛋 0 / 1</span><span>数字 12 · 字符 4 · 运算 4 · 特殊 1</span></div>
           <div class="bar"><span id="progressBar"></span></div>
         </div>
       </div>
@@ -66,7 +73,7 @@
         <div class="type"><strong>20% 运算题</strong><small>随机加法与四个错误答案，按接近值、偏大偏小、进位感和差距感统计。</small></div>
       </div>
       <form id="quizForm" class="questions"></form>
-      <div class="actions"><button class="primary" id="submitBtn" type="button">生成反人格结论</button></div>
+      <div class="actions"><button class="primary" id="submitBtn" type="button">去TA的测试结果</button></div>
     </section>
 
     <section class="result hidden" id="resultPanel">
@@ -153,12 +160,30 @@
       imbalance:'反映你对失衡瞬间、非标准组合与异常感的识别本能。'
     };
     const MOOD_MAP = {arc:'回旋型',corner:'切面型',odd:'偏锋型',even:'整拍型',prime:'稀点型',composite:'铺陈型',symmetry:'镜像型',closed:'收束型',echo:'余响型',asciiFlow:'漂移型',carry:'跨位型',gap:'裂缝型',balance:'稳面型',drift:'斜航型',magnitude:'放大型',smallness:'微粒型',proximity:'贴边型',imbalance:'偏差型'};
+    const QUIZ_TOTAL = 20;
+    const NUMBER_COUNT = 12;
+    const CHAR_COUNT = 4;
+    const ADDITION_COUNT = 4;
+    const SPECIAL_QUESTION = {
+      type:'special',
+      title:'∞ + 1 = ?',
+      signature:'special-infinity',
+      options:[
+        { label:'1+∞', value:'1+∞' },
+        { label:'1', value:'1' },
+        { label:'-∞', value:'-∞' },
+        { label:'∞', value:'∞' }
+      ]
+    };
     const CHAR_POOL='ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
     const SYM=new Set(['A','H','I','M','O','T','U','V','W','X','Y','8','0']);
     const CLS=new Set(['A','B','D','O','P','Q','R','0','4','6','8','9']);
     const CUR=new Set(['B','C','D','G','J','O','P','Q','R','S','U','0','2','3','5','6','8','9']);
     const ANG=new Set(['A','K','M','N','V','W','X','Y','Z','1','4','7']);
+    const CHAR_FACES = ['^_^','owo','T_T','-_-','>_<','@_@','._.','^o^','=w=','x_x'];
     let currentQuestions = [];
+    let specialUnlocked = false;
+    let catClicks = 0;
 
     const shuffle = (arr) => {
       const a = [...arr];
@@ -240,6 +265,16 @@
       };
     }
 
+    function analyzeSpecial(choice) {
+      const map = {
+        '1+∞': { drift: 3.6, gap: 2.8, balance: 1.2, carry: 2.2, magnitude: 2.6, symmetry: 0.8 },
+        '1': { smallness: 3.4, proximity: 2.8, balance: 1.6, odd: 1.8, closed: 0.8, drift: 0.8 },
+        '-∞': { drift: 3.8, gap: 3.2, imbalance: 2.4, magnitude: 2.2, corner: 1.2, prime: 0.6 },
+        '∞': { arc: 3.4, symmetry: 2.8, magnitude: 3.1, closed: 1.4, balance: 2.2, echo: 1.1 }
+      };
+      return map[choice] || {};
+    }
+
     const NUMBER_PROMPTS = [
       '下面哪个数字让你觉得“它自己已经想好了”？',
       '哪一个数字最像刚洗完澡就准备出门的人？',
@@ -276,15 +311,16 @@
       return { type:'number', title:NUMBER_PROMPTS[promptIndex], signature:`n-${options.map((v)=>v.label).sort().join('-')}-${promptIndex}`, options };
     };
     const randChars = () => {
+      if (Math.random() < 0.12) return CHAR_FACES[Math.floor(Math.random() * CHAR_FACES.length)];
       const len = Math.floor(Math.random() * 3) + 4;
       let s = '';
       for (let i = 0; i < len; i++) s += CHAR_POOL[Math.floor(Math.random() * CHAR_POOL.length)];
       return s;
     };
-    const charQ = () => {
-      const prompts = ['哪组字符更像一个“会自己维持秩序”的小团体？','如果要把其中一组贴在门口当暗号，你更想选哪组？','哪组字符最像你今天愿意相信的临时密码？'];
+    const CHAR_PROMPTS = ['哪组字符更像一个“会自己维持秩序”的小团体？','如果要把其中一组贴在门口当暗号，你更想选哪组？','哪组字符最像你今天愿意相信的临时密码？','如果这些字符会结伴出游，哪组最像不会走散的？','哪组字符看起来像是偷偷达成了内部共识？','如果只能选一组当你的今日隐藏口令，你会带走哪组？'];
+    const charQ = (promptIndex) => {
       const options = shuffle([randChars(),randChars(),randChars(),randChars()]);
-      return { type:'chars', title:prompts[Math.floor(Math.random()*prompts.length)], signature:`c-${options.slice().sort().join('-')}`, options:options.map((v)=>({label:v,value:v})) };
+      return { type:'chars', title:CHAR_PROMPTS[promptIndex], signature:`c-${options.slice().sort().join('-')}-${promptIndex}`, options:options.map((v)=>({label:v,value:v})) };
     };
     const addQ = () => {
       const a = Math.floor(Math.random() * 37) + 8, b = Math.floor(Math.random() * 37) + 6, sum = a + b;
@@ -298,22 +334,35 @@
     }
 
     function buildQuiz(shouldScrollToFirst = false) {
-      const promptIndexes = shuffle(NUMBER_PROMPTS.map((_, i) => i)).slice(0, 9);
+      const promptIndexes = shuffle(NUMBER_PROMPTS.map((_, i) => i));
       const numberQuestions = [];
       const numberSignatures = new Set();
-      promptIndexes.forEach((promptIndex) => {
+      while (numberQuestions.length < NUMBER_COUNT) {
+        const promptIndex = promptIndexes[numberQuestions.length % promptIndexes.length];
         let q;
         do { q = numQ(promptIndex); } while (numberSignatures.has(q.signature));
         numberSignatures.add(q.signature);
         numberQuestions.push(q);
-      });
-      currentQuestions = shuffle([...numberQuestions, ...unique(charQ, 3), ...unique(addQ, 3)]).map((q, i) => ({ ...q, id: i + 1 }));
+      }
+      const charPromptIndexes = shuffle(CHAR_PROMPTS.map((_, i) => i));
+      const charQuestions = [];
+      const charSignatures = new Set();
+      while (charQuestions.length < CHAR_COUNT) {
+        const promptIndex = charPromptIndexes[charQuestions.length % charPromptIndexes.length];
+        let q;
+        do { q = charQ(promptIndex); } while (charSignatures.has(q.signature));
+        charSignatures.add(q.signature);
+        charQuestions.push(q);
+      }
+      currentQuestions = [...shuffle([...numberQuestions, ...charQuestions, ...unique(addQ, ADDITION_COUNT)]), { ...SPECIAL_QUESTION }].map((q, i) => ({ ...q, id: i + 1 }));
+      specialUnlocked = false;
+      catClicks = 0;
       const form = document.getElementById('quizForm');
       form.innerHTML = currentQuestions.map((q, i) => `
-        <article class="q">
+        <article class="q${q.type === 'special' ? ' special-hidden' : ''}" data-qtype="${q.type}">
           <div class="qtop">
-            <span class="idx">Question ${i + 1}</span>
-            <span class="qtype">${q.type === 'number' ? '数字题' : q.type === 'chars' ? '字符题' : '运算题'}</span>
+            <span class="idx">${q.type === 'special' ? 'Final Question' : `Question ${i + 1}`}</span>
+            <span class="qtype">${q.type === 'number' ? '数字题' : q.type === 'chars' ? '字符题' : q.type === 'addition' ? '运算题' : '特殊题'}</span>
           </div>
           <h3 class="qt">${q.title}</h3>
           <div class="ops">
@@ -323,15 +372,39 @@
       `).join('');
       form.querySelectorAll('input[type="radio"]').forEach((el) => el.addEventListener('change', updateProgress));
       document.getElementById('resultPanel').classList.add('hidden');
+      document.getElementById('catNote').textContent = '点喵咪 3 次也许会有事发生';
       updateProgress();
       if (shouldScrollToFirst) scrollToFirstQuestion();
       else window.scrollTo({ top: 0, behavior: 'smooth' });
     }
 
     function updateProgress() {
-      const done = currentQuestions.reduce((n, q) => n + (document.querySelector(`input[name="q${q.id}"]:checked`) ? 1 : 0), 0);
-      document.getElementById('progressText').textContent = `已完成 ${done} / 15`;
-      document.getElementById('progressBar').style.width = `${done / 15 * 100}%`;
+      const regularQuestions = currentQuestions.filter((q) => q.type !== 'special');
+      const done = regularQuestions.reduce((n, q) => n + (document.querySelector(`input[name="q${q.id}"]:checked`) ? 1 : 0), 0);
+      const special = currentQuestions.find((q) => q.type === 'special');
+      const specialDone = special && document.querySelector(`input[name="q${special.id}"]:checked`) ? 1 : 0;
+      document.getElementById('progressText').textContent = `已完成 ${done} / ${QUIZ_TOTAL} · 彩蛋 ${specialDone} / 1`;
+      document.getElementById('progressBar').style.width = `${done / QUIZ_TOTAL * 100}%`;
+    }
+
+    function revealSpecialQuestion() {
+      if (specialUnlocked) return;
+      specialUnlocked = true;
+      const specialCard = document.querySelector('.q[data-qtype="special"]');
+      if (specialCard) {
+        specialCard.classList.remove('special-hidden');
+        specialCard.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }
+      document.getElementById('catNote').textContent = '彩蛋题已解锁';
+      updateProgress();
+    }
+
+    function onCatClick() {
+      if (specialUnlocked) return;
+      catClicks += 1;
+      const remain = Math.max(0, 3 - catClicks);
+      document.getElementById('catNote').textContent = remain > 0 ? `喵，再点 ${remain} 次` : '彩蛋出现中...';
+      if (catClicks >= 3) revealSpecialQuestion();
     }
 
     function hashScores(dimensions, answers) {
@@ -350,6 +423,10 @@
     function collectAnswers() {
       const picks = [];
       for (const q of currentQuestions) {
+        if (q.type === 'special' && !specialUnlocked) {
+          picks.push(null);
+          continue;
+        }
         const picked = document.querySelector(`input[name="q${q.id}"]:checked`);
         if (!picked) return null;
         picks.push(Number(picked.value));
@@ -392,9 +469,16 @@
       const dims = Object.fromEntries(Object.keys(DIMENSION_META).map((k) => [k, 0]));
       const rawChoices = [];
       currentQuestions.forEach((q, i) => {
+        if (q.type === 'special' && !specialUnlocked) return;
         const chosen = q.options[picks[i]];
         rawChoices.push(chosen.label ?? chosen.value);
-        const delta = q.type === 'number' ? analyzeNumber(chosen) : q.type === 'chars' ? analyzeChars(chosen.value) : analyzeAddition(chosen.value, q.a, q.b);
+        const delta = q.type === 'number'
+          ? analyzeNumber(chosen)
+          : q.type === 'chars'
+            ? analyzeChars(chosen.value)
+            : q.type === 'addition'
+              ? analyzeAddition(chosen.value, q.a, q.b)
+              : analyzeSpecial(chosen.value);
         Object.entries(delta).forEach(([k, v]) => { if (dims[k] !== undefined) dims[k] += v; });
       });
       const ordered = Object.entries(dims).sort((a, b) => b[1] - a[1]);
@@ -409,6 +493,7 @@
     document.getElementById('rerollBtn').addEventListener('click', () => buildQuiz());
     document.getElementById('retryBtn').addEventListener('click', () => buildQuiz());
     document.getElementById('submitBtn').addEventListener('click', scoreQuiz);
+    document.getElementById('catBtn').addEventListener('click', onCatClick);
     renderProbabilityList();
     buildQuiz();
   </script>
