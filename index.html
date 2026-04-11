@@ -3,273 +3,184 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>TinloneX | Android Developer</title>
-  <meta name="description" content="TinloneX 的个人博客主页，聚焦 Android Framework、Jetpack、性能优化与源码分析。">
-  <link rel="icon" href="/logo.jpg" type="image/jpeg">
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@400;500;700;800&family=Space+Grotesk:wght@500;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="/css/home.css">
+  <title>TinloneX | Planet Gateway</title>
+  <meta name="description" content="TinloneX 的星球入口页，通往博客、NoBTI 与创意工坊。">
+  <style>
+    :root{
+      --bg:#06111f;--bg2:#101d33;--fg:#f4f0e8;--muted:#a8b4c7;--line:rgba(255,255,255,.12);
+      --blog:#73d7ff;--test:#ff9b73;--lab:#b4ff9c;--card:rgba(7,18,34,.54);--shadow:0 24px 70px rgba(0,0,0,.3)
+    }
+    *{box-sizing:border-box}
+    html,body{margin:0;min-width:320px;color:var(--fg);font-family:"Space Grotesk","Segoe UI","PingFang SC","Microsoft YaHei",sans-serif;background:
+      radial-gradient(circle at 20% 20%,rgba(115,215,255,.16),transparent 18%),
+      radial-gradient(circle at 82% 24%,rgba(255,155,115,.13),transparent 20%),
+      radial-gradient(circle at 50% 80%,rgba(180,255,156,.12),transparent 22%),
+      linear-gradient(180deg,var(--bg),var(--bg2))}
+    body{overflow-x:hidden}
+    .starfield{position:fixed;inset:0;width:100%;height:100%;pointer-events:none;z-index:0}
+    .page{width:100%;min-height:100vh;margin:0;padding:0;position:relative;z-index:1}
+    .console,.planet-card{background:var(--card);backdrop-filter:blur(14px);border:1px solid var(--line);box-shadow:var(--shadow);border-radius:32px}
+    .hero{padding:0;position:relative;overflow:visible;background:transparent;border:0;box-shadow:none;backdrop-filter:none;border-radius:0}
+    .eyebrow{margin:0;color:#8cc5ff;font-size:.82rem;letter-spacing:.32em;text-transform:uppercase}
+    .title{margin:12px 0 10px;font-size:clamp(2.7rem,7vw,5.8rem);line-height:.95}
+    .title span{display:block;color:#ffe8cb}
+    .subtitle{max-width:48rem;margin:0;color:var(--muted);line-height:1.9}
+    .hero-grid{display:grid;grid-template-columns:1.2fr .8fr;gap:20px;margin-top:24px}
+    .console{padding:18px}
+    .console h2,.map h2{margin:0 0 10px;font-size:1.04rem}
+    .console p,.planet-copy p,.meta p{margin:0;color:var(--muted);line-height:1.8}
+    .console-list{margin:14px 0 0;padding:0;list-style:none;display:grid;gap:10px}
+    .console-list li{padding:10px 12px;border-radius:16px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.06)}
+    .map{position:relative;min-height:620px;margin-top:24px;padding:24px;overflow:hidden}
+    .orbit,.sun,.planet-link,.planet-ring,.dust{position:absolute}
+    .sun{left:50%;top:50%;width:180px;height:180px;transform:translate(-50%,-50%);border-radius:50%;background:
+      radial-gradient(circle at 35% 35%,#fff7c8 0%,#ffd993 30%,#ffac69 65%,rgba(255,172,105,.3) 100%);
+      box-shadow:0 0 70px rgba(255,196,116,.38),0 0 150px rgba(255,140,87,.18)}
+    .orbit{left:50%;top:50%;border:1px solid rgba(255,255,255,.11);border-radius:50%;transform:translate(-50%,-50%)}
+    .orbit.one{width:320px;height:320px}
+    .orbit.two{width:520px;height:520px}
+    .orbit.three{width:760px;height:760px}
+    .dust{inset:-20%;background:
+      radial-gradient(circle at 30% 40%,rgba(115,215,255,.1),transparent 12%),
+      radial-gradient(circle at 72% 54%,rgba(255,155,115,.09),transparent 14%),
+      radial-gradient(circle at 48% 70%,rgba(180,255,156,.08),transparent 16%);
+      filter:blur(24px);animation:floatDust 14s ease-in-out infinite alternate}
+    .planet-link{left:50%;top:50%;display:block;text-decoration:none;color:inherit;transform-origin:center center;--orbit-radius:160px;--orbit-angle:0deg;animation:orbitSpin 48s linear infinite}
+    .planet-link.blog{--orbit-radius:160px;--orbit-angle:18deg;animation-duration:42s}
+    .planet-link.test{--orbit-radius:260px;--orbit-angle:138deg;animation-duration:58s}
+    .planet-link.lab{--orbit-radius:380px;--orbit-angle:258deg;animation-duration:74s}
+    .planet-card{width:0;height:0;padding:0;background:transparent;border:0;box-shadow:none;backdrop-filter:none;border-radius:0;overflow:visible}
+    .planet-globe{width:84px;height:84px;border-radius:50%;position:relative;display:block;transition:transform .25s ease,filter .25s ease}
+    .planet-link:hover .planet-globe{transform:scale(1.1);filter:brightness(1.12)}
+    .planet-globe::after{content:"";position:absolute;inset:8% 14% 40% 18%;border-radius:50%;background:rgba(255,255,255,.16);filter:blur(4px)}
+    .planet-globe.blog{background:
+      radial-gradient(circle at 34% 30%,#dffaff 0%,#73d7ff 42%,#2b7dde 70%,#132d63 100%)}
+    .planet-globe.test{background:
+      radial-gradient(circle at 34% 30%,#fff1d8 0%,#ff9b73 42%,#d0506f 70%,#551a40 100%)}
+    .planet-globe.lab{background:
+      radial-gradient(circle at 34% 30%,#f2ffe6 0%,#b4ff9c 38%,#39b28f 68%,#0d3b50 100%)}
+    .planet-ring{left:-9%;top:46%;width:118%;height:18px;border:2px solid rgba(255,255,255,.28);border-radius:50%;transform:rotate(-16deg)}
+    .planet-globe[data-label]::before{
+      content:attr(data-label);position:absolute;left:50%;top:112%;transform:translateX(-50%);
+      padding:6px 10px;border-radius:999px;background:rgba(7,18,34,.72);border:1px solid rgba(255,255,255,.12);
+      color:var(--fg);font-size:.82rem;white-space:nowrap;opacity:0;transition:opacity .2s ease,transform .2s ease;pointer-events:none
+    }
+    .planet-link:hover .planet-globe[data-label]::before{opacity:1;transform:translateX(-50%) translateY(4px)}
+    .legend{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px;margin-top:22px}
+    .meta{padding:16px;border-radius:22px;border:1px solid var(--line);background:rgba(255,255,255,.05)}
+    .meta strong{display:block;margin-bottom:8px}
+    .hint{margin-top:18px;text-align:center;color:var(--muted);font-size:.92rem}
+    @keyframes orbitSpin{
+      from{transform:translate(-50%,-50%) rotate(var(--orbit-angle)) translateX(var(--orbit-radius)) rotate(calc(-1 * var(--orbit-angle)))}
+      to{transform:translate(-50%,-50%) rotate(calc(var(--orbit-angle) + 360deg)) translateX(var(--orbit-radius)) rotate(calc(-1 * (var(--orbit-angle) + 360deg)))}
+    }
+    @keyframes floatDust{0%{transform:translate3d(-2%,0,0)}100%{transform:translate3d(2%,-2%,0)}}
+    @media (max-width:1024px){
+      .hero-grid,.legend{grid-template-columns:1fr}
+      .map{min-height:940px}
+      .orbit.three{width:640px;height:640px}
+      .planet-link.blog{--orbit-radius:120px}
+      .planet-link.test{--orbit-radius:200px}
+      .planet-link.lab{--orbit-radius:300px}
+    }
+    @media (max-width:720px){
+      .page{width:100%;padding:0}
+      .console,.planet-card{border-radius:24px}
+      .map{padding:18px}
+      .map{min-height:980px}
+      .sun{width:130px;height:130px}
+      .orbit.one{width:240px;height:240px}
+      .orbit.two{width:390px;height:390px}
+      .orbit.three{width:540px;height:540px}
+      .planet-globe{width:70px;height:70px}
+      .planet-link.blog{--orbit-radius:120px}
+      .planet-link.test{--orbit-radius:195px}
+      .planet-link.lab{--orbit-radius:270px}
+    }
+  </style>
 </head>
-<body>
-  <div class="site-shell">
-    <div class="site-bg" aria-hidden="true">
-      <div class="aurora aurora-one"></div>
-      <div class="aurora aurora-two"></div>
-      <div class="aurora aurora-three"></div>
-      <div class="grid"></div>
-      <div class="noise"></div>
-    </div>
+<body class="space">
+  <canvas class="starfield" id="starfield" aria-hidden="true"></canvas>
+  <main class="page">
+    <section class="map hero">
+      <div class="dust" aria-hidden="true"></div>
+      <div class="sun" aria-hidden="true"></div>
+      <div class="orbit one" aria-hidden="true"></div>
+      <div class="orbit two" aria-hidden="true"></div>
+      <div class="orbit three" aria-hidden="true"></div>
 
-    <header class="site-header" id="top">
-      <nav class="nav">
-        <a class="brand" href="#top">
-          <span class="brand-mark">TX</span>
-          <span class="brand-copy">
-            <strong>TinloneX</strong>
-            <small>Personal Tech Blog</small>
-          </span>
-        </a>
-        <button class="nav-toggle" type="button" aria-label="切换导航" aria-expanded="false" aria-controls="site-menu">
-          <span></span>
-          <span></span>
-        </button>
-        <div class="nav-menu" id="site-menu">
-          <a href="#about">About</a>
-          <a href="#focus">Focus</a>
-          <a href="#featured">Featured</a>
-          <a href="#timeline">Timeline</a>
-          <a href="/archives/">Archives</a>
-          <a href="https://github.com/TinloneX/" target="_blank" rel="noreferrer">GitHub</a>
-        </div>
-      </nav>
-    </header>
+      <a class="planet-link blog" href="/blog.html" aria-label="进入博客主页">
+        <article class="planet-card">
+          <span class="planet-globe blog" data-label="博客星球"><span class="planet-ring"></span></span>
+        </article>
+      </a>
 
-    <main>
-      <section class="hero section">
-        <div class="hero-copy reveal">
-          <p class="eyebrow">ANDROID · FRAMEWORK · PERFORMANCE</p>
-          <p class="hero-text">
-            我是 TinloneX，长期记录 Android Framework、Jetpack、性能优化与源码分析。
-            这里既是博客入口，也是我的技术名片。
-          </p>
-          <div class="hero-roles">
-            <span class="hero-roles-label">Currently exploring</span>
-            <strong id="typed-role">Android Framework Internals</strong>
-          </div>
-          <div class="hero-actions">
-            <a class="btn btn-primary" href="#featured">阅读精选</a>
-            <a class="btn btn-secondary" href="/about.html">了解更多</a>
-          </div>
-          <ul class="hero-stats" aria-label="站点统计">
-            <li>
-              <strong>15+</strong>
-              <span>技术文章</span>
-            </li>
-            <li>
-              <strong>8</strong>
-              <span>专题标签</span>
-            </li>
-            <li>
-              <strong>4</strong>
-              <span>内容分类</span>
-            </li>
-          </ul>
-        </div>
+      <a class="planet-link test" href="/nobti.html" aria-label="进入 NoBTI">
+        <article class="planet-card">
+          <span class="planet-globe test" data-label="NoBTI 星球"><span class="planet-ring"></span></span>
+        </article>
+      </a>
 
-        <div class="hero-panel reveal">
-          <div class="profile-card">
-            <div class="profile-card-top">
-              <div class="profile-avatar">
-                <img src="/logo.jpg" alt="TinloneX">
-              </div>
-              <div>
-                <p class="profile-name">TinloneX</p>
-                <p class="profile-title">Android Developer / Blogger</p>
-              </div>
-            </div>
-            <div class="signal-list">
-              <span>Jetpack</span>
-              <span>Lifecycle</span>
-              <span>WorkManager</span>
-              <span>ViewModel</span>
-              <span>Performance</span>
-              <span>Source Dive</span>
-            </div>
-            <div class="profile-panel">
-              <p>聚焦方向</p>
-              <ul>
-                <li>Android 组件与启动流程</li>
-                <li>Jetpack 架构组件最佳实践</li>
-                <li>性能优化与问题定位</li>
-              </ul>
-            </div>
-            <div class="profile-panel">
-              <p>聚焦行业</p>
-              <ul>
-                <li>移动互联网</li>
-                <li>手机系统</li>
-                <li>车载娱乐系统</li>
-                <li>导航</li>
-                <li>农业机器人</li>
-                <li>农机自动化</li>
-              </ul>
-            </div>
-            <div class="profile-links">
-              <a href="mailto:tinlone.workspace@foxmail.com">Email</a>
-              <a href="/tags/">Tags</a>
-              <a href="/categories/">Categories</a>
-            </div>
-          </div>
-        </div>
-      </section>
+      <a class="planet-link lab" href="/yinghua.html" aria-label="进入创意工坊">
+        <article class="planet-card">
+          <span class="planet-globe lab" data-label="创意工坊"><span class="planet-ring"></span></span>
+        </article>
+      </a>
+    </section>
 
-      <section class="section about" id="about">
-        <div class="section-heading reveal">
-          <p class="eyebrow">ABOUT ME</p>
-          <h2>把源码阅读、架构思考和性能优化写成可复用的方法论</h2>
-        </div>
-        <div class="about-grid">
-          <article class="glass-card reveal">
-            <h3>技术定位</h3>
-            <p>
-              主页不再只是文章列表，而是围绕个人品牌重建信息结构。访问者会先看到你的方向、输出能力和技术气质，再进入具体文章内容。
-            </p>
-          </article>
-          <article class="glass-card reveal">
-            <h3>内容特征</h3>
-            <p>
-              当前存量内容以 Android Framework、Jetpack、Lifecycle、LiveData、WorkManager 和性能优化为主，非常适合塑造成“源码分析型博客”。
-            </p>
-          </article>
-          <article class="glass-card reveal">
-            <h3>首页目标</h3>
-            <p>
-              用更强的视觉首屏、精选文章卡片和时间线叙事，让 GitHub Pages 首页既像作品集，也像技术门户。
-            </p>
-          </article>
-        </div>
-      </section>
+  </main>
+  <script>
+    const canvas = document.getElementById('starfield');
+    const ctx = canvas.getContext('2d');
+    let width = 0;
+    let height = 0;
+    let particles = [];
 
-      <section class="section focus" id="focus">
-        <div class="section-heading reveal">
-          <p class="eyebrow">FOCUS AREA</p>
-          <h2>围绕 Android 底层理解与工程实践展开输出</h2>
-        </div>
-        <div class="focus-grid">
-          <article class="focus-card reveal">
-            <span class="focus-index">01</span>
-            <h3>Framework</h3>
-            <p>从 Activity 启动流程、生命周期分发到系统组件工作链路，强调从入口走到关键调用栈。</p>
-          </article>
-          <article class="focus-card reveal">
-            <span class="focus-index">02</span>
-            <h3>Jetpack</h3>
-            <p>聚焦 ViewModel、LiveData、Lifecycle、StartUp 等架构组件的使用方式与设计动机。</p>
-          </article>
-          <article class="focus-card reveal">
-            <span class="focus-index">03</span>
-            <h3>Performance</h3>
-            <p>把内存优化、启动性能和运行期行为分析，沉淀成更实用的问题排查经验。</p>
-          </article>
-        </div>
-      </section>
+    function resizeStarfield() {
+      width = canvas.width = window.innerWidth;
+      height = canvas.height = window.innerHeight;
+      const count = Math.max(90, Math.floor((width * height) / 18000));
+      particles = Array.from({ length: count }, () => ({
+        x: Math.random() * width,
+        y: Math.random() * height,
+        r: Math.random() * 1.8 + 0.4,
+        vx: (Math.random() - 0.5) * 0.12,
+        vy: Math.random() * 0.22 + 0.04,
+        a: Math.random() * 0.7 + 0.2,
+        pulse: Math.random() * Math.PI * 2
+      }));
+    }
 
-      <section class="section featured" id="featured">
-        <div class="section-heading reveal">
-          <p class="eyebrow">FEATURED POSTS</p>
-          <h2>优先从这些代表性文章开始认识这个博客</h2>
-        </div>
-        <div class="featured-grid">
-          <a class="post-card reveal" href="/2021/04/11/Activity%E5%90%AF%E5%8A%A8%E6%B5%81%E7%A8%8B%E6%B5%85%E6%9E%90%EF%BC%88%E4%B8%80%EF%BC%89--%20API30%E8%B0%83%E7%94%A8%E6%B5%81%E7%A8%8B/">
-            <span class="post-meta">Framework · 2021-04-11</span>
-            <h3>Activity 启动流程浅析</h3>
-            <p>从 startActivity 进入系统调用链，建立对 Activity 启动过程的整体认知。</p>
-          </a>
-          <a class="post-card reveal" href="/2021/04/04/%E6%80%A7%E8%83%BD%E4%BC%98%E5%8C%96%E4%B9%8B%E5%86%85%E5%AD%98%E4%BC%98%E5%8C%96/">
-            <span class="post-meta">Performance · 2021-04-04</span>
-            <h3>性能优化之内存优化</h3>
-            <p>围绕堆、栈、方法区与内存管理思路，梳理 Android 性能优化的关键切入点。</p>
-          </a>
-          <a class="post-card reveal" href="/2021/03/10/Jetpack%E4%B9%8B%E5%8F%AF%E8%A7%82%E5%AF%9F%E7%9A%84%E6%95%B0%E6%8D%AE%E5%AD%98%E5%82%A8%E5%99%A8-LiveData%E4%BD%BF%E7%94%A8%E7%AF%87/">
-            <span class="post-meta">Jetpack · 2021-03-10</span>
-            <h3>LiveData 使用篇</h3>
-            <p>从生命周期感知的角度理解可观察数据容器，并给出更贴近实际场景的使用方式。</p>
-          </a>
-          <a class="post-card reveal" href="/2021/03/07/Jetpack%E4%B9%8B%E7%95%8C%E9%9D%A2%E6%95%B0%E6%8D%AE%E5%AD%98%E5%82%A8%E7%BB%84%E4%BB%B6-ViewModel/">
-            <span class="post-meta">Jetpack · 2021-03-07</span>
-            <h3>ViewModel 解析</h3>
-            <p>重新理解 ViewModel 在架构中的位置，拆开它和 MVVM 语境里的常见误区。</p>
-          </a>
-          <a class="post-card reveal" href="/2021/02/28/Jetpack%E4%B9%8B%E7%94%9F%E5%91%BD%E5%91%A8%E6%9C%9F%E6%84%9F%E7%9F%A5%E7%BB%84%E4%BB%B6-Lifecycle%E5%8E%9F%E7%90%86%E7%AF%87/">
-            <span class="post-meta">Jetpack · 2021-02-28</span>
-            <h3>Lifecycle 原理篇</h3>
-            <p>顺着 ActivityThread 和生命周期事件分发路径，看 Lifecycle 为什么能生效。</p>
-          </a>
-          <a class="post-card reveal" href="/2021/02/24/Jetpack%E4%B9%8B%E5%BA%94%E7%94%A8%E5%90%AF%E5%8A%A8%E7%BB%84%E4%BB%B6-StartUp/">
-            <span class="post-meta">Jetpack · 2021-02-24</span>
-            <h3>StartUp 组件</h3>
-            <p>理解应用启动初始化的组织方式，兼顾工程清晰度与启动性能。</p>
-          </a>
-        </div>
-      </section>
+    function drawStarfield() {
+      ctx.clearRect(0, 0, width, height);
+      particles.forEach((p) => {
+        p.x += p.vx;
+        p.y += p.vy;
+        p.pulse += 0.02;
+        if (p.y > height + 10) {
+          p.y = -10;
+          p.x = Math.random() * width;
+        }
+        if (p.x < -10) p.x = width + 10;
+        if (p.x > width + 10) p.x = -10;
 
-      <section class="section timeline" id="timeline">
-        <div class="section-heading reveal">
-          <p class="eyebrow">TIMELINE</p>
-          <h2>输出轨迹</h2>
-        </div>
-        <div class="timeline-list">
-          <article class="timeline-item reveal">
-            <span class="timeline-date">2021 / 04</span>
-            <div>
-              <h3>Framework 与性能优化</h3>
-              <p>发布 Activity 启动流程与内存优化相关文章，主题开始延伸到系统层和性能分析。</p>
-            </div>
-          </article>
-          <article class="timeline-item reveal">
-            <span class="timeline-date">2021 / 03</span>
-            <div>
-              <h3>架构组件深挖</h3>
-              <p>围绕 LiveData、ViewModel、Lifecycle 构建 Jetpack 系列内容。</p>
-            </div>
-          </article>
-          <article class="timeline-item reveal">
-            <span class="timeline-date">2021 / 02</span>
-            <div>
-              <h3>系列化写作启动</h3>
-              <p>从 WorkManager 到 StartUp，形成持续输出的源码分析节奏。</p>
-            </div>
-          </article>
-        </div>
-      </section>
+        const alpha = Math.max(0.08, Math.min(1, p.a + Math.sin(p.pulse) * 0.18));
+        ctx.beginPath();
+        ctx.fillStyle = `rgba(255,255,255,${alpha})`;
+        ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
+        ctx.fill();
 
-      <section class="section connect">
-        <div class="cta-card reveal">
-          <div>
-            <p class="eyebrow">CONNECT</p>
-            <h2>继续浏览博客，或直接找到我</h2>
-            <p>如果你也在关注 Android 架构、源码或性能优化，欢迎继续读文，也欢迎通过 GitHub 和邮件交流。</p>
-          </div>
-          <div class="cta-actions">
-            <a class="btn btn-primary" href="/archives/">进入归档</a>
-            <a class="btn btn-secondary" href="https://github.com/TinloneX/" target="_blank" rel="noreferrer">访问 GitHub</a>
-          </div>
-        </div>
-      </section>
-    </main>
+        ctx.beginPath();
+        ctx.fillStyle = `rgba(115,215,255,${alpha * 0.18})`;
+        ctx.arc(p.x, p.y, p.r * 3.4, 0, Math.PI * 2);
+        ctx.fill();
+      });
+      requestAnimationFrame(drawStarfield);
+    }
 
-    <footer class="site-footer">
-      <p>© 2026 TinloneX. Built for GitHub Pages, redesigned as a personal brand homepage.</p>
-      <div class="footer-links">
-        <a href="/about.html">About</a>
-        <a href="/tags/">Tags</a>
-        <a href="/categories/">Categories</a>
-        <a href="/valine.html">留言板</a>
-      </div>
-    </footer>
-  </div>
-
-  <script src="/js/home.js"></script>
+    resizeStarfield();
+    drawStarfield();
+    window.addEventListener('resize', resizeStarfield);
+  </script>
 </body>
 </html>
