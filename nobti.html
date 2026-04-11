@@ -49,8 +49,6 @@
           </div>
         </article>
         <aside class="box">
-          <h2>命中率约束</h2>
-          <p class="muted">25 种人格全部限制在 1% 到 5% 之间，总命中率为 100%。</p>
           <ul class="list" id="probabilityList"></ul>
         </aside>
       </div>
@@ -103,7 +101,7 @@
             <div class="meta-card"><strong id="metaB">-</strong><p class="muted">次高维度</p></div>
             <div class="meta-card"><strong id="metaC">-</strong><p class="muted">算法气质词</p></div>
           </div>
-          <p class="note">NoBTI 不提供真相，只提供风格稳定的误读。</p>
+          <p class="note">NoBTI 不提供真相</p>
         </aside>
       </div>
       <div class="dims" id="dimensionGrid"></div>
@@ -159,6 +157,26 @@
       proximity:'反映你偏爱贴近目标、保留余量与谨慎逼近的决策习惯。',
       imbalance:'反映你对失衡瞬间、非标准组合与异常感的识别本能。'
     };
+    const DIMENSION_CLINICAL = {
+      arc:'你更倾向于用柔和、缓冲的方式处理刺激，通常会先让情绪和信息慢慢落位，再决定是否靠近。',
+      corner:'你对边界和轮廓有较高敏感度，遇到模糊局面时，往往会本能地寻找一个更清楚的切入口。',
+      odd:'你对非典型线索有天然注意力，容易在别人忽略的偏差里感到新鲜、也感到真实。',
+      even:'你会优先信任节律稳定、结构整齐的对象，这让你在不确定环境里更依赖可预期性。',
+      prime:'你对独特性和不可替代性较为敏感，常会把“是否足够特别”当作判断价值的一部分。',
+      composite:'你更愿意相信复杂结构有其内在秩序，因此会对层次丰富、可展开的系统保持耐心。',
+      symmetry:'你对对称和呼应关系有明显偏好，这通常意味着你会把“是否平衡”当作心理安全感来源。',
+      closed:'你需要边界完整、信息收束的体验，过度开放或悬而未决的状态容易让你持续消耗。',
+      echo:'你会反复咀嚼留下余味的信号，因此许多判断不是当场形成，而是在回响中逐渐成形。',
+      asciiFlow:'你对节奏变化和微小波动很敏感，往往能更早感知到氛围变化或关系里的轻微偏移。',
+      carry:'你对突然跨位、临界推进的时刻比较有反应，越接近转折点，你的注意力通常越集中。',
+      gap:'你会被错位、落差和不协调吸引，因为这些地方常让你感觉“真正的信息藏在这里”。',
+      balance:'你有较强的自我校准能力，面对混乱时会不自觉地寻找重心，尽量把内部张力配平。',
+      drift:'你并不执着于标准路线，很多时候会通过轻微偏航为自己保留呼吸感和选择余地。',
+      magnitude:'你容易被高强度、强存在感的刺激吸引，重大情境往往比细碎琐事更能调动你。',
+      smallness:'你对细微线索、轻量变化非常敏锐，很多别人觉得不算什么的地方，你其实都在记录。',
+      proximity:'你倾向于先靠近、试探、保留余量，而不是一下子把自己推到最极端的位置。',
+      imbalance:'你对异常感和失衡瞬间有很高辨识度，这让你更容易捕捉问题，也更容易感到刺耳。'
+    };
     const MOOD_MAP = {arc:'回旋型',corner:'切面型',odd:'偏锋型',even:'整拍型',prime:'稀点型',composite:'铺陈型',symmetry:'镜像型',closed:'收束型',echo:'余响型',asciiFlow:'漂移型',carry:'跨位型',gap:'裂缝型',balance:'稳面型',drift:'斜航型',magnitude:'放大型',smallness:'微粒型',proximity:'贴边型',imbalance:'偏差型'};
     const QUIZ_TOTAL = 20;
     const NUMBER_COUNT = 12;
@@ -181,6 +199,7 @@
     const CUR=new Set(['B','C','D','G','J','O','P','Q','R','S','U','0','2','3','5','6','8','9']);
     const ANG=new Set(['A','K','M','N','V','W','X','Y','Z','1','4','7']);
     const CHAR_FACES = ['^_^','owo','T_T','-_-','>_<','@_@','._.','^o^','=w=','x_x'];
+    const PICK_EMOJIS = ['🙂','😼','🤨','✨','🌀','🍀','🫧','🪄','👀','🎲','🐾','💫'];
     let currentQuestions = [];
     let specialUnlocked = false;
     let catClicks = 0;
@@ -333,6 +352,17 @@
       if (first) first.scrollIntoView({ behavior: 'smooth', block: 'start' });
     }
 
+    function decorateSelectedOption(input) {
+      const name = input.name;
+      document.querySelectorAll(`input[name="${name}"] + span`).forEach((span) => {
+        span.textContent = span.dataset.baseLabel;
+      });
+      const target = input.nextElementSibling;
+      if (!target) return;
+      const emoji = PICK_EMOJIS[Math.floor(Math.random() * PICK_EMOJIS.length)];
+      target.textContent = `${target.dataset.baseLabel} ${emoji}`;
+    }
+
     function buildQuiz(shouldScrollToFirst = false) {
       const promptIndexes = shuffle(NUMBER_PROMPTS.map((_, i) => i));
       const numberQuestions = [];
@@ -370,7 +400,11 @@
           </div>
         </article>
       `).join('');
+      form.querySelectorAll('.opt span').forEach((span) => {
+        span.dataset.baseLabel = span.textContent;
+      });
       form.querySelectorAll('input[type="radio"]').forEach((el) => el.addEventListener('change', updateProgress));
+      form.querySelectorAll('input[type="radio"]').forEach((el) => el.addEventListener('change', () => decorateSelectedOption(el)));
       document.getElementById('resultPanel').classList.add('hidden');
       document.getElementById('catNote').textContent = '点喵咪 3 次也许会有事发生';
       updateProgress();
@@ -440,6 +474,18 @@
       return `本轮你的最高维度是“${d1}”，其次是“${d2}”，说明你更容易被 ${d1} 与 ${d2} 的组合吸引。算法随后把这组维度放进受控概率桶，命中了 ${persona.code} / ${persona.name}。这个人格偏向 ${persona.tone}，并且你在“${DIMENSION_META[extra]}”上的累计值为 ${((dimensions[extra] || 0)).toFixed(1)}，所以结果不像纯随机，更像一次有风格的误判。`;
     }
 
+    function buildClinicalNarrative(persona, dimensions, dominant, secondary) {
+      const ordered = Object.entries(dimensions).sort((a, b) => b[1] - a[1]);
+      const third = ordered[2] ? ordered[2][0] : persona.tags[0];
+      const dominantName = DIMENSION_META[dominant];
+      const secondaryName = DIMENSION_META[secondary];
+      const thirdName = DIMENSION_META[third];
+      const dominantLine = DIMENSION_CLINICAL[dominant];
+      const secondaryLine = DIMENSION_CLINICAL[secondary];
+      const thirdLine = DIMENSION_CLINICAL[third];
+      return `从偏心理学的阅读方式看，${persona.name} 并不只是风格标签，更像一种稳定的应对轮廓。你的主导特征落在“${dominantName}”，这通常意味着在面对环境刺激、人际气氛或信息噪声时，${dominantLine} 次高维度是“${secondaryName}”，说明你不会只停留在单一反应上，而会同时带着另一条心理通道工作，也就是 ${secondaryLine} 此外，你在“${thirdName}”上的得分也比较突出，提示你在更细处还保留着这样的倾向：${thirdLine} 综合来看，这次结果像是在说，你会以 ${persona.tone} 的方式组织自己的注意力、边界感和情绪节奏，因此才会落到 ${persona.code} 这一型。`;
+    }
+
     function renderResult(persona, dimensions, dominant, secondary) {
       document.getElementById('resultPanel').classList.remove('hidden');
       document.getElementById('personaCode').textContent = persona.code;
@@ -447,7 +493,7 @@
       document.getElementById('personaAlgo').textContent = `算法气质 ${persona.vibe}`;
       document.getElementById('personaName').textContent = persona.name;
       document.getElementById('personaIntro').textContent = `你在 NoBTI 中被归类为 ${persona.code} 型“${persona.name}”。这不是标准化人格标签，而是一份由数字轮廓、字符形状和错误加法共同拼出的临时画像。`;
-      document.getElementById('personaDesc').textContent = persona.desc;
+      document.getElementById('personaDesc').textContent = `${persona.desc}${buildClinicalNarrative(persona, dimensions, dominant, secondary)}`;
       document.getElementById('personaReason').textContent = buildReason(persona, dominant, secondary, dimensions);
       document.getElementById('metaA').textContent = DIMENSION_META[dominant];
       document.getElementById('metaB').textContent = DIMENSION_META[secondary];
