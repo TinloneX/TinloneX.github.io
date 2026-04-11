@@ -34,14 +34,14 @@
     <section class="hero">
       <p class="eyebrow">Anti-Personality Calibration</p>
       <h1 class="title"><span>No</span>BTI</h1>
-      <p class="subtitle">一个把性格测试拆成圆弧、尖角、字符回声和错误加法的反性格测试。每次随机 20 题，其中 12 题数字、4 题字符、4 题加法，最后落到 25 种低命中率人格之一。</p>
+      <p class="subtitle">欢迎进入 NoBTI 观察室。人不该被性格测试定义，至少不该被定义得这么草率。</p>
       <div class="hero-grid">
         <article class="box">
-          <h2>这份测试如何一本正经地胡说</h2>
+          <h2>测试说明与观察纪律</h2>
           <div class="rules">
-            <div class="rule"><strong>数字题</strong><p>按圆弧数、尖角数、奇偶属性、素合属性、位数、数根与重复率累计维度。</p></div>
-            <div class="rule"><strong>字符题</strong><p>按对称感、封闭度、ASCII 起伏、重复回声与形状密度累计维度。</p></div>
-            <div class="rule"><strong>运算题</strong><p>所有加法题都没有正确答案，只记录你偏爱接近值、跨位感还是落差感。</p></div>
+            <div class="rule"><strong>数字题</strong><p>用于评估你对秩序、边界与形式稳定性的依附水平。说白了，看看你是不是会被一个看起来很笃定的数字轻易拿捏。</p></div>
+            <div class="rule"><strong>字符题</strong><p>用于观察你对符号气氛、群体一致性与微弱失衡的反应能力。别紧张，系统只是在判断你究竟敏感，还是单纯想太多。</p></div>
+            <div class="rule"><strong>运算题</strong><p>用于测量你在错误前提下维持自信的能力。所有选项都不对，这一点和你平时很多强装镇定的时刻其实很像。</p></div>
           </div>
           <div class="actions">
             <button class="primary" id="startBtn" type="button">开始瞎测</button>
@@ -58,7 +58,7 @@
       <div class="head">
         <div>
           <h2>本轮题面</h2>
-          <p class="muted">请选择每题里最顺眼、最像“嗯就这个吧”的选项。这里只有偏好，没有对错。</p>
+          <p class="muted">请根据第一反应作答。你可以假装自己很理性，但系统更在意你到底会被哪一种秩序、噪声、暗示或轻微冒犯勾走注意力。</p>
         </div>
         <div class="progress">
           <div class="pmeta"><span id="progressText">已完成 0 / 20 · 彩蛋 0 / 1</span><span>数字 12 · 字符 4 · 运算 4 · 特殊 1</span></div>
@@ -78,7 +78,7 @@
       <div class="head">
         <div>
           <h2>测试结论</h2>
-          <p class="muted">结果由维度画像和受控概率桶共同决定，页面会同时显示人格结论与各项维度。</p>
+          <p class="muted">结果将以伪专业报告的口吻返还给你。它不会真的理解你，但会非常认真地误读你。</p>
         </div>
         <div class="actions"><button class="secondary" id="retryBtn" type="button">再测一次</button></div>
       </div>
@@ -295,16 +295,18 @@
     }
 
     const NUMBER_PROMPTS = [
-      '下面哪个数字让你觉得“它自己已经想好了”？',
-      '哪一个数字最像刚洗完澡就准备出门的人？',
-      '如果数字也会耍帅，你更想 pick 谁？',
-      '哪一个数字看起来最像“别问，问就是我有安排”？',
-      '下面哪个数字最像今天状态在线的你？',
-      '哪一个数字有种莫名其妙但很可靠的气场？',
-      '如果要选一个数字当临时队长，你会点谁？',
-      '哪一个数字像是刚刚偷偷赢了一局？',
-      '下面哪个数字最像“它不解释，但它是对的”？',
-      '如果这些数字在排队，谁最像站在 C 位的？'
+      '在本轮形式稳定性访谈中，哪一个数字最像已经替自己想好退路的对象？',
+      '假设你必须把其中一个数字带进会议室充当发言人，你会选谁替你承担尴尬？',
+      '以下数字中，哪一个最像表面冷静、实际上控制欲很强的样本？',
+      '若系统要求你立即信任一个数字，你会把这种轻率交给哪一位？',
+      '哪一个数字最像那种并不讨喜，但你不得不承认它很稳的人？',
+      '在这些数字里，谁最像已经提前写完自我辩护词的对象？',
+      '如果把它们视作候选人格，哪一个最像会在沉默里赢过你的？',
+      '哪一个数字最符合“看着普通，却会在关键时刻突然掌控局面”的描述？',
+      '若你仍相信直觉，请指出最像成熟样本的那个数字。',
+      '系统判断你会偏爱其中一个数字，请证明你没有那么好预测。',
+      '以下哪一个数字最像会礼貌地冒犯你，然后逼你承认它是对的？',
+      '在这组候选编码中，哪一个最像已经完成自我校准的合格对象？'
     ];
 
     function makeNumberOption(baseValue) {
@@ -336,7 +338,14 @@
       for (let i = 0; i < len; i++) s += CHAR_POOL[Math.floor(Math.random() * CHAR_POOL.length)];
       return s;
     };
-    const CHAR_PROMPTS = ['哪组字符更像一个“会自己维持秩序”的小团体？','如果要把其中一组贴在门口当暗号，你更想选哪组？','哪组字符最像你今天愿意相信的临时密码？','如果这些字符会结伴出游，哪组最像不会走散的？','哪组字符看起来像是偷偷达成了内部共识？','如果只能选一组当你的今日隐藏口令，你会带走哪组？'];
+    const CHAR_PROMPTS = [
+      '以下哪组字符更像已经形成内部秩序、暂时不需要你添乱的群体？',
+      '如果观察室要求你从中选出一组作为安全口令，你会把信任交给哪一组？',
+      '哪组字符最像表面松散、实际上早就私下达成一致的同盟？',
+      '若把这些字符视作小型社会，哪一组最像不会轻易把你接纳进去的那群？',
+      '以下哪组符号最符合“沉默、稳定、略带排他性”的观察记录？',
+      '哪组字符最像你今天勉强愿意承认其具有专业气质的样本？'
+    ];
     const charQ = (promptIndex) => {
       const options = shuffle([randChars(),randChars(),randChars(),randChars()]);
       return { type:'chars', title:CHAR_PROMPTS[promptIndex], signature:`c-${options.slice().sort().join('-')}-${promptIndex}`, options:options.map((v)=>({label:v,value:v})) };
@@ -344,7 +353,7 @@
     const addQ = () => {
       const a = Math.floor(Math.random() * 37) + 8, b = Math.floor(Math.random() * 37) + 6, sum = a + b;
       const options = shuffle(shuffle([-9,-6,-3,3,5,7,11]).slice(0,4).map((d)=>sum + d));
-      return { type:'addition', title:`${a} + ${b} = ?`, signature:`a-${a}-${b}-${options.slice().sort((m,n)=>m-n).join('-')}`, a, b, options:options.map((v)=>({label:String(v),value:v})) };
+      return { type:'addition', title:`在算术服从性校准中，请判断：${a} + ${b} = ?`, signature:`a-${a}-${b}-${options.slice().sort((m,n)=>m-n).join('-')}`, a, b, options:options.map((v)=>({label:String(v),value:v})) };
     };
 
     function scrollToFirstQuestion() {
@@ -491,8 +500,8 @@
       document.getElementById('personaCode').textContent = persona.code;
       document.getElementById('personaRate').textContent = `理论命中率 ${persona.rate}%`;
       document.getElementById('personaAlgo').textContent = `算法气质 ${persona.vibe}`;
-      document.getElementById('personaName').textContent = persona.name;
-      document.getElementById('personaIntro').textContent = `你在 NoBTI 中被归类为 ${persona.code} 型“${persona.name}”。这不是标准化人格标签，而是一份由数字轮廓、字符形状和错误加法共同拼出的临时画像。`;
+      document.getElementById('personaName').textContent = `${persona.code} · ${persona.name}`;
+      document.getElementById('personaIntro').textContent = `你已完成 NoBTI 观察流程，并被归类为 ${persona.code} 型“${persona.name}”。这不是一个真正可靠的医学结论，却会用足够专业的语气，把你的犹豫、偏好与一点点不服气描述得像回事。`;
       document.getElementById('personaDesc').textContent = `${persona.desc}${buildClinicalNarrative(persona, dimensions, dominant, secondary)}`;
       document.getElementById('personaReason').textContent = buildReason(persona, dominant, secondary, dimensions);
       document.getElementById('metaA').textContent = DIMENSION_META[dominant];
