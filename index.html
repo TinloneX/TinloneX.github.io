@@ -58,15 +58,38 @@
 
     /* ── Core ── */
     .core{position:relative;width:clamp(280px,62vw,600px);aspect-ratio:1;margin:0 auto;display:flex;align-items:center;justify-content:center}
-    .ring{position:absolute;border-radius:50%;pointer-events:none}
-    .ring.a{inset:32%;border:1.5px solid rgba(0,240,255,.28);box-shadow:0 0 18px rgba(0,240,255,.12),inset 0 0 18px rgba(0,240,255,.05);animation:spin 14s linear infinite}
-    .ring.b{inset:22%;border:1px solid rgba(179,71,234,.22);box-shadow:0 0 14px rgba(179,71,234,.10);animation:spin 20s linear infinite reverse;rotate:x 55deg}
-    .ring.c{inset:12%;border:1px solid rgba(0,240,255,.14);box-shadow:0 0 10px rgba(0,240,255,.08);animation:spin 26s linear infinite;rotate:x -48deg}
+    /* -- Hex frames -- */
+    .fx{position:absolute;inset:0;clip-path:polygon(50% 3%,95% 25%,95% 75%,50% 97%,5% 75%,5% 25%);pointer-events:none}
+    .fx::after{content:"";position:absolute;inset:2px;clip-path:polygon(50% 3%,95% 25%,95% 75%,50% 97%,5% 75%,5% 25%)}
+    .fx.a{z-index:1;animation:spin 18s linear infinite}
+    .fx.a::after{background:conic-gradient(from 0deg,rgba(0,240,255,0),rgba(0,240,255,.12),rgba(0,240,255,0))}
+    .fx.b{inset:8%;z-index:3;animation:spin 28s linear infinite reverse}
+    .fx.b::after{background:conic-gradient(from 90deg,transparent,rgba(179,71,234,.10),transparent);box-shadow:inset 0 0 40px rgba(179,71,234,.06)}
+    .fx.c{inset:16%;z-index:2;animation:spin 22s linear infinite;border:1px solid rgba(0,240,255,.15)}
+    .fx.c::after{inset:0;background:transparent;border:1px dashed rgba(0,240,255,.12);animation:dash-rot .8s linear infinite}
     @keyframes spin{to{rotate:360deg}}
-    .diamond{width:clamp(36px,7vw,70px);height:clamp(36px,7vw,70px);background:rgba(0,240,255,.06);border:2px solid rgba(0,240,255,.4);rotate:45deg;box-shadow:0 0 25px rgba(0,240,255,.25),0 0 60px rgba(0,240,255,.1),inset 0 0 18px rgba(0,240,255,.08);animation:d-pulse 3s ease-in-out infinite}
-    .diamond::after{content:"";position:absolute;inset:22%;background:rgba(0,240,255,.2);animation:d-inner 2.2s ease-in-out infinite alternate}
-    @keyframes d-pulse{0%,100%{box-shadow:0 0 25px rgba(0,240,255,.25),0 0 55px rgba(0,240,255,.08)}50%{box-shadow:0 0 50px rgba(0,240,255,.5),0 0 110px rgba(0,240,255,.22),0 0 180px rgba(179,71,234,.12)}}
-    @keyframes d-inner{0%{opacity:.35;scale:.65}100%{opacity:1;scale:1}}
+    @keyframes dash-rot{to{rotate:180deg}}
+    /* -- Energy beams -- */
+    .beam{position:absolute;width:1px;height:46%;background:linear-gradient(to top,transparent,rgba(0,240,255,.25),transparent);pointer-events:none;transform-origin:bottom center;bottom:50%}
+    .beam:nth-child(1){rotate:0deg;animation:beam-sweep 12s linear infinite}
+    .beam:nth-child(2){rotate:60deg;animation:beam-sweep 12s linear infinite 4s}
+    .beam:nth-child(3){rotate:120deg;animation:beam-sweep 12s linear infinite 8s}
+    @keyframes beam-sweep{0%{opacity:.6}50%{opacity:0}100%{opacity:.6}}
+    /* -- Core spark -- */
+    .spark{position:relative;z-index:4;width:clamp(14px,3vw,28px);height:clamp(14px,3vw,28px);border-radius:50%;background:var(--cyan);box-shadow:0 0 20px var(--cyan),0 0 50px rgba(0,240,255,.8),0 0 100px rgba(0,240,255,.4),0 0 160px rgba(0,240,255,.15);animation:spark-pulse 2.4s ease-in-out infinite}
+    @keyframes spark-pulse{0%,100%{scale:1;opacity:.9}50%{scale:1.6;opacity:1}}
+    /* -- Accretion ring -- */
+    .acc{position:absolute;inset:26%;border-radius:50%;pointer-events:none;z-index:2;border:2px solid transparent;animation:spin 8s linear infinite}
+    .acc::before{content:"";position:absolute;inset:-4px;border-radius:50%;border:1px solid rgba(0,240,255,.3);border-top-color:var(--cyan);box-shadow:0 0 12px rgba(0,240,255,.25);animation:spin 4s linear infinite}
+    /* -- Orbit dots -- */
+    .dots{position:absolute;inset:20%;pointer-events:none;animation:spin 16s linear infinite}
+    .dots i{position:absolute;width:4px;height:4px;border-radius:50%;background:var(--cyan);box-shadow:0 0 6px var(--cyan)}
+    .dots i:nth-child(1){top:0;left:50%}
+    .dots i:nth-child(2){top:50%;right:0;background:var(--purple);box-shadow:0 0 6px var(--purple)}
+    .dots i:nth-child(3){bottom:0;left:50%}
+    .dots i:nth-child(4){top:50%;left:0;background:var(--magenta);box-shadow:0 0 6px var(--magenta)}
+    .dots i:nth-child(5){top:15%;right:15%;width:2px;height:2px}
+    .dots i:nth-child(6){bottom:15%;left:15%;width:2px;height:2px}
 
     /* ── Nodes ── */
     .node{position:absolute;left:50%;top:50%;display:flex;flex-direction:column;align-items:center;text-decoration:none;color:inherit;transition:filter .3s;transform-origin:0 0}
@@ -100,14 +123,13 @@
     /* ── Responsive ── */
     @media(max-width:768px){
       .cards{grid-template-columns:1fr;max-width:380px}
-      .ring.b{rotate:x 42deg}.ring.c{rotate:x -38deg}
     }
     @media(max-width:480px){
       .hex{width:38px;height:44px}
       .node-tag{bottom:-20px;font-size:.55rem}
     }
     @media(prefers-reduced-motion:reduce){
-      .ring,.diamond,.node *,*::before,*::after{animation:none!important}
+      .fx,.spark,.acc,.dots,.beam,.node *,*::before,*::after{animation:none!important}
     }
   </style>
 </head>
@@ -120,10 +142,15 @@
     </div>
 
     <section class="core" aria-label="导航星图">
-      <div class="ring a"></div>
-      <div class="ring b"></div>
-      <div class="ring c"></div>
-      <div class="diamond"></div>
+      <div class="fx a"></div>
+      <div class="fx b"></div>
+      <div class="fx c"></div>
+      <div class="beam"></div>
+      <div class="beam"></div>
+      <div class="beam"></div>
+      <div class="acc"></div>
+      <div class="dots"><i></i><i></i><i></i><i></i><i></i><i></i></div>
+      <div class="spark"></div>
 
       <a class="node" href="/blog.html" aria-label="进入博客" data-orbit="23" data-angle="-30" data-speed="30">
         <div class="hex b"></div>
