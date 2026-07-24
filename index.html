@@ -62,7 +62,7 @@
     .holo-ring.r2{inset:22%;border-color:rgba(179,71,234,.28);box-shadow:0 0 16px rgba(179,71,234,.12);animation:spin-ring 18s linear infinite reverse;transform:rotateX(58deg)}
     .holo-ring.r3{inset:14%;border-color:rgba(0,240,255,.18);box-shadow:0 0 12px rgba(0,240,255,.1);animation:spin-ring 24s linear infinite;transform:rotateX(-52deg)}
     .holo-ring.r4{inset:6%;border:2px dashed rgba(0,240,255,.12);border-radius:50%;animation:spin-ring 30s linear infinite reverse}
-    @keyframes spin-ring{to{transform:rotate(360deg)}}
+    @keyframes spin-ring{to{rotate:360deg}}
     .core-diamond{position:absolute;width:clamp(40px,8vw,80px);height:clamp(40px,8vw,80px);background:rgba(0,240,255,.08);border:2px solid rgba(0,240,255,.45);transform:rotate(45deg);box-shadow:0 0 30px rgba(0,240,255,.3),0 0 60px rgba(0,240,255,.12),inset 0 0 20px rgba(0,240,255,.1);animation:core-pulse 3s ease-in-out infinite}
     .core-diamond::after{content:"";position:absolute;inset:20%;background:rgba(0,240,255,.25);transform:rotate(0deg);animation:core-inner 2s ease-in-out infinite alternate}
     @keyframes core-pulse{0%,100%{box-shadow:0 0 20px rgba(0,240,255,.3),0 0 50px rgba(0,240,255,.1)}50%{box-shadow:0 0 45px rgba(0,240,255,.5),0 0 100px rgba(0,240,255,.25),0 0 160px rgba(179,71,234,.15)}}
@@ -76,7 +76,7 @@
     .node-hex.blog{background:linear-gradient(135deg,rgba(0,240,255,.35),rgba(0,180,220,.12));border:1.5px solid rgba(0,240,255,.5);box-shadow:0 0 25px rgba(0,240,255,.4),inset 0 0 25px rgba(0,240,255,.12)}
     .node-hex.test{background:linear-gradient(135deg,rgba(255,45,149,.35),rgba(200,20,100,.12));border:1.5px solid rgba(255,45,149,.5);box-shadow:0 0 25px rgba(255,45,149,.4),inset 0 0 25px rgba(255,45,149,.12)}
     .node-hex.lab{background:linear-gradient(135deg,rgba(179,71,234,.35),rgba(130,40,180,.12));border:1.5px solid rgba(179,71,234,.5);box-shadow:0 0 25px rgba(179,71,234,.4),inset 0 0 25px rgba(179,71,234,.12)}
-    .node-glow{position:absolute;inset:-6px;border-radius:inherit;opacity:0;transition:opacity .3s}
+    .node-glow{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);width:clamp(52px,9vw,80px);height:clamp(60px,10vw,92px);opacity:0;transition:opacity .3s;pointer-events:none}
     .orbit-node:hover .node-glow{opacity:1}
     .node-glow.blog{box-shadow:0 0 50px rgba(0,240,255,.8),0 0 120px rgba(0,240,255,.4)}
     .node-glow.test{box-shadow:0 0 50px rgba(255,45,149,.8),0 0 120px rgba(255,45,149,.4)}
@@ -137,19 +137,19 @@
 
       <!-- Blog node -->
       <a class="orbit-node" href="/blog.html" aria-label="进入博客" data-orbit="24" data-angle="-30" data-speed="28">
-        <div class="node-hex blog"><div class="node-glow blog"></div></div>
+        <div class="node-hex blog"></div><div class="node-glow blog"></div>
         <span class="node-label">BLØG</span>
       </a>
 
       <!-- NoBTI node -->
       <a class="orbit-node" href="/nobti.html" aria-label="进入 NoBTI" data-orbit="36" data-angle="110" data-speed="36">
-        <div class="node-hex test"><div class="node-glow test"></div></div>
+        <div class="node-hex test"></div><div class="node-glow test"></div>
         <span class="node-label">NØBTI</span>
       </a>
 
       <!-- Lab node -->
       <a class="orbit-node" href="/yinghua.html" aria-label="进入创意工坊" data-orbit="48" data-angle="220" data-speed="44">
-        <div class="node-hex lab"><div class="node-glow lab"></div></div>
+        <div class="node-hex lab"></div><div class="node-glow lab"></div>
         <span class="node-label">LÆB</span>
       </a>
     </section>
@@ -284,11 +284,6 @@
       }
 
       /* ── Main Loop ── */
-      function resize(){
-        W=canvas.width=window.innerWidth; H=canvas.height=window.innerHeight;
-        initRain(); initParticles();
-      }
-
       let lastTime = 0;
       function draw(ts){
         const dt = lastTime ? Math.min((ts - lastTime) / 1000, 0.1) : 0.016;
