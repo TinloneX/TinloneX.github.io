@@ -20,103 +20,94 @@
   <meta name="twitter:image" content="https://tinlone.com/logo.jpg">
   <!-- Canonical -->
   <link rel="canonical" href="https://tinlone.com/">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700;900&display=swap" rel="stylesheet">
   <style>
     :root {
       --cyan: #00f0ff;
       --purple: #b347ea;
       --magenta: #ff2d95;
       --bg: #020508;
-      --surface: rgba(0, 20, 40, 0.6);
-      --border: rgba(0, 240, 255, 0.15);
     }
     *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
-    html,body{width:100%;min-height:100vh;overflow-x:hidden;font-family:"Share Tech Mono","JetBrains Mono","Courier New","PingFang SC",monospace;color:#d4f4ff;background:var(--bg)}
+    html,body{width:100%;min-height:100vh;overflow-x:hidden;color:#d0ecff;background:var(--bg);font-family:"Orbitron","PingFang SC","Microsoft YaHei",sans-serif}
 
-    /* Canvas background */
+    /* ── Canvas ── */
     canvas#bg{position:fixed;inset:0;z-index:0;pointer-events:none}
 
-    /* CRT overlay */
-    body::after{content:"";position:fixed;inset:0;z-index:999;pointer-events:none;
-      background:repeating-linear-gradient(0deg,rgba(0,0,0,.08) 0px,transparent 2px,rgba(0,0,0,.08) 4px);
-      mask-image:radial-gradient(ellipse at center,transparent 30%,rgba(0,0,0,.55) 100%)}
-    body::before{content:"";position:fixed;inset:0;z-index:998;pointer-events:none;
-      background:radial-gradient(ellipse at 50% 45%,rgba(0,240,255,.04) 0%,transparent 50%,rgba(0,0,0,.7) 100%)}
+    /* ── Overlays ── */
+    body::after{content:"";position:fixed;inset:0;z-index:998;pointer-events:none;
+      background:repeating-linear-gradient(0deg,transparent,transparent 2px,rgba(0,0,0,.04) 2px,rgba(0,0,0,.04) 4px);
+      mask-image:radial-gradient(ellipse at center,transparent 40%,rgba(0,0,0,.35) 100%)}
+    body::before{content:"";position:fixed;inset:0;z-index:997;pointer-events:none;
+      background:radial-gradient(ellipse at 50% 48%,rgba(0,240,255,.03) 0%,transparent 45%,rgba(0,0,0,.5) 100%)}
 
-    /* Main layout */
-    main{position:relative;z-index:1;display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:100vh;padding:clamp(16px,4vw,40px)}
+    /* ── Layout ── */
+    main{position:relative;z-index:1;display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:100vh;padding:20px}
 
-    /* ── Glitch Title ── */
-    .glitch-wrap{text-align:center;margin-bottom:clamp(10px,2vh,24px)}
-    .glitch{font-family:"Share Tech Mono","JetBrains Mono",monospace;font-size:clamp(2.2rem,8vw,6.5rem);font-weight:400;letter-spacing:.16em;position:relative;display:inline-block;color:var(--cyan);text-shadow:0 0 10px var(--cyan),0 0 40px rgba(0,240,255,.5),0 0 80px rgba(0,240,255,.2);user-select:none}
-    .glitch::before,.glitch::after{content:attr(data-text);position:absolute;left:0;top:0;width:100%;height:100%;opacity:.6}
-    .glitch::before{color:var(--magenta);text-shadow:-2px 0 var(--magenta);animation:glitch-b 3.2s steps(1) infinite;clip-path:polygon(0 15%,100% 15%,100% 35%,0 35%)}
-    .glitch::after{color:var(--purple);text-shadow:2px 0 var(--purple);animation:glitch-a 2.7s steps(1) infinite;clip-path:polygon(0 65%,100% 65%,100% 85%,0 85%)}
-    @keyframes glitch-b{0%,92%,100%{transform:translate(0)}93%{transform:translate(-3px,1px)}95%{transform:translate(3px,-1px)}97%{transform:translate(0)}}
-    @keyframes glitch-a{0%,88%,100%{transform:translate(0)}89%{transform:translate(4px,-1px)}91%{transform:translate(-2px,2px)}93%{transform:translate(0)}}
-    .sub-tag{display:block;margin-top:4px;font-size:clamp(.7rem,1.8vw,1rem);letter-spacing:.28em;color:rgba(0,240,255,.55);text-transform:uppercase}
+    /* ── Title ── */
+    .glitch-wrap{text-align:center;margin-bottom:clamp(6px,1.5vh,18px)}
+    .glitch{font-size:clamp(2rem,7vw,5.5rem);font-weight:900;letter-spacing:.14em;position:relative;display:inline-block;color:var(--cyan);text-shadow:0 0 12px var(--cyan),0 0 50px rgba(0,240,255,.5),0 0 100px rgba(0,240,255,.2);user-select:none;line-height:1}
+    .glitch::before,.glitch::after{content:attr(data-text);position:absolute;left:0;top:0;width:100%;height:100%}
+    .glitch::before{color:var(--magenta);text-shadow:-3px 0 var(--magenta);animation:g1 3.5s steps(1) infinite;clip-path:polygon(0 15%,100% 10%,100% 32%,0 38%)}
+    .glitch::after{color:var(--purple);text-shadow:3px 0 var(--purple);animation:g2 2.8s steps(1) infinite;clip-path:polygon(0 63%,100% 68%,100% 88%,0 78%)}
+    @keyframes g1{0%,91%,100%{transform:translate(0)}92.5%{transform:translate(-3px,1px)}94.5%{transform:translate(3px,0)}96%{transform:translate(0)}}
+    @keyframes g2{0%,87%,100%{transform:translate(0)}88.5%{transform:translate(4px,-1px)}90.5%{transform:translate(-2px,2px)}92%{transform:translate(0)}}
+    .sub-tag{display:block;margin-top:6px;font-size:clamp(.62rem,1.5vw,.88rem);letter-spacing:.32em;color:rgba(0,240,255,.45)}
 
-    /* ── Holographic Core ── */
-    .core{position:relative;width:clamp(300px,70vw,680px);aspect-ratio:1;display:flex;align-items:center;justify-content:center;margin:0 auto}
-    .holo-ring{position:absolute;border-radius:50%;border:1px solid rgba(0,240,255,.2);pointer-events:none}
-    .holo-ring.r1{inset:30%;border-color:rgba(0,240,255,.35);box-shadow:0 0 20px rgba(0,240,255,.15),inset 0 0 20px rgba(0,240,255,.06);animation:spin-ring 12s linear infinite}
-    .holo-ring.r2{inset:22%;border-color:rgba(179,71,234,.28);box-shadow:0 0 16px rgba(179,71,234,.12);animation:spin-ring 18s linear infinite reverse;transform:rotateX(58deg)}
-    .holo-ring.r3{inset:14%;border-color:rgba(0,240,255,.18);box-shadow:0 0 12px rgba(0,240,255,.1);animation:spin-ring 24s linear infinite;transform:rotateX(-52deg)}
-    .holo-ring.r4{inset:6%;border:2px dashed rgba(0,240,255,.12);border-radius:50%;animation:spin-ring 30s linear infinite reverse}
-    @keyframes spin-ring{to{rotate:360deg}}
-    .core-diamond{position:absolute;width:clamp(40px,8vw,80px);height:clamp(40px,8vw,80px);background:rgba(0,240,255,.08);border:2px solid rgba(0,240,255,.45);transform:rotate(45deg);box-shadow:0 0 30px rgba(0,240,255,.3),0 0 60px rgba(0,240,255,.12),inset 0 0 20px rgba(0,240,255,.1);animation:core-pulse 3s ease-in-out infinite}
-    .core-diamond::after{content:"";position:absolute;inset:20%;background:rgba(0,240,255,.25);transform:rotate(0deg);animation:core-inner 2s ease-in-out infinite alternate}
-    @keyframes core-pulse{0%,100%{box-shadow:0 0 20px rgba(0,240,255,.3),0 0 50px rgba(0,240,255,.1)}50%{box-shadow:0 0 45px rgba(0,240,255,.5),0 0 100px rgba(0,240,255,.25),0 0 160px rgba(179,71,234,.15)}}
-    @keyframes core-inner{0%{opacity:.4;transform:scale(.7)}100%{opacity:1;transform:scale(1)}}
+    /* ── Core ── */
+    .core{position:relative;width:clamp(280px,62vw,600px);aspect-ratio:1;margin:0 auto;display:flex;align-items:center;justify-content:center}
+    .ring{position:absolute;border-radius:50%;pointer-events:none}
+    .ring.a{inset:32%;border:1.5px solid rgba(0,240,255,.28);box-shadow:0 0 18px rgba(0,240,255,.12),inset 0 0 18px rgba(0,240,255,.05);animation:spin 14s linear infinite}
+    .ring.b{inset:22%;border:1px solid rgba(179,71,234,.22);box-shadow:0 0 14px rgba(179,71,234,.10);animation:spin 20s linear infinite reverse;rotate:x 55deg}
+    .ring.c{inset:12%;border:1px solid rgba(0,240,255,.14);box-shadow:0 0 10px rgba(0,240,255,.08);animation:spin 26s linear infinite;rotate:x -48deg}
+    @keyframes spin{to{rotate:360deg}}
+    .diamond{width:clamp(36px,7vw,70px);height:clamp(36px,7vw,70px);background:rgba(0,240,255,.06);border:2px solid rgba(0,240,255,.4);rotate:45deg;box-shadow:0 0 25px rgba(0,240,255,.25),0 0 60px rgba(0,240,255,.1),inset 0 0 18px rgba(0,240,255,.08);animation:d-pulse 3s ease-in-out infinite}
+    .diamond::after{content:"";position:absolute;inset:22%;background:rgba(0,240,255,.2);animation:d-inner 2.2s ease-in-out infinite alternate}
+    @keyframes d-pulse{0%,100%{box-shadow:0 0 25px rgba(0,240,255,.25),0 0 55px rgba(0,240,255,.08)}50%{box-shadow:0 0 50px rgba(0,240,255,.5),0 0 110px rgba(0,240,255,.22),0 0 180px rgba(179,71,234,.12)}}
+    @keyframes d-inner{0%{opacity:.35;scale:.65}100%{opacity:1;scale:1}}
 
-    /* ── Orbit Nodes ── */
-    .orbit-node{position:absolute;left:50%;top:50%;display:flex;flex-direction:column;align-items:center;text-decoration:none;color:inherit;transform-origin:0 0;transition:filter .3s}
-    .orbit-node:hover{filter:brightness(1.6);z-index:10}
-    .node-hex{width:clamp(52px,9vw,80px);height:clamp(60px,10vw,92px);position:relative;clip-path:polygon(50% 0%,100% 25%,100% 75%,50% 100%,0% 75%,0% 25%);transition:transform .3s}
-    .orbit-node:hover .node-hex{transform:scale(1.18)}
-    .node-hex.blog{background:linear-gradient(135deg,rgba(0,240,255,.35),rgba(0,180,220,.12));border:1.5px solid rgba(0,240,255,.5);box-shadow:0 0 25px rgba(0,240,255,.4),inset 0 0 25px rgba(0,240,255,.12)}
-    .node-hex.test{background:linear-gradient(135deg,rgba(255,45,149,.35),rgba(200,20,100,.12));border:1.5px solid rgba(255,45,149,.5);box-shadow:0 0 25px rgba(255,45,149,.4),inset 0 0 25px rgba(255,45,149,.12)}
-    .node-hex.lab{background:linear-gradient(135deg,rgba(179,71,234,.35),rgba(130,40,180,.12));border:1.5px solid rgba(179,71,234,.5);box-shadow:0 0 25px rgba(179,71,234,.4),inset 0 0 25px rgba(179,71,234,.12)}
-    .node-glow{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);width:clamp(52px,9vw,80px);height:clamp(60px,10vw,92px);opacity:0;transition:opacity .3s;pointer-events:none}
-    .orbit-node:hover .node-glow{opacity:1}
-    .node-glow.blog{box-shadow:0 0 50px rgba(0,240,255,.8),0 0 120px rgba(0,240,255,.4)}
-    .node-glow.test{box-shadow:0 0 50px rgba(255,45,149,.8),0 0 120px rgba(255,45,149,.4)}
-    .node-glow.lab{box-shadow:0 0 50px rgba(179,71,234,.8),0 0 120px rgba(179,71,234,.4)}
-    .node-label{position:absolute;bottom:-clamp(24px,4vw,32px);white-space:nowrap;font-size:clamp(.62rem,1.2vw,.85rem);letter-spacing:.16em;padding:3px 10px;border-radius:3px;background:rgba(0,20,40,.8);border:1px solid var(--border);transition:all .3s}
-    .orbit-node:hover .node-label{border-color:rgba(0,240,255,.5);text-shadow:0 0 8px var(--cyan)}
-    .orbit-node.test:hover .node-label{border-color:rgba(255,45,149,.5);text-shadow:0 0 8px var(--magenta)}
-    .orbit-node.lab:hover .node-label{border-color:rgba(179,71,234,.5);text-shadow:0 0 8px var(--purple)}
+    /* ── Nodes ── */
+    .node{position:absolute;left:50%;top:50%;display:flex;flex-direction:column;align-items:center;text-decoration:none;color:inherit;transition:filter .3s;transform-origin:0 0}
+    .node:hover{filter:brightness(1.8);z-index:10}
+    .node:hover .hex{scale:1.22}
+    .hex{width:clamp(48px,8vw,72px);height:clamp(56px,9vw,84px);clip-path:polygon(50% 0%,100% 25%,100% 75%,50% 100%,0% 75%,0% 25%);position:relative;transition:scale .25s}
+    .b{background:linear-gradient(135deg,rgba(0,240,255,.3),rgba(0,160,210,.1));border:1.5px solid rgba(0,240,255,.45);box-shadow:0 0 22px rgba(0,240,255,.35),inset 0 0 22px rgba(0,240,255,.10)}
+    .m{background:linear-gradient(135deg,rgba(255,45,149,.3),rgba(180,20,90,.1));border:1.5px solid rgba(255,45,149,.45);box-shadow:0 0 22px rgba(255,45,149,.35),inset 0 0 22px rgba(255,45,149,.10)}
+    .p{background:linear-gradient(135deg,rgba(179,71,234,.3),rgba(120,40,170,.1));border:1.5px solid rgba(179,71,234,.45);box-shadow:0 0 22px rgba(179,71,234,.35),inset 0 0 22px rgba(179,71,234,.10)}
+    .node-tag{position:absolute;bottom:-26px;font-size:clamp(.58rem,1.1vw,.78rem);letter-spacing:.14em;padding:2px 8px;white-space:nowrap;background:rgba(0,18,30,.85);border:1px solid rgba(0,240,255,.12);border-radius:2px;transition:all .25s}
+    .node:hover .node-tag{border-color:rgba(0,240,255,.4);text-shadow:0 0 10px var(--cyan);color:#fff}
 
-    /* ── Info Cards ── */
-    .cards{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px;width:100%;max-width:clamp(320px,90vw,900px);margin-top:clamp(24px,4vh,40px)}
-    .card{position:relative;padding:18px 16px;border-radius:6px;background:rgba(0,15,30,.65);border:1px solid rgba(0,240,255,.12);backdrop-filter:blur(10px);transition:all .3s;text-decoration:none;color:inherit;overflow:hidden}
-    .card::before{content:"";position:absolute;top:0;left:0;right:0;height:1px;opacity:0;transition:opacity .3s}
-    .card.blog::before{background:linear-gradient(90deg,transparent,var(--cyan),transparent)}
-    .card.test::before{background:linear-gradient(90deg,transparent,var(--magenta),transparent)}
-    .card.lab::before{background:linear-gradient(90deg,transparent,var(--purple),transparent)}
-    .card:hover{transform:translateY(-3px);border-color:rgba(0,240,255,.3);box-shadow:0 12px 40px rgba(0,0,0,.4),0 0 30px rgba(0,240,255,.08)}
-    .card:hover::before{opacity:1}
-    .card.test:hover{border-color:rgba(255,45,149,.3)}
-    .card.lab:hover{border-color:rgba(179,71,234,.3)}
-    .card-tag{display:inline-block;font-size:.68rem;letter-spacing:.2em;padding:2px 8px;border-radius:2px;margin-bottom:10px}
-    .card-tag.cyan{background:rgba(0,240,255,.12);color:var(--cyan);border:1px solid rgba(0,240,255,.2)}
-    .card-tag.magenta{background:rgba(255,45,149,.12);color:var(--magenta);border:1px solid rgba(255,45,149,.2)}
-    .card-tag.purple{background:rgba(179,71,234,.12);color:var(--purple);border:1px solid rgba(179,71,234,.2)}
-    .card h3{margin:0 0 6px;font-size:1rem;font-weight:400;letter-spacing:.06em}
-    .card p{font-size:.78rem;color:rgba(200,225,240,.6);line-height:1.6;font-family:"PingFang SC","Segoe UI",sans-serif}
+    /* ── Cards ── */
+    .cards{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;width:100%;max-width:clamp(300px,88vw,860px);margin-top:clamp(20px,3vh,36px)}
+    .card{position:relative;padding:16px 14px;background:rgba(0,12,22,.7);border:1px solid rgba(0,240,255,.1);border-radius:4px;text-decoration:none;color:inherit;transition:all .3s;overflow:hidden;backdrop-filter:blur(8px)}
+    .card::before{content:"";position:absolute;top:0;left:15%;right:15%;height:1px;transition:all .3s}
+    .card:hover{transform:translateY(-3px);border-color:rgba(0,240,255,.25);box-shadow:0 10px 35px rgba(0,0,0,.45),0 0 25px rgba(0,240,255,.06)}
+    .card:hover::before{left:0;right:0}
+    .card:nth-child(1)::before{background:var(--cyan)}
+    .card:nth-child(2)::before{background:var(--magenta)}
+    .card:nth-child(3)::before{background:var(--purple)}
+    .card-tag{display:inline-block;font-size:.62rem;letter-spacing:.18em;padding:2px 7px;border-radius:2px;margin-bottom:8px}
+    .ct-cyan{color:var(--cyan);background:rgba(0,240,255,.1);border:1px solid rgba(0,240,255,.18)}
+    .ct-mag{color:var(--magenta);background:rgba(255,45,149,.1);border:1px solid rgba(255,45,149,.18)}
+    .ct-pur{color:var(--purple);background:rgba(179,71,234,.1);border:1px solid rgba(179,71,234,.18)}
+    .card h3{margin:0 0 5px;font-size:.95rem;font-weight:500;letter-spacing:.05em}
+    .card p{font-size:.72rem;color:rgba(180,215,235,.55);line-height:1.55;font-family:"PingFang SC","Microsoft YaHei",sans-serif}
 
-    /* ── Footer hint ── */
-    .footer-hint{margin-top:clamp(16px,3vh,28px);text-align:center;font-size:.7rem;letter-spacing:.2em;color:rgba(0,240,255,.3);font-family:"PingFang SC","Segoe UI",sans-serif}
+    .hint{margin-top:18px;font-size:.65rem;letter-spacing:.22em;color:rgba(0,240,255,.25);font-family:"PingFang SC","Microsoft YaHei",sans-serif}
 
     /* ── Responsive ── */
-    @media (max-width:768px){
-      .cards{grid-template-columns:1fr;max-width:400px}
-      .holo-ring.r2{transform:rotateX(40deg)}.holo-ring.r3{transform:rotateX(-38deg)}
+    @media(max-width:768px){
+      .cards{grid-template-columns:1fr;max-width:380px}
+      .ring.b{rotate:x 42deg}.ring.c{rotate:x -38deg}
     }
-    @media (max-width:480px){
-      .node-hex{width:40px;height:46px}
+    @media(max-width:480px){
+      .hex{width:38px;height:44px}
+      .node-tag{bottom:-20px;font-size:.55rem}
     }
-    @media (prefers-reduced-motion:reduce){
-      .holo-ring,.core-diamond,.orbit-node *,*::before,*::after{animation:none!important}
+    @media(prefers-reduced-motion:reduce){
+      .ring,.diamond,.node *,*::before,*::after{animation:none!important}
     }
   </style>
 </head>
@@ -125,54 +116,48 @@
   <main>
     <div class="glitch-wrap">
       <h1 class="glitch" data-text="TINLONEX">TINLONEX</h1>
-      <span class="sub-tag">// NEON GATEWAY v2.0 //</span>
+      <span class="sub-tag">// CYBERPUNK GATEWAY //</span>
     </div>
 
     <section class="core" aria-label="导航星图">
-      <div class="holo-ring r1"></div>
-      <div class="holo-ring r2"></div>
-      <div class="holo-ring r3"></div>
-      <div class="holo-ring r4"></div>
-      <div class="core-diamond"></div>
+      <div class="ring a"></div>
+      <div class="ring b"></div>
+      <div class="ring c"></div>
+      <div class="diamond"></div>
 
-      <!-- Blog node -->
-      <a class="orbit-node" href="/blog.html" aria-label="进入博客" data-orbit="24" data-angle="-30" data-speed="28">
-        <div class="node-hex blog"></div><div class="node-glow blog"></div>
-        <span class="node-label">BLØG</span>
+      <a class="node" href="/blog.html" aria-label="进入博客" data-orbit="23" data-angle="-30" data-speed="30">
+        <div class="hex b"></div>
+        <span class="node-tag">BLOG</span>
       </a>
-
-      <!-- NoBTI node -->
-      <a class="orbit-node" href="/nobti.html" aria-label="进入 NoBTI" data-orbit="36" data-angle="110" data-speed="36">
-        <div class="node-hex test"></div><div class="node-glow test"></div>
-        <span class="node-label">NØBTI</span>
+      <a class="node" href="/nobti.html" aria-label="进入 NoBTI" data-orbit="35" data-angle="110" data-speed="38">
+        <div class="hex m"></div>
+        <span class="node-tag">NoBTI</span>
       </a>
-
-      <!-- Lab node -->
-      <a class="orbit-node" href="/yinghua.html" aria-label="进入创意工坊" data-orbit="48" data-angle="220" data-speed="44">
-        <div class="node-hex lab"></div><div class="node-glow lab"></div>
-        <span class="node-label">LÆB</span>
+      <a class="node" href="/yinghua.html" aria-label="进入创意工坊" data-orbit="47" data-angle="225" data-speed="46">
+        <div class="hex p"></div>
+        <span class="node-tag">LAB</span>
       </a>
     </section>
 
     <div class="cards">
-      <a class="card blog" href="/blog.html">
-        <span class="card-tag cyan">ARCHIVE</span>
+      <a class="card" href="/blog.html">
+        <span class="card-tag ct-cyan">ARCHIVE</span>
         <h3>博客星球</h3>
         <p>Android Framework · Jetpack · 性能优化 · 源码分析</p>
       </a>
-      <a class="card test" href="/nobti.html">
-        <span class="card-tag magenta">QUIZ</span>
+      <a class="card" href="/nobti.html">
+        <span class="card-tag ct-mag">QUIZ</span>
         <h3>NoBTI 测试</h3>
         <p>反性格测试型测试，用伪专业报告认真误读你</p>
       </a>
-      <a class="card lab" href="/yinghua.html">
-        <span class="card-tag purple">LAB</span>
+      <a class="card" href="/yinghua.html">
+        <span class="card-tag ct-pur">LAB</span>
         <h3>创意工坊</h3>
         <p>樱花漫游与更多创意实验项目</p>
       </a>
     </div>
 
-    <p class="footer-hint">// SELECT A NODE TO CONNECT //</p>
+    <p class="hint">SELECT A NODE TO CONNECT</p>
   </main>
 
   <script>
@@ -182,153 +167,91 @@
       let W, H;
 
       /* ── Digital Rain ── */
-      const CHARS = 'ｱｲｳｴｵｶｷｸｹｺｻｼｽｾｿﾀﾁﾂﾃﾄﾅﾆﾇﾈﾉﾊﾋﾌﾍﾎﾏﾐﾑﾒﾓﾔﾕﾖﾗﾘﾙﾚﾛﾜﾝ0123456789<>/\\|{}[]#@&';
-      const COLS_RAIN = [];
-      let rainReady = false;
+      const CHARS = 'アイウエオカキクケコサシスセソタチツテトナニヌネノハヒフヘホマミムメモヤユヨラリルレロワヲン0123456789<>/\\|{}[]#@&';
+      const DROPS = [];
+      let dropsReady = false;
 
-      function initRain(){
-        const colW = 22;
-        const n = Math.floor(W / colW);
-        COLS_RAIN.length = 0;
+      function initDrops(){
+        DROPS.length = 0;
+        const n = Math.floor(W / 20);
         for(let i=0;i<n;i++){
-          COLS_RAIN.push({
-            x: i*colW + (Math.random()-0.5)*14,
-            y: Math.random()*H,
-            speed: Math.random()*2.6+1.2,
-            len: Math.floor(Math.random()*14+6),
-            chars: Array.from({length:20},()=>CHARS[Math.floor(Math.random()*CHARS.length)]),
-            ci: 0,
-            hue: Math.random()<.15?280:190,
-            alpha: Math.random()*.45+.25
+          DROPS.push({
+            x: i*20 + (Math.random()-.5)*12,
+            y: -(Math.random()*H),
+            speed: Math.random()*2.2+1,
+            len: Math.floor(Math.random()*12+8),
+            chars: Array.from({length:24},()=>CHARS[Math.floor(Math.random()*CHARS.length)]),
+            ci: Math.floor(Math.random()*CHARS.length),
+            hue: Math.random()<.12?300:195,
           });
         }
-        rainReady = true;
+        dropsReady = true;
       }
 
       function drawRain(){
-        if(!rainReady) return;
-        ctx.font = '14px "JetBrains Mono","Courier New",monospace';
-        for(const c of COLS_RAIN){
-          c.y += c.speed;
-          if(c.y - c.len*18 > H){ c.y = -c.len*18; c.ci = Math.floor(Math.random()*CHARS.length); }
-          for(let j=0;j<c.len;j++){
-            const py = c.y - j*18;
-            if(py<0||py>H) continue;
-            const a = j===0?c.alpha+.25:c.alpha*Math.pow(.82,j);
-            ctx.fillStyle = `hsla(${c.hue},90%,65%,${Math.min(1,a)})`;
-            ctx.fillText(c.chars[(c.ci+j)%c.chars.length], c.x, py);
+        if(!dropsReady) return;
+        ctx.font = '13px "Courier New",monospace';
+        ctx.textBaseline = 'top';
+        for(const d of DROPS){
+          d.y += d.speed;
+          if(d.y - d.len*16 > H + 60){ d.y = -(d.len*16 + Math.random()*H*.5); d.ci=Math.floor(Math.random()*CHARS.length); }
+          for(let j=0;j<d.len;j++){
+            const py = d.y - j*16;
+            if(py < -20 || py > H+20) continue;
+            const t = j===0?1:Math.pow(.84,j);
+            ctx.fillStyle = `hsla(${d.hue},92%,68%,${t})`;
+            ctx.fillText(d.chars[(d.ci+j)%d.chars.length], d.x, py);
           }
         }
       }
 
-      /* ── Particle Network ── */
-      let particles = [];
-      function initParticles(){
-        const count = Math.floor((W*H)/16000);
-        particles = Array.from({length:count},()=>({
-          x:Math.random()*W, y:Math.random()*H,
-          vx:(Math.random()-.5)*.35, vy:(Math.random()-.5)*.35,
-          r:Math.random()*1.4+.4, hue:Math.random()<.2?280:195,
-          a:Math.random()*.5+.15
-        }));
-      }
-
-      function drawParticles(){
-        for(const p of particles){
-          p.x+=p.vx; p.y+=p.vy;
-          if(p.x<0)p.x=W; if(p.x>W)p.x=0; if(p.y<0)p.y=H; if(p.y>H)p.y=0;
-          ctx.beginPath(); ctx.arc(p.x,p.y,p.r,0,Math.PI*2);
-          ctx.fillStyle=`hsla(${p.hue},85%,70%,${p.a})`;
-          ctx.fill();
-        }
-        // Connections
-        const MAX_D = 90;
-        for(let i=0;i<particles.length;i+=2){
-          const a=particles[i],b=particles[i+1];
-          if(!b) continue;
-          const dx=a.x-b.x, dy=a.y-b.y, d=Math.sqrt(dx*dx+dy*dy);
-          if(d<MAX_D){
-            ctx.beginPath(); ctx.moveTo(a.x,a.y); ctx.lineTo(b.x,b.y);
-            ctx.strokeStyle=`rgba(0,240,255,${.06*(1-d/MAX_D)})`;
-            ctx.stroke();
-          }
-        }
-      }
-
-      /* ── Pulse Rings ── */
-      let pulses=[];
-      function spawnPulse(){
-        pulses.push({r:0, a:.22, maxR:Math.min(W,H)*.5});
-      }
-      setInterval(()=>{if(pulses.length<3)spawnPulse();},2800);
-      spawnPulse();
-
-      function drawPulses(){
-        const cx=W/2, cy=H*.44;
-        for(let i=pulses.length-1;i>=0;i--){
-          const p=pulses[i];
-          p.r+=.7; p.a-=.0007;
-          if(p.a<=0||p.r>p.maxR){pulses.splice(i,1);continue;}
-          ctx.beginPath(); ctx.arc(cx,cy,p.r,0,Math.PI*2);
-          ctx.strokeStyle=`rgba(0,240,255,${Math.max(0,p.a)})`;
-          ctx.lineWidth=1; ctx.stroke();
-        }
-      }
-
-      /* ── Grid overlay ── */
+      /* ── Grid ── */
       function drawGrid(){
-        const s=70, cx=W/2, cy=H*.44;
-        ctx.strokeStyle='rgba(0,240,255,.03)'; ctx.lineWidth=.5;
-        for(let x=cx%s;x<W;x+=s){ctx.beginPath();ctx.moveTo(x,0);ctx.lineTo(x,H);ctx.stroke();}
-        for(let y=cy%s;y<H;y+=s){ctx.beginPath();ctx.moveTo(0,y);ctx.lineTo(W,y);ctx.stroke();}
+        const s=80, cx=W/2, cy=H*.47;
+        ctx.strokeStyle='rgba(0,240,255,.025)'; ctx.lineWidth=.5; ctx.beginPath();
+        for(let x=cx%s;x<W;x+=s){ctx.moveTo(x,0);ctx.lineTo(x,H)}
+        for(let y=cy%s;y<H;y+=s){ctx.moveTo(0,y);ctx.lineTo(W,y)}
+        ctx.stroke();
       }
 
-      /* ── Main Loop ── */
-      let lastTime = 0;
-      function draw(ts){
-        const dt = lastTime ? Math.min((ts - lastTime) / 1000, 0.1) : 0.016;
-        lastTime = ts;
-        ctx.fillStyle='rgba(2,5,8,.22)'; ctx.fillRect(0,0,W,H);
+      /* ── Loop ── */
+      let lastT = 0;
+      function frame(ts){
+        const dt = lastT ? Math.min((ts-lastT)/1000,.1) : .016; lastT=ts;
+        ctx.fillStyle='rgba(2,5,8,.18)'; ctx.fillRect(0,0,W,H);
         drawGrid();
-        drawPulses();
-        drawParticles();
         drawRain();
-        animateOrbits(dt);
-        requestAnimationFrame(draw);
+        tickOrbits(dt);
+        requestAnimationFrame(frame);
       }
 
-      function resize(){
+      function measure(){
         W=canvas.width=window.innerWidth; H=canvas.height=window.innerHeight;
-        initRain(); initParticles(); updateOrbits();
+        initDrops(); placeOrbits();
       }
 
-      resize(); requestAnimationFrame(draw);
-      window.addEventListener('resize', resize);
-
-      /* ── Orbit nodes: JS-driven circular motion ── */
-      const orbitNodes = [];
-      document.querySelectorAll('.orbit-node').forEach(el=>{
-        const rVw = parseFloat(el.dataset.orbit) || 24;
-        const startAngle = (parseFloat(el.dataset.angle) || 0) * Math.PI / 180;
-        const period = parseFloat(el.dataset.speed) || 30;
-        orbitNodes.push({ el, rVw, angle: startAngle, period, speed: (2*Math.PI)/period });
+      /* ── Orbits ── */
+      const nodes=[];
+      document.querySelectorAll('.node').forEach(el=>{
+        const rVw=parseFloat(el.dataset.orbit)||24;
+        const a0=(parseFloat(el.dataset.angle)||0)*Math.PI/180;
+        const T=parseFloat(el.dataset.speed)||30;
+        nodes.push({el,rv:rVw,angle:a0,spd:2*Math.PI/T});
       });
 
-      function updateOrbits(){
-        for(const n of orbitNodes){
-          const r = n.rVw / 100 * W;
-          const x = Math.cos(n.angle) * r;
-          const y = Math.sin(n.angle) * r;
-          n.el.style.transform = `translate(-50%,-50%) translate(${x}px,${y}px)`;
+      function placeOrbits(){
+        for(const n of nodes){
+          const r=n.rv/100*W, x=Math.cos(n.angle)*r, y=Math.sin(n.angle)*r;
+          n.el.style.transform=`translate(${x}px,${y}px)`;
         }
+      }
+      function tickOrbits(dt){
+        for(const n of nodes){n.angle+=n.spd*dt}
+        placeOrbits();
       }
 
-      function animateOrbits(dt){
-        for(const n of orbitNodes){
-          n.angle += n.speed * dt;
-        }
-        updateOrbits();
-      }
+      measure(); requestAnimationFrame(frame);
+      window.addEventListener('resize', measure);
     })();
   </script>
 </body>
