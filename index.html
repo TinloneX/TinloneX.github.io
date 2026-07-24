@@ -136,22 +136,19 @@
       <div class="core-diamond"></div>
 
       <!-- Blog node -->
-      <a class="orbit-node" href="/blog.html" aria-label="进入博客"
-         style="--r:clamp(130px,24vw,240px);--a:-30deg;animation:orbit 28s linear infinite">
+      <a class="orbit-node" href="/blog.html" aria-label="进入博客" data-orbit="24" data-angle="-30" data-speed="28">
         <div class="node-hex blog"><div class="node-glow blog"></div></div>
         <span class="node-label">BLØG</span>
       </a>
 
       <!-- NoBTI node -->
-      <a class="orbit-node" href="/nobti.html" aria-label="进入 NoBTI"
-         style="--r:clamp(190px,36vw,360px);--a:110deg;animation:orbit 36s linear infinite">
+      <a class="orbit-node" href="/nobti.html" aria-label="进入 NoBTI" data-orbit="36" data-angle="110" data-speed="36">
         <div class="node-hex test"><div class="node-glow test"></div></div>
         <span class="node-label">NØBTI</span>
       </a>
 
       <!-- Lab node -->
-      <a class="orbit-node" href="/yinghua.html" aria-label="进入创意工坊"
-         style="--r:clamp(250px,48vw,480px);--a:220deg;animation:orbit 44s linear infinite">
+      <a class="orbit-node" href="/yinghua.html" aria-label="进入创意工坊" data-orbit="48" data-angle="220" data-speed="44">
         <div class="node-hex lab"><div class="node-glow lab"></div></div>
         <span class="node-label">LÆB</span>
       </a>
@@ -292,35 +289,51 @@
         initRain(); initParticles();
       }
 
-      function draw(){
+      let lastTime = 0;
+      function draw(ts){
+        const dt = lastTime ? Math.min((ts - lastTime) / 1000, 0.1) : 0.016;
+        lastTime = ts;
         ctx.fillStyle='rgba(2,5,8,.22)'; ctx.fillRect(0,0,W,H);
         drawGrid();
         drawPulses();
         drawParticles();
         drawRain();
+        animateOrbits(dt);
         requestAnimationFrame(draw);
       }
 
-      resize(); draw();
+      function resize(){
+        W=canvas.width=window.innerWidth; H=canvas.height=window.innerHeight;
+        initRain(); initParticles(); updateOrbits();
+      }
+
+      resize(); requestAnimationFrame(draw);
       window.addEventListener('resize', resize);
 
-      /* ── Orbit animation via CSS custom properties ── */
+      /* ── Orbit nodes: JS-driven circular motion ── */
+      const orbitNodes = [];
       document.querySelectorAll('.orbit-node').forEach(el=>{
-        const r=el.style.getPropertyValue('--r');
-        const a=parseFloat(el.style.getPropertyValue('--a'))||0;
-        const rad=a*Math.PI/180;
-        const x=Math.cos(rad)*parseFloat(r), y=Math.sin(rad)*parseFloat(r);
-        el.style.transform=`translate(-50%,-50%) translate(${x}px,${y}px)`;
-        let angle=rad;
-        const speed=0.004+(Math.random()*.003);
-        function animate(){
-          angle+=speed;
-          const nx=Math.cos(angle)*parseFloat(r), ny=Math.sin(angle)*parseFloat(r);
-          el.style.transform=`translate(-50%,-50%) translate(${nx}px,${ny}px)`;
-          requestAnimationFrame(animate);
-        }
-        animate();
+        const rVw = parseFloat(el.dataset.orbit) || 24;
+        const startAngle = (parseFloat(el.dataset.angle) || 0) * Math.PI / 180;
+        const period = parseFloat(el.dataset.speed) || 30;
+        orbitNodes.push({ el, rVw, angle: startAngle, period, speed: (2*Math.PI)/period });
       });
+
+      function updateOrbits(){
+        for(const n of orbitNodes){
+          const r = n.rVw / 100 * W;
+          const x = Math.cos(n.angle) * r;
+          const y = Math.sin(n.angle) * r;
+          n.el.style.transform = `translate(-50%,-50%) translate(${x}px,${y}px)`;
+        }
+      }
+
+      function animateOrbits(dt){
+        for(const n of orbitNodes){
+          n.angle += n.speed * dt;
+        }
+        updateOrbits();
+      }
     })();
   </script>
 </body>
