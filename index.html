@@ -176,12 +176,12 @@
         const n = Math.floor(W / 20);
         for(let i=0;i<n;i++){
           const seq = [];
-          for(let k=0;k<16;k++) seq.push(TOKENS[Math.floor(Math.random()*TOKENS.length)]);
+          for(let k=0;k<8;k++) seq.push(TOKENS[Math.floor(Math.random()*TOKENS.length)]);
           DROPS.push({
             x: i*20 + (Math.random()-.5)*12,
             y: -(Math.random()*H),
             speed: Math.random()*2.2+1,
-            len: Math.floor(Math.random()*10+6),
+            len: Math.floor(Math.random()*5+3),
             seq,
             si: Math.floor(Math.random()*TOKENS.length),
             hue: Math.random()<.12?300:195,
