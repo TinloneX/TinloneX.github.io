@@ -1,0 +1,4 @@
+Sitemap: https://tinlone.com/sitemap.xml
+
+User-agent: *
+Allow: /

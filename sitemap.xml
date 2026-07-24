@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+  <url><loc>https://tinlone.com/</loc><priority>1.0</priority><changefreq>monthly</changefreq></url>
+  <url><loc>https://tinlone.com/blog.html</loc><priority>0.9</priority><changefreq>monthly</changefreq></url>
+  <url><loc>https://tinlone.com/about.html</loc><priority>0.7</priority><changefreq>monthly</changefreq></url>
+  <url><loc>https://tinlone.com/nobti.html</loc><priority>0.7</priority><changefreq>yearly</changefreq></url>
+  <url><loc>https://tinlone.com/yinghua.html</loc><priority>0.5</priority><changefreq>yearly</changefreq></url>
+  <url><loc>https://tinlone.com/love.html</loc><priority>0.5</priority><changefreq>yearly</changefreq></url>
+  <url><loc>https://tinlone.com/link.html</loc><priority>0.5</priority><changefreq>monthly</changefreq></url>
+  <url><loc>https://tinlone.com/valine.html</loc><priority>0.4</priority><changefreq>yearly</changefreq></url>
+  <url><loc>https://tinlone.com/archives/</loc><priority>0.8</priority><changefreq>monthly</changefreq></url>
+  <url><loc>https://tinlone.com/tags/</loc><priority>0.6</priority><changefreq>monthly</changefreq></url>
+  <url><loc>https://tinlone.com/categories/</loc><priority>0.6</priority><changefreq>monthly</changefreq></url>
+  <url><loc>https://tinlone.com/2021/02/06/WorkManager%E5%9F%BA%E6%9C%AC%E4%BD%BF%E7%94%A8%E5%8F%8A%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90(%E4%B8%80)%20-%20%E4%BD%BF%E7%94%A8%E7%AF%87/</loc><priority>0.8</priority><changefreq>yearly</changefreq></url>
+  <url><loc>https://tinlone.com/2021/02/06/WorkManager%E5%9F%BA%E6%9C%AC%E4%BD%BF%E7%94%A8%E5%8F%8A%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90(%E4%BA%8C)%20-%20WorkManagerInitializer/</loc><priority>0.7</priority><changefreq>yearly</changefreq></url>
+  <url><loc>https://tinlone.com/2021/02/06/WorkManager%E5%9F%BA%E6%9C%AC%E4%BD%BF%E7%94%A8%E5%8F%8A%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90(%E4%B8%89)%20-%20SystemAlarmService/</loc><priority>0.7</priority><changefreq>yearly</changefreq></url>
+  <url><loc>https://tinlone.com/2021/02/06/WorkManager%E5%9F%BA%E6%9C%AC%E4%BD%BF%E7%94%A8%E5%8F%8A%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90(%E5%9B%9B)%20-%20SystemJobService/</loc><priority>0.7</priority><changefreq>yearly</changefreq></url>
+  <url><loc>https://tinlone.com/2021/02/06/WorkManager%E5%9F%BA%E6%9C%AC%E4%BD%BF%E7%94%A8%E5%8F%8A%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90(%E4%BA%94)%20-%20Processor/</loc><priority>0.7</priority><changefreq>yearly</changefreq></url>
+  <url><loc>https://tinlone.com/2021/02/06/WorkManager%E5%9F%BA%E6%9C%AC%E4%BD%BF%E7%94%A8%E5%8F%8A%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90(%E5%85%AD)%20-%20SystemForegroundService/</loc><priority>0.7</priority><changefreq>yearly</changefreq></url>
+  <url><loc>https://tinlone.com/2021/02/15/WorkManager%E5%9F%BA%E6%9C%AC%E4%BD%BF%E7%94%A8%E5%8F%8A%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90(%E4%B8%83)%20-%20BroadcastReceiver/</loc><priority>0.7</priority><changefreq>yearly</changefreq></url>
+  <url><loc>https://tinlone.com/2021/02/24/Jetpack%E4%B9%8B%E5%BA%94%E7%94%A8%E5%90%AF%E5%8A%A8%E7%BB%84%E4%BB%B6-StartUp/</loc><priority>0.8</priority><changefreq>yearly</changefreq></url>
+  <url><loc>https://tinlone.com/2021/02/25/Jetpack%E4%B9%8B%E7%94%9F%E5%91%BD%E5%91%A8%E6%9C%9F%E6%84%9F%E7%9F%A5%E7%BB%84%E4%BB%B6-Lifecycle%E4%BD%BF%E7%94%A8%E7%AF%87/</loc><priority>0.8</priority><changefreq>yearly</changefreq></url>
+  <url><loc>https://tinlone.com/2021/02/28/Jetpack%E4%B9%8B%E7%94%9F%E5%91%BD%E5%91%A8%E6%9C%9F%E6%84%9F%E7%9F%A5%E7%BB%84%E4%BB%B6-Lifecycle%E5%8E%9F%E7%90%86%E7%AF%87/</loc><priority>0.8</priority><changefreq>yearly</changefreq></url>
+  <url><loc>https://tinlone.com/2021/03/07/Jetpack%E4%B9%8B%E7%95%8C%E9%9D%A2%E6%95%B0%E6%8D%AE%E5%AD%98%E5%82%A8%E7%BB%84%E4%BB%B6-ViewModel/</loc><priority>0.8</priority><changefreq>yearly</changefreq></url>
+  <url><loc>https://tinlone.com/2021/03/08/%E7%99%BD%E8%AF%9D%E8%AF%B4Handler-MessageQueue-Looper/</loc><priority>0.8</priority><changefreq>yearly</changefreq></url>
+  <url><loc>https://tinlone.com/2021/03/10/Jetpack%E4%B9%8B%E5%8F%AF%E8%A7%82%E5%AF%9F%E7%9A%84%E6%95%B0%E6%8D%AE%E5%AD%98%E5%82%A8%E5%99%A8-LiveData%E4%BD%BF%E7%94%A8%E7%AF%87/</loc><priority>0.8</priority><changefreq>yearly</changefreq></url>
+  <url><loc>https://tinlone.com/2021/04/04/%E6%80%A7%E8%83%BD%E4%BC%98%E5%8C%96%E4%B9%8B%E5%86%85%E5%AD%98%E4%BC%98%E5%8C%96/</loc><priority>0.8</priority><changefreq>yearly</changefreq></url>
+  <url><loc>https://tinlone.com/2021/04/11/Activity%E5%90%AF%E5%8A%A8%E6%B5%81%E7%A8%8B%E6%B5%85%E6%9E%90%EF%BC%88%E4%B8%80%EF%BC%89--%20API30%E8%B0%83%E7%94%A8%E6%B5%81%E7%A8%8B/</loc><priority>0.9</priority><changefreq>yearly</changefreq></url>
+</urlset>

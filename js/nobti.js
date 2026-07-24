@@ -1,0 +1,442 @@
+const PERSONAS = [
+      { code:'LOOP',name:'绕圈派',rate:5,vibe:'弧面优先',tone:'回旋、缓冲、慢热',tags:['arc','symmetry','echo'],desc:'你像一段会自己把棱角磨平的回路。你不急着冲向结论，更擅长在细节边缘来回试探，直到气氛和节奏都顺手为止。别人以为你犹豫，其实你是在给决定留缓冲带。你天然警觉过度锋利的表达，更偏爱圆润、可回收、可反复的结构。你看似散漫，实际很懂得避免把事情推到无法收场的极端。'},
+      { code:'SPRK',name:'火花客',rate:5,vibe:'尖角爆发',tone:'锋利、果断、起跳快',tags:['corner','prime','drift'],desc:'你的人格像桌角撞出的清脆声，短促、明确、偶尔带点不讲理的锋利。你偏爱能立刻产生形状感的东西，哪怕它们不够圆满。你相信先把轮廓立住，再决定要不要修饰，因此在很多场景里总是第一个发出“先这样”的人。你的行动不是莽，而是一种对停滞的过敏。越含糊的局面，越会逼出你直接的判断。'},
+      { code:'MOSS',name:'苔面人',rate:5,vibe:'静态铺展',tone:'铺展、吸附、耐久',tags:['composite','balance','closed'],desc:'你不像传统意义上的外放人格，更像缓慢覆盖地表的一层安静纹理。你对环境变化的感知细腻，擅长在别人还没察觉前先调整姿态。你的优势并不是喧哗，而是持续、均匀、柔软地占据一个位置。很多人以为你佛系，其实你只是明白稳定本身就是力量。你不需要戏剧性转折来证明存在感。'},
+      { code:'GLNT',name:'钝光体',rate:5,vibe:'温吞反射',tone:'克制、迟准、斜视角',tags:['arc','balance','drift'],desc:'你有一种不急于发亮的光泽。你不擅长用最响亮的方式赢得注意，却总能在第二眼、第三眼里变得越来越耐看。你对过度明确的秩序和过度热烈的情绪都保持距离，更愿意站在斜角处观察，看它们是否真能长期成立。你的判断常常带着一点迟来的精准。'},
+      { code:'WAVE',name:'浪纹者',rate:5,vibe:'周期律动',tone:'起伏、敏感、节律型',tags:['arc','echo','carry'],desc:'你依赖节奏感甚于依赖规则。比起一次性做对，你更擅长通过反复试摆找到最顺的摆幅。你的思考不是直线推进，而是来回波动后逐步收拢，因此在陌生局面里反而比很多人更稳。你对情绪、语气和细小偏差都有雷达，这让你敏感，也让你更会找入口。'},
+      { code:'AXIS',name:'轴感派',rate:5,vibe:'对称执念',tone:'均衡、精细、对位',tags:['symmetry','balance','closed'],desc:'你对“看起来差不多”有极高要求，喜欢左右呼应、前后对应、语气和动作能互相映照的结构。这不是形式主义，而是你判断安全感的方式。一个事物如果能自我平衡，你就更愿意相信它可以继续运转。你并不死板，只是很难在明显失衡的局面里放松。'},
+      { code:'RIFT',name:'裂隙型',rate:5,vibe:'落差偏好',tone:'错位、洞察、反骨',tags:['gap','drift','prime'],desc:'你经常被细小裂缝吸引，因为真正的变化往往不是从表面开始，而是从不连贯的地方渗出来。你对标准答案兴趣一般，却会对不协调、掉拍、轻微错位的东西产生好奇。很多时候，你的洞察力就来自这种对“差一点点”的执着。这个人格并不稳定，但往往很有发现力。'},
+      { code:'BEND',name:'折返客',rate:5,vibe:'回头能力',tone:'可逆、松弛、灵活',tags:['echo','balance','proximity'],desc:'你一点也不羞于折返。你知道回头不是失败，而是把前面的路径重新读一遍。你愿意修正、愿意重来，也愿意承认自己刚刚并没有真的想好。正因为如此，你比看上去更少被面子绑架。你对结论的态度不是占有，而是暂住，一旦发现结构不对，你会转身得很自然。'},
+      { code:'FIZZ',name:'起泡层',rate:5,vibe:'碎响扩散',tone:'轻快、密集、颗粒感',tags:['smallness','echo','asciiFlow'],desc:'你的存在感像刚刚冒出的气泡，不一定大，但总是连续、轻巧、难以忽视。你喜欢把事情拆成小块处理，通过快速试错和即时反馈建立方向感。你并不依赖宏大叙事，反而擅长在一堆小现象里拼出趋势。你靠密度而不是重量推进自己。'},
+      { code:'LINT',name:'绒屑派',rate:4,vibe:'边缘收集',tone:'细碎、敏感、采样型',tags:['echo','closed','imbalance'],desc:'你对边边角角有天然的亲和力。你会注意到对话里没被说满的尾音，也会在混乱桌面上优先看到那一小片脱落的纸屑。你的人格重点不在中心，而在附着物、余量与残留物。你并不琐碎，你只是知道决定气质的，常常不是主体，而是那些看似不重要的边缘材料。'},
+      { code:'HUSH',name:'静噪者',rate:4,vibe:'低频存在',tone:'低频、筛选、稳压',tags:['balance','closed','carry'],desc:'你的能量不是沉默，而是低频。你不爱把每个念头都推到台前，可一旦开口，通常意味着你已经把无数种可能在心里悄悄滤过。你对环境噪声的忍耐度不高，因此更珍惜那些信号清晰、节奏克制的关系与场景。你不一定显眼，却常常是稳定气压的人。'},
+      { code:'JOLT',name:'突跳派',rate:4,vibe:'偏差驱动',tone:'跃迁、灵感、突然清醒',tags:['drift','prime','carry'],desc:'你很少沿着别人铺好的逻辑线平稳前进，总会在某个节点突然往侧边跳一下。奇怪的是，这种跳跃并不让你离题太远，反而经常把事情推进到更有趣的位置。你习惯先相信直觉中那一下突跳，再用事后整理把它包装成合理。你靠偏差取景，靠机敏落地。'},
+      { code:'MUTE',name:'哑光派',rate:4,vibe:'去反光化',tone:'耐看、内敛、减反射',tags:['balance','smallness','proximity'],desc:'你不喜欢过度闪亮的表达方式。相比那些一眼就想赢的东西，你更容易被低饱和、低姿态、低声量的事物打动。你的判断体系里，“耐看”常常比“惊艳”更重要，“可持续”常常比“立刻有效”更重要。你不是没有锋芒，而是知道锋芒不必时时朝外。'},
+      { code:'VEER',name:'斜行者',rate:4,vibe:'不走正中',tone:'偏航、旁观、留余地',tags:['drift','gap','asciiFlow'],desc:'你不太信任笔直的大路，哪怕它看起来更快。你总想稍微偏一点，从侧面试一试，看有没有被主流遗漏的空气层。你的思维轨迹常常因此显得斜，但那不是跑偏，而是保持余地。你不迷信最标准的做法，只需要一个不被过度规定的位置。'},
+      { code:'CUSP',name:'临界人',rate:4,vibe:'边线徘徊',tone:'阈值感、试探、悬停',tags:['gap','proximity','carry'],desc:'你很擅长停在阈值附近。你不急着跨过去，也不轻易退回来，而是喜欢先感受那条边线到底意味着什么。你会对临界状态、模糊判断、即将变化但还没变化的时刻格外上心。你知道真正有信息量的，不总是结果，而是结果发生前那一小段不稳定的空气。'},
+      { code:'DUST',name:'微尘型',rate:4,vibe:'细量堆积',tone:'细密、沉积、后劲型',tags:['smallness','composite','closed'],desc:'你相信微小单位的长期效应。你不太迷恋戏剧性转折，更愿意把注意力放在那些肉眼难以立刻看出成果的累积动作上。你有时候看起来慢，但这种慢并不松散，而是细密。你清楚很多真正可靠的变化都不是轰然发生，而是一层一层附着上去。'},
+      { code:'KNOT',name:'结点客',rate:4,vibe:'连接欲强',tone:'连接、牵引、抓手感',tags:['closed','echo','balance'],desc:'你很容易把看似无关的东西系在一起，然后从这些连接点里获得方向感。你会在杂乱信息中本能地寻找结点，判断哪里能拽动全局，哪里只是表面热闹。你的脑子像在不停打结，但这些结并不一定是阻碍，反而常常形成个人理解世界的抓手。'},
+      { code:'SILT',name:'淤积者',rate:4,vibe:'缓慢沉降',tone:'沉降、晚一点、少翻车',tags:['composite','balance','proximity'],desc:'你并不追求立刻澄清一切，甚至愿意让很多东西先混一会儿。你知道有些判断需要时间沉降，太快捞出来反而会失真。因此你对待关系、工作和情绪时都带着一点沉稳的延迟。别人会觉得你反应慢，但后来又会发现你的结论更不容易翻车。'},
+      { code:'PIVT',name:'轴转者',rate:4,vibe:'微调高手',tone:'转向、修正、顺滑',tags:['symmetry','carry','proximity'],desc:'你很少大刀阔斧地改变路径，更擅长围绕一个核心点慢慢转向。你的人格像门轴，不一定显眼，却决定了很多转折是否顺滑。你善于用幅度不大的修正解决方向问题，因此看起来不 dramatic，却非常实用。你更相信让整体继续转起来。'},
+      { code:'FOAM',name:'沫感派',rate:4,vibe:'轻体结构',tone:'轻盈、弹性、缓冲层',tags:['arc','smallness','balance'],desc:'你对轻盈有一种近乎原则性的偏爱。你并不等于不负责，只是比起笨重、僵硬、需要用力维持的结构，你更想靠弹性和空隙保持秩序。你的很多决定看起来像顺手一拨，但正是这种不过度施力的方式，让你避免了很多无谓内耗。'},
+      { code:'GRIT',name:'砂砾派',rate:2,vibe:'摩擦留痕',tone:'颗粒、阻力、真实感',tags:['corner','gap','magnitude'],desc:'你不是那种一滑到底的人。你更像砂砾，细小但有阻力，接触过的地方会留下摩擦感。这种气质让你很难被彻底忽视，因为你会在很多流程里制造必要的卡顿，提醒别人别太轻易把某个决定当作理所当然。你不一定柔和，却很真实。'},
+      { code:'SWAY',name:'摇摆客',rate:2,vibe:'双向感强',tone:'双向、可动、保留复杂度',tags:['balance','drift','symmetry'],desc:'你并不害怕摇摆，反而知道摇摆是很多复杂问题的正常状态。你常常能同时理解两边，于是显得不够绝对，但也因此拥有少见的回旋空间。你不会急着把自己钉死在某个立场上，因为你知道现实经常比标签更流动。'},
+      { code:'QUAD',name:'四拍型',rate:2,vibe:'节拍整齐',tone:'节拍、规律、可持续',tags:['even','symmetry','carry'],desc:'你喜欢四平八稳，但不是无聊的那种稳。你对节拍、间隔和重复有一种天然亲近感，只要结构开始按你能理解的节奏运转，你就会迅速进入状态。你不排斥变化，只是不喜欢变化完全脱离拍点。你的人格像一段牢靠的四拍律动。'},
+      { code:'NOVA',name:'新星体',rate:1,vibe:'突然放亮',tone:'聚焦、节点高亮、时机型',tags:['prime','magnitude','carry'],desc:'你平时未必总在中心，但你有一种会在关键时刻突然亮起来的能力。那种亮不是持续燃烧，而是抓住节点后瞬间提升存在密度。你适合处理需要突然定调、突然收束、突然把散乱东西聚焦的局面。重要的时候，你往往又会准时发光。'},
+      { code:'ECHO',name:'回声者',rate:4,vibe:'余响很长',tone:'余响、回返、层次感',tags:['echo','closed','proximity'],desc:'你的人格并不靠第一下取胜，而靠之后不断返回的余响。你说过的话、做过的小动作、留出的空白，常常会在别人那里延迟生效。你对重复并不厌烦，甚至会主动利用回声来确认某些东西是不是真的有重量。你安静，却不容易消失。'}
+    ];
+    const DIMENSION_META = {arc:'圆弧感',corner:'尖角感',odd:'奇数倾向',even:'偶数倾向',prime:'素数偏好',composite:'合数偏好',symmetry:'对称偏好',closed:'封闭感',echo:'重复回声',asciiFlow:'字符起伏',carry:'进位张力',gap:'落差敏感',balance:'平衡倾向',drift:'偏航倾向',magnitude:'大数偏爱',smallness:'小数亲和',proximity:'接近值偏好',imbalance:'失衡嗅觉'};
+    const DIMENSION_NOTE = {
+      arc:'反映你对柔和过渡、缓冲空间与圆润结构的偏爱强度。',
+      corner:'反映你对明确边界、直接表达与清晰轮廓的接受程度。',
+      odd:'反映你在选择中偏向非对称、跳脱感与轻微违和趣味的倾向。',
+      even:'反映你对整齐节拍、稳定秩序与规则落点的心理亲和力。',
+      prime:'反映你对稀有感、不可拆分性与“有点独”的特质敏感度。',
+      composite:'反映你对层次堆叠、结构复合与可展开性的信任程度。',
+      symmetry:'反映你对镜像关系、形式均衡与视觉对位的依赖程度。',
+      closed:'反映你对边界完整、信息收束与自洽感的心理需求。',
+      echo:'反映你对重复信号、延迟回响与余味信息的捕捉能力。',
+      asciiFlow:'反映你对字符波动、节奏起伏与序列漂移的感受强度。',
+      carry:'反映你对跨位变化、突然跃迁与临界推进的兴奋阈值。',
+      gap:'反映你对落差、错位、裂缝感与不协调细节的注意水平。',
+      balance:'反映你在混乱信息中维持重心、配平张力的内在倾向。',
+      drift:'反映你愿意偏离标准路线、接受侧向变化的心理弹性。',
+      magnitude:'反映你对放大效应、强存在感与高量级刺激的偏好。',
+      smallness:'反映你对细微变化、小单位信号与轻量结构的敏锐度。',
+      proximity:'反映你偏爱贴近目标、保留余量与谨慎逼近的决策习惯。',
+      imbalance:'反映你对失衡瞬间、非标准组合与异常感的识别本能。'
+    };
+    const DIMENSION_CLINICAL = {
+      arc:'你更倾向于用柔和、缓冲的方式处理刺激，通常会先让情绪和信息慢慢落位，再决定是否靠近。',
+      corner:'你对边界和轮廓有较高敏感度，遇到模糊局面时，往往会本能地寻找一个更清楚的切入口。',
+      odd:'你对非典型线索有天然注意力，容易在别人忽略的偏差里感到新鲜、也感到真实。',
+      even:'你会优先信任节律稳定、结构整齐的对象，这让你在不确定环境里更依赖可预期性。',
+      prime:'你对独特性和不可替代性较为敏感，常会把“是否足够特别”当作判断价值的一部分。',
+      composite:'你更愿意相信复杂结构有其内在秩序，因此会对层次丰富、可展开的系统保持耐心。',
+      symmetry:'你对对称和呼应关系有明显偏好，这通常意味着你会把“是否平衡”当作心理安全感来源。',
+      closed:'你需要边界完整、信息收束的体验，过度开放或悬而未决的状态容易让你持续消耗。',
+      echo:'你会反复咀嚼留下余味的信号，因此许多判断不是当场形成，而是在回响中逐渐成形。',
+      asciiFlow:'你对节奏变化和微小波动很敏感，往往能更早感知到氛围变化或关系里的轻微偏移。',
+      carry:'你对突然跨位、临界推进的时刻比较有反应，越接近转折点，你的注意力通常越集中。',
+      gap:'你会被错位、落差和不协调吸引，因为这些地方常让你感觉“真正的信息藏在这里”。',
+      balance:'你有较强的自我校准能力，面对混乱时会不自觉地寻找重心，尽量把内部张力配平。',
+      drift:'你并不执着于标准路线，很多时候会通过轻微偏航为自己保留呼吸感和选择余地。',
+      magnitude:'你容易被高强度、强存在感的刺激吸引，重大情境往往比细碎琐事更能调动你。',
+      smallness:'你对细微线索、轻量变化非常敏锐，很多别人觉得不算什么的地方，你其实都在记录。',
+      proximity:'你倾向于先靠近、试探、保留余量，而不是一下子把自己推到最极端的位置。',
+      imbalance:'你对异常感和失衡瞬间有很高辨识度，这让你更容易捕捉问题，也更容易感到刺耳。'
+    };
+    const MOOD_MAP = {arc:'回旋型',corner:'切面型',odd:'偏锋型',even:'整拍型',prime:'稀点型',composite:'铺陈型',symmetry:'镜像型',closed:'收束型',echo:'余响型',asciiFlow:'漂移型',carry:'跨位型',gap:'裂缝型',balance:'稳面型',drift:'斜航型',magnitude:'放大型',smallness:'微粒型',proximity:'贴边型',imbalance:'偏差型'};
+    const QUIZ_TOTAL = 20;
+    const NUMBER_COUNT = 12;
+    const CHAR_COUNT = 4;
+    const ADDITION_COUNT = 4;
+    const SPECIAL_QUESTION = {
+      type:'special',
+      title:'∞ + 1 = ?',
+      signature:'special-infinity',
+      options:[
+        { label:'1+∞', value:'1+∞' },
+        { label:'1', value:'1' },
+        { label:'-∞', value:'-∞' },
+        { label:'∞', value:'∞' }
+      ]
+    };
+    const CHAR_POOL='ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+    const SYM=new Set(['A','H','I','M','O','T','U','V','W','X','Y','8','0']);
+    const CLS=new Set(['A','B','D','O','P','Q','R','0','4','6','8','9']);
+    const CUR=new Set(['B','C','D','G','J','O','P','Q','R','S','U','0','2','3','5','6','8','9']);
+    const ANG=new Set(['A','K','M','N','V','W','X','Y','Z','1','4','7']);
+    const CHAR_FACES = ['^_^','owo','T_T','-_-','>_<','@_@','._.','^o^','=w=','x_x'];
+    const PICK_EMOJIS = ['🙂','😼','🤨','✨','🌀','🍀','🫧','🪄','👀','🎲','🐾','💫'];
+    let currentQuestions = [];
+    let specialUnlocked = false;
+    let catClicks = 0;
+
+    const shuffle = (arr) => {
+      const a = [...arr];
+      for (let i = a.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [a[i], a[j]] = [a[j], a[i]];
+      }
+      return a;
+    };
+    const unique = (gen, count) => {
+      const out = [], seen = new Set();
+      while (out.length < count) {
+        const q = gen();
+        if (!seen.has(q.signature)) {
+          seen.add(q.signature);
+          out.push(q);
+        }
+      }
+      return out;
+    };
+    const isPrime = (n) => {
+      if (n < 2) return false;
+      for (let i = 2; i * i <= n; i++) if (n % i === 0) return false;
+      return true;
+    };
+    const droot = (n) => {
+      let v = Math.abs(n);
+      while (v >= 10) v = String(v).split('').reduce((s, x) => s + Number(x), 0);
+      return v;
+    };
+    const digitArcs = (s) => [...s].reduce((m, c) => m + ({'0':1,'6':1,'8':2,'9':1,'.':1}[c] || 0), 0);
+    const digitCorners = (s) => [...s].reduce((m, c) => m + ({'2':1,'4':3,'5':2,'7':2,'9':1,'/':2}[c] || 0), 0);
+
+    function analyzeNumber(option) {
+      const s = option.label;
+      const numeric = option.value;
+      const paritySeed = option.kind === 'fraction' ? option.parts.numerator + option.parts.denominator : option.kind === 'decimal' ? Math.round(numeric * 10) : Math.round(numeric);
+      const primeSeed = option.kind === 'fraction' ? option.parts.numerator : paritySeed;
+      const arcs = digitArcs(s), corners = digitCorners(s), root = droot(primeSeed);
+      return {
+        arc: arcs * 1.8, corner: corners * 2, odd: paritySeed % 2 ? 2.4 : 0.4, even: paritySeed % 2 === 0 ? 2.4 : 0.4,
+        prime: isPrime(primeSeed) ? (option.kind === 'integer' ? 3 : 2.1) : 0.6, composite: primeSeed > 3 && !isPrime(primeSeed) ? (option.kind === 'integer' ? 2.8 : 2) : 0.5,
+        balance: s.length % 2 === 0 ? 1.8 : 1.1, magnitude: Math.min(numeric / 35, 6), smallness: Math.max(0, 6 - numeric / 24),
+        echo: (s.length - new Set(s).size) * 2.5 + (root % 3 === 0 ? 1.2 : 0.4), symmetry: ['0','8'].some((c) => s.includes(c)) ? 1.8 : 0.5,
+        drift: (Math.abs(root - 5) + Math.abs(arcs - corners) + (option.kind === 'integer' ? 0 : 1.2)) * 0.8, gap: Math.abs(arcs - corners) * 1.4 + (option.kind === 'fraction' ? 1.1 : option.kind === 'decimal' ? 0.7 : 0)
+      };
+    }
+
+    function analyzeChars(text) {
+      const chars = [...text], codes = chars.map((c) => c.charCodeAt(0));
+      let symmetry = 0, closed = 0, curves = 0, angles = 0, repeats = 0;
+      chars.forEach((ch, i) => {
+        if (SYM.has(ch)) symmetry += 1.3;
+        if (CLS.has(ch)) closed += 1.2;
+        if (CUR.has(ch)) curves += 1.1;
+        if (ANG.has(ch)) angles += 1.15;
+        if (i > 0 && chars[i - 1] === ch) repeats += 1.8;
+      });
+      const asciiFlow = codes.slice(1).reduce((s, c, i) => s + Math.abs(c - codes[i]), 0) / 8;
+      return {
+        symmetry, closed, arc: curves, corner: angles, echo: repeats + (new Set(chars).size < chars.length ? 1.6 : 0.6),
+        asciiFlow, balance: Math.abs(curves - angles) < 1.6 ? 2.4 : 0.8, drift: asciiFlow > 4 ? 2.8 : 1.2,
+        gap: Math.abs(symmetry - closed) + Math.abs(curves - angles) * 0.9, smallness: chars.length <= 4 ? 2 : 0.8,
+        imbalance: Math.max(0.5, Math.abs(codes[0] - codes[codes.length - 1]) / 12)
+      };
+    }
+
+    function analyzeAddition(choice, a, b) {
+      const target = a + b, delta = choice - target;
+      const carryReal = Math.floor(a / 10) + Math.floor(b / 10) !== Math.floor(target / 10);
+      const carryChoice = Math.floor(a / 10) + Math.floor(b / 10) !== Math.floor(choice / 10);
+      return {
+        carry: (carryChoice ? 2.8 : 0.8) + (carryReal === carryChoice ? 1.1 : 0.3), proximity: Math.max(0.5, 6 - Math.abs(delta)),
+        gap: Math.abs(delta) * 0.95 + 0.6, balance: delta === 0 ? 0.2 : (Math.abs(delta) <= 3 ? 2.6 : 0.9),
+        drift: Math.abs(delta) > 5 ? 2.8 : 1, magnitude: delta > 0 ? Math.abs(delta) * 0.8 + 0.8 : 0.4,
+        smallness: delta < 0 ? Math.abs(delta) * 0.8 + 0.8 : 0.4, odd: choice % 2 ? 1.4 : 0.5, even: choice % 2 === 0 ? 1.4 : 0.5,
+        prime: isPrime(choice) ? 1.8 : 0.4, composite: choice > 3 && !isPrime(choice) ? 1.6 : 0.4,
+        imbalance: Math.abs((choice % 10) - (target % 10)) * 0.65 + 0.4
+      };
+    }
+
+    function analyzeSpecial(choice) {
+      const map = {
+        '1+∞': { drift: 3.6, gap: 2.8, balance: 1.2, carry: 2.2, magnitude: 2.6, symmetry: 0.8 },
+        '1': { smallness: 3.4, proximity: 2.8, balance: 1.6, odd: 1.8, closed: 0.8, drift: 0.8 },
+        '-∞': { drift: 3.8, gap: 3.2, imbalance: 2.4, magnitude: 2.2, corner: 1.2, prime: 0.6 },
+        '∞': { arc: 3.4, symmetry: 2.8, magnitude: 3.1, closed: 1.4, balance: 2.2, echo: 1.1 }
+      };
+      return map[choice] || {};
+    }
+
+    const NUMBER_PROMPTS = [
+      '在本轮形式稳定性访谈中，哪一个数字最像已经替自己想好退路的对象？',
+      '假设你必须把其中一个数字带进会议室充当发言人，你会选谁替你承担尴尬？',
+      '以下数字中，哪一个最像表面冷静、实际上控制欲很强的样本？',
+      '若系统要求你立即信任一个数字，你会把这种轻率交给哪一位？',
+      '哪一个数字最像那种并不讨喜，但你不得不承认它很稳的人？',
+      '在这些数字里，谁最像已经提前写完自我辩护词的对象？',
+      '如果把它们视作候选人格，哪一个最像会在沉默里赢过你的？',
+      '哪一个数字最符合“看着普通，却会在关键时刻突然掌控局面”的描述？',
+      '若你仍相信直觉，请指出最像成熟样本的那个数字。',
+      '系统判断你会偏爱其中一个数字，请证明你没有那么好预测。',
+      '以下哪一个数字最像会礼貌地冒犯你，然后逼你承认它是对的？',
+      '在这组候选编码中，哪一个最像已经完成自我校准的合格对象？'
+    ];
+
+    function makeNumberOption(baseValue) {
+      const roll = Math.random();
+      if (roll < 0.06) {
+        const denominator = shuffle([2,3,4,5,8])[0];
+        const numerator = baseValue * denominator + shuffle([-1,1,2])[0];
+        return { label:`${numerator}/${denominator}`, value:numerator / denominator, kind:'fraction', parts:{ numerator, denominator } };
+      }
+      if (roll < 0.18) {
+        const delta = shuffle([0.25,0.5,0.75])[0] * (Math.random() < 0.5 ? -1 : 1);
+        const value = Math.max(1, Number((baseValue + delta).toFixed(2)));
+        const label = value % 1 === 0 ? String(value.toFixed(1)) : String(value).replace(/0+$/,'').replace(/\.$/,'');
+        return { label, value, kind:'decimal', parts:null };
+      }
+      return { label:String(baseValue), value:baseValue, kind:'integer', parts:null };
+    }
+
+    const numQ = (promptIndex) => {
+      const base = Math.floor(Math.random() * 84) + 10;
+      const offsets = shuffle([-7,-3,4,9,12,15,18]).slice(0,3);
+      const options = shuffle([base, ...offsets.map((n) => Math.max(10, base + n))]).slice(0,4).map((v) => makeNumberOption(v));
+      return { type:'number', title:NUMBER_PROMPTS[promptIndex], signature:`n-${options.map((v)=>v.label).sort().join('-')}-${promptIndex}`, options };
+    };
+    const randChars = () => {
+      if (Math.random() < 0.12) return CHAR_FACES[Math.floor(Math.random() * CHAR_FACES.length)];
+      const len = Math.floor(Math.random() * 3) + 4;
+      let s = '';
+      for (let i = 0; i < len; i++) s += CHAR_POOL[Math.floor(Math.random() * CHAR_POOL.length)];
+      return s;
+    };
+    const CHAR_PROMPTS = [
+      '以下哪组字符更像已经形成内部秩序、暂时不需要你添乱的群体？',
+      '如果观察室要求你从中选出一组作为安全口令，你会把信任交给哪一组？',
+      '哪组字符最像表面松散、实际上早就私下达成一致的同盟？',
+      '若把这些字符视作小型社会，哪一组最像不会轻易把你接纳进去的那群？',
+      '以下哪组符号最符合“沉默、稳定、略带排他性”的观察记录？',
+      '哪组字符最像你今天勉强愿意承认其具有专业气质的样本？'
+    ];
+    const charQ = (promptIndex) => {
+      const options = shuffle([randChars(),randChars(),randChars(),randChars()]);
+      return { type:'chars', title:CHAR_PROMPTS[promptIndex], signature:`c-${options.slice().sort().join('-')}-${promptIndex}`, options:options.map((v)=>({label:v,value:v})) };
+    };
+    const addQ = () => {
+      const a = Math.floor(Math.random() * 37) + 8, b = Math.floor(Math.random() * 37) + 6, sum = a + b;
+      const options = shuffle(shuffle([-9,-6,-3,3,5,7,11]).slice(0,4).map((d)=>sum + d));
+      return { type:'addition', title:`在算术服从性校准中，请判断：${a} + ${b} = ?`, signature:`a-${a}-${b}-${options.slice().sort((m,n)=>m-n).join('-')}`, a, b, options:options.map((v)=>({label:String(v),value:v})) };
+    };
+
+    function scrollToFirstQuestion() {
+      const first = document.querySelector('.q');
+      if (first) first.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+
+    function decorateSelectedOption(input) {
+      const name = input.name;
+      document.querySelectorAll(`input[name="${name}"] + span`).forEach((span) => {
+        span.textContent = span.dataset.baseLabel;
+      });
+      const target = input.nextElementSibling;
+      if (!target) return;
+      const emoji = PICK_EMOJIS[Math.floor(Math.random() * PICK_EMOJIS.length)];
+      target.textContent = `${target.dataset.baseLabel} ${emoji}`;
+    }
+
+    function buildQuiz(shouldScrollToFirst = false) {
+      const promptIndexes = shuffle(NUMBER_PROMPTS.map((_, i) => i));
+      const numberQuestions = [];
+      const numberSignatures = new Set();
+      while (numberQuestions.length < NUMBER_COUNT) {
+        const promptIndex = promptIndexes[numberQuestions.length % promptIndexes.length];
+        let q;
+        do { q = numQ(promptIndex); } while (numberSignatures.has(q.signature));
+        numberSignatures.add(q.signature);
+        numberQuestions.push(q);
+      }
+      const charPromptIndexes = shuffle(CHAR_PROMPTS.map((_, i) => i));
+      const charQuestions = [];
+      const charSignatures = new Set();
+      while (charQuestions.length < CHAR_COUNT) {
+        const promptIndex = charPromptIndexes[charQuestions.length % charPromptIndexes.length];
+        let q;
+        do { q = charQ(promptIndex); } while (charSignatures.has(q.signature));
+        charSignatures.add(q.signature);
+        charQuestions.push(q);
+      }
+      currentQuestions = [...shuffle([...numberQuestions, ...charQuestions, ...unique(addQ, ADDITION_COUNT)]), { ...SPECIAL_QUESTION }].map((q, i) => ({ ...q, id: i + 1 }));
+      specialUnlocked = false;
+      catClicks = 0;
+      const form = document.getElementById('quizForm');
+      form.innerHTML = currentQuestions.map((q, i) => `
+        <article class="q${q.type === 'special' ? ' special-hidden' : ''}" data-qtype="${q.type}">
+          <div class="qtop">
+            <span class="idx">${q.type === 'special' ? 'Final Question' : `Question ${i + 1}`}</span>
+            <span class="qtype">${q.type === 'number' ? '数字题' : q.type === 'chars' ? '字符题' : q.type === 'addition' ? '运算题' : '特殊题'}</span>
+          </div>
+          <h3 class="qt">${q.title}</h3>
+          <div class="ops">
+            ${q.options.map((o, j) => `<label class="opt"><input type="radio" name="q${q.id}" value="${j}"><span>${o.label}</span></label>`).join('')}
+          </div>
+        </article>
+      `).join('');
+      form.querySelectorAll('.opt span').forEach((span) => {
+        span.dataset.baseLabel = span.textContent;
+      });
+      form.querySelectorAll('input[type="radio"]').forEach((el) => el.addEventListener('change', updateProgress));
+      form.querySelectorAll('input[type="radio"]').forEach((el) => el.addEventListener('change', () => decorateSelectedOption(el)));
+      document.getElementById('resultPanel').classList.add('hidden');
+      document.getElementById('catNote').textContent = '点喵咪 3 次也许会有事发生';
+      updateProgress();
+      if (shouldScrollToFirst) scrollToFirstQuestion();
+      else window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    function updateProgress() {
+      const regularQuestions = currentQuestions.filter((q) => q.type !== 'special');
+      const done = regularQuestions.reduce((n, q) => n + (document.querySelector(`input[name="q${q.id}"]:checked`) ? 1 : 0), 0);
+      const special = currentQuestions.find((q) => q.type === 'special');
+      const specialDone = special && document.querySelector(`input[name="q${special.id}"]:checked`) ? 1 : 0;
+      document.getElementById('progressText').textContent = `已完成 ${done} / ${QUIZ_TOTAL} · 彩蛋 ${specialDone} / 1`;
+      document.getElementById('progressBar').style.width = `${done / QUIZ_TOTAL * 100}%`;
+    }
+
+    function revealSpecialQuestion() {
+      if (specialUnlocked) return;
+      specialUnlocked = true;
+      const specialCard = document.querySelector('.q[data-qtype="special"]');
+      if (specialCard) {
+        specialCard.classList.remove('special-hidden');
+        specialCard.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }
+      document.getElementById('catNote').textContent = '彩蛋题已解锁';
+      updateProgress();
+    }
+
+    function onCatClick() {
+      if (specialUnlocked) return;
+      catClicks += 1;
+      const remain = Math.max(0, 3 - catClicks);
+      document.getElementById('catNote').textContent = remain > 0 ? `喵，再点 ${remain} 次` : '彩蛋出现中...';
+      if (catClicks >= 3) revealSpecialQuestion();
+    }
+
+    function hashScores(dimensions, answers) {
+      const raw = `${Object.keys(dimensions).sort().map((k) => `${k}:${dimensions[k].toFixed(2)}`).join('|')}||${answers.join(',')}`;
+      let hash = 2166136261;
+      for (let i = 0; i < raw.length; i++) { hash ^= raw.charCodeAt(i); hash = Math.imul(hash, 16777619); }
+      return (hash >>> 0) % 100;
+    }
+
+    function bucketPersona(hash) {
+      let cursor = 0;
+      for (const p of PERSONAS) { cursor += p.rate; if (hash < cursor) return p; }
+      return PERSONAS[PERSONAS.length - 1];
+    }
+
+    function collectAnswers() {
+      const picks = [];
+      for (const q of currentQuestions) {
+        if (q.type === 'special' && !specialUnlocked) {
+          picks.push(null);
+          continue;
+        }
+        const picked = document.querySelector(`input[name="q${q.id}"]:checked`);
+        if (!picked) return null;
+        picks.push(Number(picked.value));
+      }
+      return picks;
+    }
+
+    function buildReason(persona, dominant, secondary, dimensions) {
+      const d1 = DIMENSION_META[dominant], d2 = DIMENSION_META[secondary];
+      const extra = persona.tags.find((t) => t !== dominant && t !== secondary) || persona.tags[0];
+      return `本轮你的最高维度是“${d1}”，其次是“${d2}”，说明你更容易被 ${d1} 与 ${d2} 的组合吸引。算法随后把这组维度放进受控概率桶，命中了 ${persona.code} / ${persona.name}。这个人格偏向 ${persona.tone}，并且你在“${DIMENSION_META[extra]}”上的累计值为 ${((dimensions[extra] || 0)).toFixed(1)}，所以结果不像纯随机，更像一次有风格的误判。`;
+    }
+
+    function buildClinicalNarrative(persona, dimensions, dominant, secondary) {
+      const ordered = Object.entries(dimensions).sort((a, b) => b[1] - a[1]);
+      const third = ordered[2] ? ordered[2][0] : persona.tags[0];
+      const dominantName = DIMENSION_META[dominant];
+      const secondaryName = DIMENSION_META[secondary];
+      const thirdName = DIMENSION_META[third];
+      const dominantLine = DIMENSION_CLINICAL[dominant];
+      const secondaryLine = DIMENSION_CLINICAL[secondary];
+      const thirdLine = DIMENSION_CLINICAL[third];
+      return `从偏心理学的阅读方式看，${persona.name} 并不只是风格标签，更像一种稳定的应对轮廓。你的主导特征落在“${dominantName}”，这通常意味着在面对环境刺激、人际气氛或信息噪声时，${dominantLine} 次高维度是“${secondaryName}”，说明你不会只停留在单一反应上，而会同时带着另一条心理通道工作，也就是 ${secondaryLine} 此外，你在“${thirdName}”上的得分也比较突出，提示你在更细处还保留着这样的倾向：${thirdLine} 综合来看，这次结果像是在说，你会以 ${persona.tone} 的方式组织自己的注意力、边界感和情绪节奏，因此才会落到 ${persona.code} 这一型。`;
+    }
+
+    function renderResult(persona, dimensions, dominant, secondary) {
+      document.getElementById('resultPanel').classList.remove('hidden');
+      document.getElementById('personaCode').textContent = persona.code;
+      document.getElementById('personaRate').textContent = `理论命中率 ${persona.rate}%`;
+      document.getElementById('personaAlgo').textContent = `算法气质 ${persona.vibe}`;
+      document.getElementById('personaName').textContent = `${persona.code} · ${persona.name}`;
+      document.getElementById('personaIntro').textContent = `你已完成 NoBTI 观察流程，并被归类为 ${persona.code} 型“${persona.name}”。这不是一个真正可靠的医学结论，却会用足够专业的语气，把你的犹豫、偏好与一点点不服气描述得像回事。`;
+      document.getElementById('personaDesc').textContent = `${persona.desc}${buildClinicalNarrative(persona, dimensions, dominant, secondary)}`;
+      document.getElementById('personaReason').textContent = buildReason(persona, dominant, secondary, dimensions);
+      document.getElementById('metaA').textContent = DIMENSION_META[dominant];
+      document.getElementById('metaB').textContent = DIMENSION_META[secondary];
+      document.getElementById('metaC').textContent = MOOD_MAP[dominant] || persona.vibe;
+      const max = Math.max(...Object.values(dimensions));
+      document.getElementById('dimensionGrid').innerHTML = Object.entries(dimensions).sort((a, b) => b[1] - a[1]).map(([k, v]) => `
+        <article class="dim">
+          <strong><span>${DIMENSION_META[k]}</span><span>${v.toFixed(1)}</span></strong>
+          <div class="dimbar"><span style="width:${max ? Math.max(6, v / max * 100) : 0}%"></span></div>
+          <p class="note">${DIMENSION_NOTE[k]}</p>
+        </article>
+      `).join('');
+      document.getElementById('resultPanel').scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+
+    function scoreQuiz() {
+      const picks = collectAnswers();
+      if (!picks) { alert('还有题目没有选择，NoBTI 需要完整误读样本。'); return; }
+      const dims = Object.fromEntries(Object.keys(DIMENSION_META).map((k) => [k, 0]));
+      const rawChoices = [];
+      currentQuestions.forEach((q, i) => {
+        if (q.type === 'special' && !specialUnlocked) return;
+        const chosen = q.options[picks[i]];
+        rawChoices.push(chosen.label ?? chosen.value);
+        const delta = q.type === 'number'
+          ? analyzeNumber(chosen)
+          : q.type === 'chars'
+            ? analyzeChars(chosen.value)
+            : q.type === 'addition'
+              ? analyzeAddition(chosen.value, q.a, q.b)
+              : analyzeSpecial(chosen.value);
+        Object.entries(delta).forEach(([k, v]) => { if (dims[k] !== undefined) dims[k] += v; });
+      });
+      const ordered = Object.entries(dims).sort((a, b) => b[1] - a[1]);
+      renderResult(bucketPersona(hashScores(dims, rawChoices)), dims, ordered[0][0], ordered[1][0]);
+    }
+
+    function renderProbabilityList() {
+      document.getElementById('probabilityList').innerHTML = PERSONAS.map((p) => `<li><span>${p.code} · ${p.name}</span><strong>${p.rate}%</strong></li>`).join('');
+    }
+
+    document.getElementById('startBtn').addEventListener('click', () => buildQuiz(true));
+    document.getElementById('rerollBtn').addEventListener('click', () => buildQuiz());
+    document.getElementById('retryBtn').addEventListener('click', () => buildQuiz());
+    document.getElementById('submitBtn').addEventListener('click', scoreQuiz);
+    document.getElementById('catBtn').addEventListener('click', onCatClick);
+    renderProbabilityList();
+    buildQuiz();

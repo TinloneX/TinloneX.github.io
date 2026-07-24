@@ -80,14 +80,33 @@ def parse_post(path: Path) -> Post:
     )
 
 
-def page_shell(title: str, description: str, body: str, extra_scripts: str = "") -> str:
+def page_shell(title: str, description: str, body: str, extra_scripts: str = "", canonical_url: str = "") -> str:
+    escaped_title = html.escape(title)
+    escaped_desc = html.escape(description)
+    url = canonical_url or "/"
+    og_block = f"""  <!-- Open Graph -->
+  <meta property="og:type" content="website">
+  <meta property="og:title" content="{escaped_title}">
+  <meta property="og:description" content="{escaped_desc}">
+  <meta property="og:image" content="https://tinlone.com/logo.jpg">
+  <meta property="og:url" content="https://tinlone.com{url}">
+  <meta property="og:site_name" content="TinloneX">
+  <meta property="og:locale" content="zh_CN">
+  <!-- Twitter Card -->
+  <meta name="twitter:card" content="summary">
+  <meta name="twitter:title" content="{escaped_title}">
+  <meta name="twitter:description" content="{escaped_desc}">
+  <meta name="twitter:image" content="https://tinlone.com/logo.jpg">
+  <!-- Canonical -->
+  <link rel="canonical" href="https://tinlone.com{url}">"""
     return f"""<!DOCTYPE html>
 <html lang="zh-CN">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>{html.escape(title)}</title>
-  <meta name="description" content="{html.escape(description)}">
+  <title>{escaped_title}</title>
+  <meta name="description" content="{escaped_desc}">
+{og_block}
   <link rel="icon" href="/logo.jpg" type="image/jpeg">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -122,6 +141,7 @@ def page_shell(title: str, description: str, body: str, extra_scripts: str = "")
           <a href="/tags/">Tags</a>
           <a href="/categories/">Categories</a>
           <a href="/about.html">About</a>
+          <a href="/link.html">Links</a>
           <a href="/valine.html">留言板</a>
           <a href="https://github.com/TinloneX/" target="_blank" rel="noreferrer">GitHub</a>
         </div>

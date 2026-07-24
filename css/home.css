@@ -1150,3 +1150,51 @@ img {
     transform: none;
   }
 }
+
+/* Focus styles for keyboard navigation */
+a:focus-visible,
+button:focus-visible,
+input:focus-visible {
+  outline: 2px solid var(--primary);
+  outline-offset: 2px;
+}
+
+.post-card:focus-visible,
+.glass-card:focus-visible,
+.focus-card:focus-visible {
+  outline: 2px solid var(--primary);
+  outline-offset: 3px;
+  transform: translateY(-2px);
+}
+
+/* Print styles */
+@media print {
+  .site-bg,
+  .nav-toggle,
+  .hero-actions,
+  .cta-actions,
+  .aurora,
+  .grid,
+  .noise,
+  .toc-panel {
+    display: none !important;
+  }
+
+  body {
+    background: #fff !important;
+    color: #000 !important;
+  }
+
+  .site-header {
+    position: static;
+  }
+
+  a {
+    color: #000;
+    text-decoration: underline;
+  }
+
+  .site-shell {
+    background: #fff !important;
+  }
+}
